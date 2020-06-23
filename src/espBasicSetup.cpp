@@ -38,6 +38,23 @@ void basicSetup::begin() {
 	}
 }
 void basicSetup::WiFiSetup() {
+#if defined WIFI_IP && defined WIFI_SUBNET && defined WIFI_GATEWAY
+	IPAddress ip;
+	ip.fromString(WIFI_IP);
+	IPAddress subnet;
+	subnet.fromString(WIFI_SUBNET);
+	IPAddress gateway;
+	gateway.fromString(WIFI_GATEWAY);
+	IPAddress dns1;
+	dns1.fromString(WIFI_DNS1);
+#ifndef WIFI_DNS2
+	WiFi.config(ip, gateway, subnet, dns1);
+#else
+	IPAddress dns2;
+	dns2.fromString(WIFI_DNS2);
+	WiFi.config(ip, gateway, subnet, dns1, dns2);
+#endif
+#endif
 	WiFi.mode(WIFI_MODE);
 	WiFi.persistent(false);
 	WiFi.begin(WIFI_SSID, WIFI_PASS);
@@ -92,6 +109,9 @@ void basicSetup::waitForWiFi() {
 }
 
 void basicSetup::OTAsetup() {
+#ifdef OTA_HOST
+	ArduinoOTA.setHostname(OTA_HOST);
+#endif
 	ArduinoOTA.onStart([]() {
 		String type;
 		if (ArduinoOTA.getCommand() == U_FLASH) {
@@ -125,6 +145,18 @@ void basicSetup::OTAsetup() {
 }
 
 void basicSetup::MQTTsetup() {
+#ifdef MQTT_CLIENTID
+	AclientMQTT.setClientId(MQTT_CLIENTID);
+#endif
+#ifdef MQTT_KEEPALIVE
+	AclientMQTT.setKeepAlive(MQTT_KEEPALIVE);
+#endif
+#if defined MQTT_WILL_TOPIC && defined MQTT_WILL_MSG
+	AclientMQTT.setWill(MQTT_WILL_TOPIC, 2, true, MQTT_WILL_MSG);
+#endif
+#if defined MQTT_USER && defined MQTT_PASS
+	AclientMQTT.setCredentials(MQTT_USER, MQTT_PASS);
+#endif
 	AclientMQTT.setServer(MQTT_BROKER, MQTT_BROKER_PORT);
 	AclientMQTT.onConnect([](bool sessionPresent) {
 		Serial.println((String) "MQTT connected!\n " + AclientMQTT.getClientId() + "@" + MQTT_BROKER);

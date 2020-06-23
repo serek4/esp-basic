@@ -1,0 +1,150 @@
+#include "espBasicSetup.hpp"
+#include "secrets.h"
+
+WiFiEventHandler WiFiConnectedHandler, gotIpHandler, WiFiDisconnectedHandler;
+Ticker wifiReconnectTimer;
+AsyncMqttClient AclientMQTT;
+Ticker mqttReconnectTimer;
+
+bool inclOTA;
+bool inclMQTT;
+
+basicSetup::basicSetup() {
+	inclOTA = true;
+	inclMQTT = true;
+}
+basicSetup::basicSetup(bool _inclOTA, bool _inclMQTT) {
+	inclOTA = _inclOTA;
+	inclMQTT = _inclMQTT;
+}
+void basicSetup::begin() {
+	Serial.begin(115200);
+	Serial.println("");
+	WiFiSetup();
+	if (inclOTA) {
+		OTAsetup();
+	}
+	if (inclMQTT) {
+		MQTTsetup();
+	}
+}
+void basicSetup::WiFiSetup() {
+	WiFi.mode(WIFI_MODE);
+	WiFi.persistent(false);
+	WiFi.begin(WIFI_SSID, WIFI_PASS);
+	WiFiConnectedHandler = WiFi.onStationModeConnected([](const WiFiEventStationModeConnected& evt) {
+		Serial.println("WiFi connected!\n SSID: " + WiFi.SSID());
+	});
+	gotIpHandler = WiFi.onStationModeGotIP([](const WiFiEventStationModeGotIP& evt) {
+		Serial.println(" IP:   " + WiFi.localIP().toString());
+		if (inclOTA) {
+			ArduinoOTA.begin();
+			Serial.println("OTA started!");
+		}
+		if (inclMQTT) {
+			mqttReconnectTimer.once(1, []() {
+				AclientMQTT.connect();
+			});
+		}
+	});
+	WiFiDisconnectedHandler = WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected& evt) {
+		WiFi.disconnect(true);
+		Serial.println("WiFi disconnected, reconnecting!");
+		if (inclOTA) {
+		}
+		if (inclMQTT) {
+			mqttReconnectTimer.detach();
+		}
+		wifiReconnectTimer.once(2, []() {
+			WiFi.begin(WIFI_SSID, WIFI_PASS);
+		});
+	});
+}
+void basicSetup::waitForWiFi() {
+	Serial.print("Connecting to WiFi");
+	int retry = 0;
+	pinMode(LED_BUILTIN, OUTPUT);
+	while (WiFi.status() != WL_CONNECTED) {
+		Serial.print(".");
+		digitalWrite(LED_BUILTIN, LOW);
+		delay(200);
+		digitalWrite(LED_BUILTIN, HIGH);
+		delay(300);
+		retry++;
+		if (retry >= 20) {
+			Serial.println("Can't connect to WiFi!");
+			break;
+		}
+	}
+}
+
+void basicSetup::OTAsetup() {
+	ArduinoOTA.onStart([]() {
+		String type;
+		if (ArduinoOTA.getCommand() == U_FLASH) {
+			type = "sketch";
+		} else {    // U_FS
+			type = "filesystem";
+		}
+		// NOTE: if updating FS this would be the place to unmount FS using FS.end()
+		Serial.println("Start updating " + type);
+	});
+	ArduinoOTA.onEnd([]() {
+		Serial.println("\nEnd");
+	});
+	ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+		Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+	});
+	ArduinoOTA.onError([](ota_error_t error) {
+		Serial.printf("Error[%u]: ", error);
+		if (error == OTA_AUTH_ERROR) {
+			Serial.println("Auth Failed");
+		} else if (error == OTA_BEGIN_ERROR) {
+			Serial.println("Begin Failed");
+		} else if (error == OTA_CONNECT_ERROR) {
+			Serial.println("Connect Failed");
+		} else if (error == OTA_RECEIVE_ERROR) {
+			Serial.println("Receive Failed");
+		} else if (error == OTA_END_ERROR) {
+			Serial.println("End Failed");
+		}
+	});
+}
+
+void basicSetup::MQTTsetup() {
+	AclientMQTT.setServer(MQTT_BROKER, MQTT_BROKER_PORT);
+	AclientMQTT.onConnect([](bool sessionPresent) {
+		Serial.println((String) "MQTT connected!\n " + AclientMQTT.getClientId() + "@" + MQTT_BROKER);
+		uint16_t subCommands = AclientMQTT.subscribe(((String) "ESP/" + AclientMQTT.getClientId() + "/commands").c_str(), 2);
+		uint16_t pubStatus = AclientMQTT.publish(((String) "ESP/" + AclientMQTT.getClientId() + "/status").c_str(), 2, true, "on");
+	});
+	AclientMQTT.onMessage([](char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
+		char fixedPayload[len + 1];
+		fixedPayload[len] = '\0';
+		MQTTmessage(topic, strncpy(fixedPayload, payload, len));
+	});
+	AclientMQTT.onDisconnect([](AsyncMqttClientDisconnectReason reason) {
+		Serial.println((String) "MQTT disconnected: [" + (int)reason + "]!");
+		if (WiFi.isConnected()) {
+			mqttReconnectTimer.once(10, []() { AclientMQTT.connect(); });
+		}
+	});
+}
+void basicSetup::waitForMQTT() {
+	if (WiFi.status() == WL_CONNECTED) {
+		int retry = 0;
+		Serial.print("Connecting MQTT");
+		while (!AclientMQTT.connected()) {
+			digitalWrite(LED_BUILTIN, LOW);
+			Serial.print(".");
+			delay(100);
+			digitalWrite(LED_BUILTIN, HIGH);
+			delay(150);
+			if (retry >= 40) {
+				Serial.println("Can't connect to MQTT!");
+				break;
+			}
+			retry++;
+		}
+	}
+}

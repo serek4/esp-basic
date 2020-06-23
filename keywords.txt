@@ -1,0 +1,33 @@
+#######################################
+# Syntax Coloring Map For
+# esp basics
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+basicSetup  KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+WiFiSetup   KEYWORD2
+waitForWiFi   KEYWORD2
+OTAsetup   KEYWORD2
+MQTTsetup   KEYWORD2
+waitForMQTT   KEYWORD2
+begin   KEYWORD2
+basicSetup   KEYWORD2
+MQTTmessage   KEYWORD2
+
+#######################################
+# (KEYWORD3)
+#######################################
+
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+

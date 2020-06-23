@@ -18,6 +18,8 @@ waitForWiFi   KEYWORD2
 OTAsetup   KEYWORD2
 MQTTsetup   KEYWORD2
 waitForMQTT   KEYWORD2
+FSsetup   KEYWORD2
+HTTPsetup   KEYWORD2
 begin   KEYWORD2
 basicSetup   KEYWORD2
 MQTTmessage   KEYWORD2

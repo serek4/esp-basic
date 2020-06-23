@@ -5,17 +5,21 @@ WiFiEventHandler WiFiConnectedHandler, gotIpHandler, WiFiDisconnectedHandler;
 Ticker wifiReconnectTimer;
 AsyncMqttClient AclientMQTT;
 Ticker mqttReconnectTimer;
+AsyncWebServer editorServer(80);
 
 bool inclOTA;
 bool inclMQTT;
+bool inclWebEditor;
 
 basicSetup::basicSetup() {
 	inclOTA = true;
 	inclMQTT = true;
+	inclWebEditor = true;
 }
-basicSetup::basicSetup(bool _inclOTA, bool _inclMQTT) {
+basicSetup::basicSetup(bool _inclOTA, bool _inclMQTT, bool _inclWebEditor) {
 	inclOTA = _inclOTA;
 	inclMQTT = _inclMQTT;
+	inclWebEditor = _inclWebEditor;
 }
 void basicSetup::begin() {
 	Serial.begin(115200);
@@ -26,6 +30,11 @@ void basicSetup::begin() {
 	}
 	if (inclMQTT) {
 		MQTTsetup();
+	}
+	if (inclWebEditor) {
+		if (FSsetup()) {
+			HTTPsetup();
+		}
 	}
 }
 void basicSetup::WiFiSetup() {
@@ -46,6 +55,8 @@ void basicSetup::WiFiSetup() {
 				AclientMQTT.connect();
 			});
 		}
+		if (inclWebEditor) {
+		}
 	});
 	WiFiDisconnectedHandler = WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected& evt) {
 		WiFi.disconnect(true);
@@ -54,6 +65,8 @@ void basicSetup::WiFiSetup() {
 		}
 		if (inclMQTT) {
 			mqttReconnectTimer.detach();
+		}
+		if (inclWebEditor) {
 		}
 		wifiReconnectTimer.once(2, []() {
 			WiFi.begin(WIFI_SSID, WIFI_PASS);
@@ -147,4 +160,21 @@ void basicSetup::waitForMQTT() {
 			retry++;
 		}
 	}
+}
+
+bool basicSetup::FSsetup() {
+	while (!LittleFS.begin()) {
+		Serial.println("LittleFS mount failed!");
+		return false;
+	}
+	Serial.println("LittleFS mounted!");
+	return true;
+}
+void basicSetup::HTTPsetup() {
+	editorServer.addHandler(new SPIFFSEditor(HTTP_USER, HTTP_PASS, LittleFS));
+	editorServer.on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
+		request->redirect("/edit");
+	});
+	editorServer.begin();
+	Serial.println("webEditor started!");
 }

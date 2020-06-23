@@ -1,25 +1,25 @@
 #include "Arduino.h"
 
+#include <ArduinoOTA.h>
+#include <AsyncMqttClient.h>
 #include <ESP8266WiFi.h>
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
 #include <SPIFFSEditor.h>
-#include <ArduinoOTA.h>
-#include <AsyncMqttClient.h>
 #include <Ticker.h>
 
-void MQTTmessage(char* topic, char* payload);
+void MQTTmessage(char *topic, char *payload);
 
 class basicSetup {
   public:
 	void waitForWiFi();
-	void WiFiSetup();
+	void WiFiSetup(bool &waitForConnection);
 	void OTAsetup();
-	void MQTTsetup();
+	void MQTTsetup(bool &waitForConnection);
 	void waitForMQTT();
 	bool FSsetup();
 	void HTTPsetup();
-	void begin();
+	void begin(bool waitForWiFi = true, bool waitForMQTT = false);
 
 	basicSetup();
 	basicSetup(bool ota, bool mqtt, bool webEditor);

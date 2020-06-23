@@ -21,15 +21,15 @@ basicSetup::basicSetup(bool _inclOTA, bool _inclMQTT, bool _inclWebEditor) {
 	inclMQTT = _inclMQTT;
 	inclWebEditor = _inclWebEditor;
 }
-void basicSetup::begin() {
+void basicSetup::begin(bool waitForWiFi, bool waitForMQTT) {
 	Serial.begin(115200);
 	Serial.println("");
-	WiFiSetup();
+	WiFiSetup(waitForWiFi);
 	if (inclOTA) {
 		OTAsetup();
 	}
 	if (inclMQTT) {
-		MQTTsetup();
+		MQTTsetup(waitForMQTT);
 	}
 	if (inclWebEditor) {
 		if (FSsetup()) {
@@ -37,7 +37,7 @@ void basicSetup::begin() {
 		}
 	}
 }
-void basicSetup::WiFiSetup() {
+void basicSetup::WiFiSetup(bool &waitForConnection) {
 #if defined WIFI_IP && defined WIFI_SUBNET && defined WIFI_GATEWAY
 	IPAddress ip;
 	ip.fromString(WIFI_IP);
@@ -58,10 +58,10 @@ void basicSetup::WiFiSetup() {
 	WiFi.mode(WIFI_MODE);
 	WiFi.persistent(false);
 	WiFi.begin(WIFI_SSID, WIFI_PASS);
-	WiFiConnectedHandler = WiFi.onStationModeConnected([](const WiFiEventStationModeConnected& evt) {
+	WiFiConnectedHandler = WiFi.onStationModeConnected([](const WiFiEventStationModeConnected &evt) {
 		Serial.println("WiFi connected!\n SSID: " + WiFi.SSID());
 	});
-	gotIpHandler = WiFi.onStationModeGotIP([](const WiFiEventStationModeGotIP& evt) {
+	gotIpHandler = WiFi.onStationModeGotIP([](const WiFiEventStationModeGotIP &evt) {
 		Serial.println(" IP:   " + WiFi.localIP().toString());
 		if (inclOTA) {
 			ArduinoOTA.begin();
@@ -75,7 +75,7 @@ void basicSetup::WiFiSetup() {
 		if (inclWebEditor) {
 		}
 	});
-	WiFiDisconnectedHandler = WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected& evt) {
+	WiFiDisconnectedHandler = WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected &evt) {
 		WiFi.disconnect(true);
 		Serial.println("WiFi disconnected, reconnecting!");
 		if (inclOTA) {
@@ -89,6 +89,9 @@ void basicSetup::WiFiSetup() {
 			WiFi.begin(WIFI_SSID, WIFI_PASS);
 		});
 	});
+	if (waitForConnection) {
+		waitForWiFi();
+	}
 }
 void basicSetup::waitForWiFi() {
 	Serial.print("Connecting to WiFi");
@@ -144,7 +147,7 @@ void basicSetup::OTAsetup() {
 	});
 }
 
-void basicSetup::MQTTsetup() {
+void basicSetup::MQTTsetup(bool &waitForConnection) {
 #ifdef MQTT_CLIENTID
 	AclientMQTT.setClientId(MQTT_CLIENTID);
 #endif
@@ -163,7 +166,7 @@ void basicSetup::MQTTsetup() {
 		uint16_t subCommands = AclientMQTT.subscribe(((String) "ESP/" + AclientMQTT.getClientId() + "/commands").c_str(), 2);
 		uint16_t pubStatus = AclientMQTT.publish(((String) "ESP/" + AclientMQTT.getClientId() + "/status").c_str(), 2, true, "on");
 	});
-	AclientMQTT.onMessage([](char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
+	AclientMQTT.onMessage([](char *topic, char *payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
 		char fixedPayload[len + 1];
 		fixedPayload[len] = '\0';
 		MQTTmessage(topic, strncpy(fixedPayload, payload, len));
@@ -174,6 +177,9 @@ void basicSetup::MQTTsetup() {
 			mqttReconnectTimer.once(10, []() { AclientMQTT.connect(); });
 		}
 	});
+	if (waitForConnection) {
+		waitForMQTT();
+	}
 }
 void basicSetup::waitForMQTT() {
 	if (WiFi.status() == WL_CONNECTED) {
@@ -204,7 +210,7 @@ bool basicSetup::FSsetup() {
 }
 void basicSetup::HTTPsetup() {
 	editorServer.addHandler(new SPIFFSEditor(HTTP_USER, HTTP_PASS, LittleFS));
-	editorServer.on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
+	editorServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
 		request->redirect("/edit");
 	});
 	editorServer.begin();

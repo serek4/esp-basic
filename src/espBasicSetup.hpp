@@ -65,8 +65,8 @@ class basicSetup {
 		OTA ota;
 		MQTT mqtt;
 		HTTP http;
-		size_t createConfig(bool save = true);
-		bool loadConfig();
+		size_t createConfig(String filename = "config.json", bool save = true);
+		bool loadConfig(String filename = "config.json");
 	};
 	void waitForWiFi();
 	void WiFiSetup(bool &waitForConnection);

@@ -91,26 +91,26 @@ basicSetup::Config::HTTP::HTTP() {
 	strcpy(user, HTTP_USER);
 	strcpy(pass, HTTP_PASS);
 };
-bool basicSetup::Config::loadConfig() {
-	if (!LittleFS.exists("config.json")) {
+bool basicSetup::Config::loadConfig(String filename) {
+	if (!LittleFS.exists(filename)) {
 		return false;
 	}
-	File configFile = LittleFS.open("config.json", "r");
+	File configFile = LittleFS.open(filename, "r");
 	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + 2 * JSON_OBJECT_SIZE(8) + 390;
 	DynamicJsonDocument doc(capacity);
 
 	DeserializationError error = deserializeJson(doc, configFile);
 	configFile.close();
 	if (error) {
-		Serial.println("Failed to read configuration file!\nLoading default settings!");
-		LittleFS.rename("config.json", "corrupted_config.json");
+		Serial.printf("Failed to parse %s!\nLoading default settings!\n", filename);
+		LittleFS.rename(filename, "corrupted_" + filename);
 		return false;
 	}
 
 	size_t size = measureJsonPretty(doc);
-	if (createConfig(false) != size) {
-		Serial.println("Configuration file mismatch!\nLoading default settings!");
-		LittleFS.rename("config.json", "mismatched_config.json");
+	if (createConfig(filename, false) != size) {
+		Serial.printf("Configuration in %s mismatch!\nLoading default settings!\n", filename);
+		LittleFS.rename(filename, "mismatched_" + filename);
 		return false;
 	}
 
@@ -143,10 +143,10 @@ bool basicSetup::Config::loadConfig() {
 	const char *HTTP_user = doc["HTTP"]["user"];    // "admin"
 	const char *HTTP_pass = doc["HTTP"]["pass"];    // "admin"
 
-	Serial.println("config laded!");
+	Serial.printf("%s laded!\n", filename);
 	return true;
 }
-size_t basicSetup::Config::createConfig(bool save) {
+size_t basicSetup::Config::createConfig(String filename, bool save) {
 	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + 2 * JSON_OBJECT_SIZE(8) + 390;
 	DynamicJsonDocument doc(capacity);
 
@@ -182,10 +182,10 @@ size_t basicSetup::Config::createConfig(bool save) {
 	HTTP["pass"] = config.http.pass;
 
 	if (save) {
-		File configFile = LittleFS.open("config.json", "w");
+		File configFile = LittleFS.open(filename, "w");
 		serializeJsonPretty(doc, configFile);
 		configFile.close();
-		Serial.println("config saved!");
+		Serial.printf("%s saved!\n", filename);
 	}
 	return measureJsonPretty(doc);
 }

@@ -23,4 +23,7 @@ class basicSetup {
 
 	basicSetup();
 	basicSetup(bool ota, bool mqtt, bool webEditor);
+
+  private:
+	bool _fsStarted;
 };

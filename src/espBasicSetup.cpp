@@ -96,6 +96,11 @@ bool basicSetup::Config::loadConfig(String filename) {
 		return false;
 	}
 	File configFile = LittleFS.open(filename, "r");
+	if (!configFile) {
+		Serial.printf("Failed to read %s\n", filename);
+		configFile.close();
+		return false;
+	}
 	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + 2 * JSON_OBJECT_SIZE(8) + 390;
 	DynamicJsonDocument doc(capacity);
 
@@ -183,6 +188,11 @@ size_t basicSetup::Config::createConfig(String filename, bool save) {
 
 	if (save) {
 		File configFile = LittleFS.open(filename, "w");
+		if (!configFile) {
+			Serial.printf("Failed to write %s\n", filename);
+			configFile.close();
+			return false;
+		}
 		serializeJsonPretty(doc, configFile);
 		configFile.close();
 		Serial.printf("%s saved!\n", filename);

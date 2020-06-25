@@ -1,22 +1,26 @@
 #include "espBasicSetup.hpp"
 #include "secrets.h"
 
+basicSetup::Config config;
 WiFiEventHandler WiFiConnectedHandler, gotIpHandler, WiFiDisconnectedHandler;
 Ticker wifiReconnectTimer;
 AsyncMqttClient AclientMQTT;
 Ticker mqttReconnectTimer;
 AsyncWebServer editorServer(80);
 
+bool inclConfigFile;
 bool inclOTA;
 bool inclMQTT;
 bool inclWebEditor;
 
 basicSetup::basicSetup() {
+	inclConfigFile = true;
 	inclOTA = true;
 	inclMQTT = true;
 	inclWebEditor = true;
 }
-basicSetup::basicSetup(bool _inclOTA, bool _inclMQTT, bool _inclWebEditor) {
+basicSetup::basicSetup(bool _inclConfigFile, bool _inclOTA, bool _inclMQTT, bool _inclWebEditor) {
+	inclConfigFile = _inclConfigFile;
 	inclOTA = _inclOTA;
 	inclMQTT = _inclMQTT;
 	inclWebEditor = _inclWebEditor;
@@ -24,40 +28,162 @@ basicSetup::basicSetup(bool _inclOTA, bool _inclMQTT, bool _inclWebEditor) {
 void basicSetup::begin(bool waitForWiFi, bool waitForMQTT) {
 	Serial.begin(115200);
 	Serial.println("");
+	if (inclConfigFile) {
+		_fsStarted = FSsetup();
+		if (_fsStarted) {
+			if (!config.loadConfig()) {
+				config.saveConfig();
+			}
+		}
+	}
 	WiFiSetup(waitForWiFi);
 	if (inclOTA) {
 		OTAsetup();
 	}
+	if (inclWebEditor && _fsStarted) {
+		HTTPsetup();
+	}
 	if (inclMQTT) {
 		MQTTsetup(waitForMQTT);
 	}
-	if (inclWebEditor) {
-		if (FSsetup()) {
-			HTTPsetup();
-		}
-	}
 }
-void basicSetup::WiFiSetup(bool &waitForConnection) {
-#if defined WIFI_IP && defined WIFI_SUBNET && defined WIFI_GATEWAY
-	IPAddress ip;
-	ip.fromString(WIFI_IP);
-	IPAddress subnet;
+
+basicSetup::Config::WiFi::WiFi() {
+	strcpy(ssid, WIFI_SSID);
+	strcpy(pass, WIFI_PASS);
+	mode = WIFI_MODE;
+#if STATIC_IP
+	IP.fromString(WIFI_IP);
 	subnet.fromString(WIFI_SUBNET);
-	IPAddress gateway;
 	gateway.fromString(WIFI_GATEWAY);
-	IPAddress dns1;
-	dns1.fromString(WIFI_DNS1);
-#ifndef WIFI_DNS2
-	WiFi.config(ip, gateway, subnet, dns1);
+	DNS1.fromString(WIFI_DNS1);
+	DNS2.fromString(WIFI_DNS2);
+#endif
+};
+basicSetup::Config::OTA::OTA() {
+#ifndef OTA_HOST_SUFFIX
+	sprintf(hostname, "esp8266-%06x", ESP.getChipId());
 #else
-	IPAddress dns2;
-	dns2.fromString(WIFI_DNS2);
-	WiFi.config(ip, gateway, subnet, dns1, dns2);
+	sprintf(hostname, "esp8266-%s", OTA_HOST_SUFFIX);
 #endif
+};
+basicSetup::Config::MQTT::MQTT() {
+	strcpy(broker, MQTT_BROKER);
+	broker_port = MQTT_BROKER_PORT;
+#ifndef MQTT_CLIENTID_SUFFIX
+	sprintf(client_ID, "esp8266-%06x", ESP.getChipId());
+#else
+	sprintf(client_ID, "esp8266%s", MQTT_CLIENTID_SUFFIX);
 #endif
-	WiFi.mode(WIFI_MODE);
+	keepalive = MQTT_KEEPALIVE;
+#if MQTT_SET_LASTWILL
+	sprintf(will_topic, MQTT_WILL_TOPIC, client_ID);
+	strcpy(will_msg, MQTT_WILL_MSG);
+#endif
+#if MQTT_USE_CREDENTIALS
+	strcpy(user, MQTT_USER);
+	strcpy(pass, MQTT_PASS);
+#endif
+};
+basicSetup::Config::HTTP::HTTP() {
+	strcpy(user, HTTP_USER);
+	strcpy(pass, HTTP_PASS);
+};
+bool basicSetup::Config::loadConfig() {
+	if (!LittleFS.exists("config.json")) {
+		return false;
+	}
+	File configFile = LittleFS.open("config.json", "r");
+	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + 2 * JSON_OBJECT_SIZE(8) + 390;
+	DynamicJsonDocument doc(capacity);
+
+	DeserializationError error = deserializeJson(doc, configFile);
+	configFile.close();
+	if (error) {
+		Serial.println("Failed to read configuration file!\nLoading default settings!");
+		LittleFS.rename("config.json", "corrupted_config.json");
+		return false;
+	}
+
+	JsonObject WiFi = doc["WiFi"];
+	strcpy(config.wifi.ssid, WiFi["ssid"]);    // "your-wifi-ssid"
+	strcpy(config.wifi.pass, WiFi["pass"]);    // "your-wifi-password"
+	config.wifi.mode = WiFi["mode"];           // "1"
+#if STATIC_IP
+	(config.wifi.IP).fromString((const char *)WiFi["IP"]);              // "192.168.0.150"
+	(config.wifi.subnet).fromString((const char *)WiFi["subnet"]);      // "255.255.255.0"
+	(config.wifi.gateway).fromString((const char *)WiFi["gateway"]);    // "192.168.0.1"
+	(config.wifi.DNS1).fromString((const char *)WiFi["DNS1"]);          // "192.168.0.1"
+	(config.wifi.DNS2).fromString((const char *)WiFi["DNS2"]);          // "1.1.1.1"
+#endif
+	strcpy(config.ota.hostname, doc["OTA"]["host"]);    // "esp8266-chipID"
+
+	JsonObject MQTT = doc["MQTT"];
+	strcpy(config.mqtt.broker, MQTT["broker"]);          // "brocker-hostname"
+	config.mqtt.broker_port = MQTT["broker_port"];       // 1883
+	strcpy(config.mqtt.client_ID, MQTT["client_ID"]);    // "esp8266chipID"
+	config.mqtt.keepalive = MQTT["keepalive"];           // 15
+#if MQTT_SET_LASTWILL
+	strcpy(config.mqtt.will_topic, MQTT["will_topic"]);    // "ESP/esp8266chipID/status"
+	strcpy(config.mqtt.will_msg, MQTT["will_msg"]);        // "off"
+#endif
+#if MQTT_USE_CREDENTIALS
+	strcpy(config.mqtt.user, MQTT["user"]);    // "mqtt-user"
+	strcpy(config.mqtt.pass, MQTT["pass"]);    // "mqtt-password"
+#endif
+	const char *HTTP_user = doc["HTTP"]["user"];    // "admin"
+	const char *HTTP_pass = doc["HTTP"]["pass"];    // "admin"
+	Serial.println("config laded!");
+	return true;
+}
+void basicSetup::Config::saveConfig() {
+	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + 2 * JSON_OBJECT_SIZE(8) + 390;
+	DynamicJsonDocument doc(capacity);
+
+	JsonObject WiFi = doc.createNestedObject("WiFi");
+	WiFi["ssid"] = config.wifi.ssid;
+	WiFi["pass"] = config.wifi.pass;
+	WiFi["mode"] = config.wifi.mode;
+#if STATIC_IP
+	WiFi["IP"] = (config.wifi.IP).toString();
+	WiFi["subnet"] = (config.wifi.subnet).toString();
+	WiFi["gateway"] = (config.wifi.gateway).toString();
+	WiFi["DNS1"] = (config.wifi.DNS1).toString();
+	WiFi["DNS2"] = (config.wifi.DNS2).toString();
+#endif
+	JsonObject OTA = doc.createNestedObject("OTA");
+	OTA["host"] = config.ota.hostname;
+
+	JsonObject MQTT = doc.createNestedObject("MQTT");
+	MQTT["broker"] = config.mqtt.broker;
+	MQTT["broker_port"] = config.mqtt.broker_port;
+	MQTT["client_ID"] = config.mqtt.client_ID;
+	MQTT["keepalive"] = config.mqtt.keepalive;
+#if MQTT_SET_LASTWILL
+	MQTT["will_topic"] = config.mqtt.will_topic;
+	MQTT["will_msg"] = config.mqtt.will_msg;
+#endif
+#if MQTT_USE_CREDENTIALS
+	MQTT["user"] = config.mqtt.user;
+	MQTT["pass"] = config.mqtt.pass;
+#endif
+	JsonObject HTTP = doc.createNestedObject("HTTP");
+	HTTP["user"] = config.http.user;
+	HTTP["pass"] = config.http.pass;
+
+	File configFile = LittleFS.open("config.json", "w");
+	serializeJsonPretty(doc, configFile);
+	configFile.close();
+	Serial.println("config saved!");
+}
+
+void basicSetup::WiFiSetup(bool &waitForConnection) {
+#if STATIC_IP
+	WiFi.config(config.wifi.IP, config.wifi.gateway, config.wifi.subnet, config.wifi.DNS1, config.wifi.DNS2);
+#endif
+	WiFi.mode(config.wifi.mode);
 	WiFi.persistent(false);
-	WiFi.begin(WIFI_SSID, WIFI_PASS);
+	WiFi.begin(config.wifi.ssid, config.wifi.pass);
 	WiFiConnectedHandler = WiFi.onStationModeConnected([](const WiFiEventStationModeConnected &evt) {
 		Serial.println("WiFi connected!\n SSID: " + WiFi.SSID());
 	});
@@ -86,7 +212,7 @@ void basicSetup::WiFiSetup(bool &waitForConnection) {
 		if (inclWebEditor) {
 		}
 		wifiReconnectTimer.once(2, []() {
-			WiFi.begin(WIFI_SSID, WIFI_PASS);
+			WiFi.begin(config.wifi.ssid, config.wifi.pass);
 		});
 	});
 	if (waitForConnection) {
@@ -112,9 +238,7 @@ void basicSetup::waitForWiFi() {
 }
 
 void basicSetup::OTAsetup() {
-#ifdef OTA_HOST
-	ArduinoOTA.setHostname(OTA_HOST);
-#endif
+	ArduinoOTA.setHostname(config.ota.hostname);
 	ArduinoOTA.onStart([]() {
 		String type;
 		if (ArduinoOTA.getCommand() == U_FLASH) {
@@ -148,21 +272,17 @@ void basicSetup::OTAsetup() {
 }
 
 void basicSetup::MQTTsetup(bool &waitForConnection) {
-#ifdef MQTT_CLIENTID
-	AclientMQTT.setClientId(MQTT_CLIENTID);
+	AclientMQTT.setClientId(config.mqtt.client_ID);
+	AclientMQTT.setKeepAlive(config.mqtt.keepalive);
+#if MQTT_SET_LASTWILL
+	AclientMQTT.setWill(config.mqtt.will_topic, 2, true, config.mqtt.will_msg);
 #endif
-#ifdef MQTT_KEEPALIVE
-	AclientMQTT.setKeepAlive(MQTT_KEEPALIVE);
+#if MQTT_USE_CREDENTIALS
+	AclientMQTT.setCredentials(config.mqtt.user, config.mqtt.pass);
 #endif
-#if defined MQTT_WILL_TOPIC && defined MQTT_WILL_MSG
-	AclientMQTT.setWill(MQTT_WILL_TOPIC, 2, true, MQTT_WILL_MSG);
-#endif
-#if defined MQTT_USER && defined MQTT_PASS
-	AclientMQTT.setCredentials(MQTT_USER, MQTT_PASS);
-#endif
-	AclientMQTT.setServer(MQTT_BROKER, MQTT_BROKER_PORT);
+	AclientMQTT.setServer(config.mqtt.broker, config.mqtt.broker_port);
 	AclientMQTT.onConnect([](bool sessionPresent) {
-		Serial.println((String) "MQTT connected!\n " + AclientMQTT.getClientId() + "@" + MQTT_BROKER);
+		Serial.println((String) "MQTT connected!\n " + AclientMQTT.getClientId() + "@" + config.mqtt.broker);
 		uint16_t subCommands = AclientMQTT.subscribe(((String) "ESP/" + AclientMQTT.getClientId() + "/commands").c_str(), 2);
 		uint16_t pubStatus = AclientMQTT.publish(((String) "ESP/" + AclientMQTT.getClientId() + "/status").c_str(), 2, true, "on");
 	});
@@ -209,7 +329,7 @@ bool basicSetup::FSsetup() {
 	return true;
 }
 void basicSetup::HTTPsetup() {
-	editorServer.addHandler(new SPIFFSEditor(HTTP_USER, HTTP_PASS, LittleFS));
+	editorServer.addHandler(new SPIFFSEditor(config.http.user, config.http.pass, LittleFS));
 	editorServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
 		request->redirect("/edit");
 	});

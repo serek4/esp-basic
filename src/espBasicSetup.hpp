@@ -65,7 +65,7 @@ class basicSetup {
 		OTA ota;
 		MQTT mqtt;
 		HTTP http;
-		void saveConfig();
+		size_t createConfig(bool save = true);
 		bool loadConfig();
 	};
 	void waitForWiFi();

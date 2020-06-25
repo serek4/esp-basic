@@ -34,7 +34,7 @@ void basicSetup::begin(bool waitForWiFi, bool waitForMQTT) {
 		_fsStarted = FSsetup();
 		if (_fsStarted) {
 			if (!config.loadConfig()) {
-				config.saveConfig();
+				config.createConfig();
 			}
 		}
 	}
@@ -107,6 +107,13 @@ bool basicSetup::Config::loadConfig() {
 		return false;
 	}
 
+	size_t size = measureJsonPretty(doc);
+	if (createConfig(false) != size) {
+		Serial.println("Configuration file mismatch!\nLoading default settings!");
+		LittleFS.rename("config.json", "mismatched_config.json");
+		return false;
+	}
+
 	JsonObject WiFi = doc["WiFi"];
 	strcpy(config.wifi.ssid, WiFi["ssid"]);    // "your-wifi-ssid"
 	strcpy(config.wifi.pass, WiFi["pass"]);    // "your-wifi-password"
@@ -135,10 +142,11 @@ bool basicSetup::Config::loadConfig() {
 #endif
 	const char *HTTP_user = doc["HTTP"]["user"];    // "admin"
 	const char *HTTP_pass = doc["HTTP"]["pass"];    // "admin"
+
 	Serial.println("config laded!");
 	return true;
 }
-void basicSetup::Config::saveConfig() {
+size_t basicSetup::Config::createConfig(bool save) {
 	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + 2 * JSON_OBJECT_SIZE(8) + 390;
 	DynamicJsonDocument doc(capacity);
 
@@ -173,10 +181,13 @@ void basicSetup::Config::saveConfig() {
 	HTTP["user"] = config.http.user;
 	HTTP["pass"] = config.http.pass;
 
-	File configFile = LittleFS.open("config.json", "w");
-	serializeJsonPretty(doc, configFile);
-	configFile.close();
-	Serial.println("config saved!");
+	if (save) {
+		File configFile = LittleFS.open("config.json", "w");
+		serializeJsonPretty(doc, configFile);
+		configFile.close();
+		Serial.println("config saved!");
+	}
+	return measureJsonPretty(doc);
 }
 
 void basicSetup::WiFiSetup(bool &waitForConnection) {

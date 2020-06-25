@@ -13,13 +13,15 @@ bool inclOTA;
 bool inclMQTT;
 bool inclWebEditor;
 
-basicSetup::basicSetup() {
+basicSetup::basicSetup()
+    : _fsStarted(false) {
 	inclConfigFile = true;
 	inclOTA = true;
 	inclMQTT = true;
 	inclWebEditor = true;
 }
-basicSetup::basicSetup(bool _inclConfigFile, bool _inclOTA, bool _inclMQTT, bool _inclWebEditor) {
+basicSetup::basicSetup(bool _inclConfigFile, bool _inclOTA, bool _inclMQTT, bool _inclWebEditor)
+    : _fsStarted(false) {
 	inclConfigFile = _inclConfigFile;
 	inclOTA = _inclOTA;
 	inclMQTT = _inclMQTT;

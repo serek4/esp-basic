@@ -34,7 +34,10 @@ void basicSetup::begin(bool waitForWiFi, bool waitForMQTT) {
 		_fsStarted = FSsetup();
 		if (_fsStarted) {
 			if (!config.loadConfig()) {
-				config.createConfig();
+				if (!config.loadConfig("backup-config.json")) {
+					Serial.println("Loading default settings!");
+					config.createConfig();
+				}
 			}
 		}
 	}
@@ -93,28 +96,29 @@ basicSetup::Config::HTTP::HTTP() {
 };
 bool basicSetup::Config::loadConfig(String filename) {
 	if (!LittleFS.exists(filename)) {
+		Serial.println(filename + " not found!");
 		return false;
 	}
 	File configFile = LittleFS.open(filename, "r");
 	if (!configFile) {
-		Serial.printf("Failed to read %s\n", filename);
+		Serial.println("Failed to read " + filename + "!");
 		configFile.close();
 		return false;
 	}
+	size_t configfileSize = configFile.size();
 	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + 2 * JSON_OBJECT_SIZE(8) + 390;
 	DynamicJsonDocument doc(capacity);
-
 	DeserializationError error = deserializeJson(doc, configFile);
 	configFile.close();
 	if (error) {
-		Serial.printf("Failed to parse %s!\nLoading default settings!\n", filename);
+		Serial.println("Failed to parse " + filename + "!");
 		LittleFS.rename(filename, "corrupted_" + filename);
 		return false;
 	}
 
 	size_t size = measureJsonPretty(doc);
 	if (createConfig(filename, false) != size) {
-		Serial.printf("Configuration in %s mismatch!\nLoading default settings!\n", filename);
+		Serial.println("Configuration in " + filename + " mismatch!");
 		LittleFS.rename(filename, "mismatched_" + filename);
 		return false;
 	}
@@ -148,7 +152,17 @@ bool basicSetup::Config::loadConfig(String filename) {
 	const char *HTTP_user = doc["HTTP"]["user"];    // "admin"
 	const char *HTTP_pass = doc["HTTP"]["pass"];    // "admin"
 
-	Serial.printf("%s laded!\n", filename);
+	Serial.println(filename + " laded!");
+	if (!LittleFS.exists("backup-" + filename)) {
+		createConfig("backup-" + filename);
+	} else {
+		File backup = LittleFS.open("backup-" + filename, "r");
+		size_t backupfileSize = backup.size();
+		backup.close();
+		if (configfileSize != backupfileSize) {
+			createConfig("backup-" + filename);
+		}
+	}
 	return true;
 }
 size_t basicSetup::Config::createConfig(String filename, bool save) {
@@ -189,13 +203,13 @@ size_t basicSetup::Config::createConfig(String filename, bool save) {
 	if (save) {
 		File configFile = LittleFS.open(filename, "w");
 		if (!configFile) {
-			Serial.printf("Failed to write %s\n", filename);
+			Serial.println("Failed to write " + filename + "!");
 			configFile.close();
 			return false;
 		}
 		serializeJsonPretty(doc, configFile);
 		configFile.close();
-		Serial.printf("%s saved!\n", filename);
+		Serial.println(filename + " saved!");
 	}
 	return measureJsonPretty(doc);
 }

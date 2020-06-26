@@ -5,6 +5,7 @@ basicSetup mySetup;
 
 void setup() {
 	mySetup.begin();
+	mySetup.onMQTTmessage(handleIncMQTTmsg);
 }
 
 void loop() {
@@ -12,6 +13,6 @@ void loop() {
 	delay(10);
 }
 
-void MQTTmessage(char* topic, char* payload) {
+void handleIncMQTTmsg(char *topic, char *payload) {
 	Serial.printf("Incomming mqtt message!\n msg.topic:   %s\n msg.payload: %s\n", topic, payload);
 }

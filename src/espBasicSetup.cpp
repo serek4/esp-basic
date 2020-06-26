@@ -308,6 +308,13 @@ void basicSetup::OTAsetup() {
 	});
 }
 
+void basicSetup::onMQTTmessage(UserHandler::onMQTTmesageHandler handler) {
+  _handler.push_back(handler);
+}
+void basicSetup::_onMQTTmessage(char *_topic, char *_payload) {
+	for (auto handler : _handler) handler(_topic, _payload);
+  
+}
 void basicSetup::MQTTsetup(bool &waitForConnection) {
 	AclientMQTT.setClientId(config.mqtt.client_ID);
 	AclientMQTT.setKeepAlive(config.mqtt.keepalive);
@@ -323,10 +330,10 @@ void basicSetup::MQTTsetup(bool &waitForConnection) {
 		uint16_t subCommands = AclientMQTT.subscribe(((String) "ESP/" + AclientMQTT.getClientId() + "/commands").c_str(), 2);
 		uint16_t pubStatus = AclientMQTT.publish(((String) "ESP/" + AclientMQTT.getClientId() + "/status").c_str(), 2, true, "on");
 	});
-	AclientMQTT.onMessage([](char *topic, char *payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
+	AclientMQTT.onMessage([&](char *topic, char *payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
 		char fixedPayload[len + 1];
 		fixedPayload[len] = '\0';
-		MQTTmessage(topic, strncpy(fixedPayload, payload, len));
+		_onMQTTmessage(topic, strncpy(fixedPayload, payload, len));
 	});
 	AclientMQTT.onDisconnect([](AsyncMqttClientDisconnectReason reason) {
 		Serial.println((String) "MQTT disconnected: [" + (int)reason + "]!");

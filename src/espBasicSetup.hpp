@@ -10,9 +10,10 @@
 #include <SPIFFSEditor.h>
 #include <Ticker.h>
 
-namespace UserHandler {
+namespace UserHandlers {
+typedef std::function<void()> onMQTTconnectHandler;
 typedef std::function<void(char *_topic, char *_payload)> onMQTTmesageHandler;
-}
+}    // namespace UserHandlers
 
 class basicSetup {
   public:
@@ -75,7 +76,8 @@ class basicSetup {
 	void OTAsetup();
 	void MQTTsetup(bool &waitForConnection);
 	void waitForMQTT();
-	void onMQTTmessage(UserHandler::onMQTTmesageHandler handler);
+	void onMQTTconnect(UserHandlers::onMQTTconnectHandler handler);
+	void onMQTTmessage(UserHandlers::onMQTTmesageHandler handler);
 	uint16_t MQTTpublish(const char *topic, const char *payload, uint8_t qos = 0, bool retain = false);
 	uint16_t MQTTsubscribe(const char *topic, uint8_t qos = 0);
 	bool FSsetup();
@@ -86,8 +88,10 @@ class basicSetup {
 	basicSetup(bool inclConfigFile, bool ota, bool mqtt, bool webEditor);
 
   private:
-	std::vector<UserHandler::onMQTTmesageHandler> _handler;
+	std::vector<UserHandlers::onMQTTconnectHandler> _onConnectHandler;
+	std::vector<UserHandlers::onMQTTmesageHandler> _onMessageHandler;
 	bool _fsStarted;
-	
+
+	void _onMQTTconnect();
 	void _onMQTTmessage(char *_topic, char *_payload);
 };

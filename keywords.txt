@@ -13,18 +13,20 @@ basicSetup  KEYWORD1
 # Methods and Functions (KEYWORD2)
 #######################################
 
-saveConfig   KEYWORD2
+createConfig   KEYWORD2
 loadConfig   KEYWORD2
 WiFiSetup   KEYWORD2
 waitForWiFi   KEYWORD2
 OTAsetup   KEYWORD2
 MQTTsetup   KEYWORD2
 waitForMQTT   KEYWORD2
+onMQTTconnect   KEYWORD2
+onMQTTmessage   KEYWORD2
+MQTTpublish   KEYWORD2
+MQTTsubscribe   KEYWORD2
 FSsetup   KEYWORD2
 HTTPsetup   KEYWORD2
 begin   KEYWORD2
-basicSetup   KEYWORD2
-MQTTmessage   KEYWORD2
 
 #######################################
 # (KEYWORD3)

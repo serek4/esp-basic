@@ -13,6 +13,8 @@ basicSetup  KEYWORD1
 # Methods and Functions (KEYWORD2)
 #######################################
 
+saveConfig   KEYWORD2
+loadConfig   KEYWORD2
 WiFiSetup   KEYWORD2
 waitForWiFi   KEYWORD2
 OTAsetup   KEYWORD2

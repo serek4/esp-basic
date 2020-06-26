@@ -311,6 +311,12 @@ void basicSetup::OTAsetup() {
 void basicSetup::onMQTTmessage(UserHandler::onMQTTmesageHandler handler) {
   _handler.push_back(handler);
 }
+uint16_t basicSetup::MQTTpublish(const char *topic, const char *payload, uint8_t qos, bool retain) {
+	return AclientMQTT.publish(topic, qos, retain, payload);
+}
+uint16_t MQTTsubscribe(const char *topic, uint8_t qos) {
+	return AclientMQTT.subscribe(topic, qos);
+}
 void basicSetup::_onMQTTmessage(char *_topic, char *_payload) {
 	for (auto handler : _handler) handler(_topic, _payload);
   

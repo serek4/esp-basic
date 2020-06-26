@@ -15,4 +15,5 @@ void loop() {
 
 void handleIncMQTTmsg(char *topic, char *payload) {
 	Serial.printf("Incomming mqtt message!\n msg.topic:   %s\n msg.payload: %s\n", topic, payload);
+	mySetup.MQTTpublish("ESP/esp8266wemos/feedback", payload);
 }

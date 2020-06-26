@@ -76,6 +76,8 @@ class basicSetup {
 	void MQTTsetup(bool &waitForConnection);
 	void waitForMQTT();
 	void onMQTTmessage(UserHandler::onMQTTmesageHandler handler);
+	uint16_t MQTTpublish(const char *topic, const char *payload, uint8_t qos = 0, bool retain = false);
+	uint16_t MQTTsubscribe(const char *topic, uint8_t qos = 0);
 	bool FSsetup();
 	void HTTPsetup();
 	void begin(bool waitForWiFi = true, bool waitForMQTT = false);

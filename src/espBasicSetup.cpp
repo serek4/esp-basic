@@ -66,19 +66,19 @@ basicSetup::Config::WiFi::WiFi() {
 #endif
 };
 basicSetup::Config::OTA::OTA() {
-#ifndef OTA_HOST_SUFFIX
+#ifndef OTA_HOST
 	sprintf(hostname, "esp8266-%06x", ESP.getChipId());
 #else
-	sprintf(hostname, "esp8266-%s", OTA_HOST_SUFFIX);
+	strcpy(hostname, OTA_HOST);
 #endif
 };
 basicSetup::Config::MQTT::MQTT() {
 	strcpy(broker, MQTT_BROKER);
 	broker_port = MQTT_BROKER_PORT;
-#ifndef MQTT_CLIENTID_SUFFIX
+#ifndef MQTT_CLIENTID
 	sprintf(client_ID, "esp8266-%06x", ESP.getChipId());
 #else
-	sprintf(client_ID, "esp8266%s", MQTT_CLIENTID_SUFFIX);
+	strcpy(client_ID, MQTT_CLIENTID);
 #endif
 	keepalive = MQTT_KEEPALIVE;
 #if MQTT_SET_LASTWILL
@@ -149,8 +149,8 @@ bool basicSetup::Config::loadConfig(String filename) {
 	strcpy(config.mqtt.user, MQTT["user"]);    // "mqtt-user"
 	strcpy(config.mqtt.pass, MQTT["pass"]);    // "mqtt-password"
 #endif
-	const char *HTTP_user = doc["HTTP"]["user"];    // "admin"
-	const char *HTTP_pass = doc["HTTP"]["pass"];    // "admin"
+	strcpy(config.http.user, doc["HTTP"]["user"]);    // "admin"
+	strcpy(config.http.pass, doc["HTTP"]["pass"]);    // "admin"
 
 	Serial.println(filename + " laded!");
 	if (!LittleFS.exists("backup-" + filename)) {

@@ -76,8 +76,8 @@ class basicSetup {
 	void OTAsetup();
 	void MQTTsetup(bool &waitForConnection);
 	void waitForMQTT();
-	void onMQTTconnect(UserHandlers::onMQTTconnectHandler handler);
-	void onMQTTmessage(UserHandlers::onMQTTmesageHandler handler);
+	void onMQTTconnect(const UserHandlers::onMQTTconnectHandler &handler);
+	void onMQTTmessage(const UserHandlers::onMQTTmesageHandler &handler);
 	uint16_t MQTTpublish(const char *topic, const char *payload, uint8_t qos = 0, bool retain = false);
 	uint16_t MQTTsubscribe(const char *topic, uint8_t qos = 0);
 	bool FSsetup();

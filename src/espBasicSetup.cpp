@@ -308,10 +308,10 @@ void basicSetup::OTAsetup() {
 	});
 }
 
-void basicSetup::onMQTTconnect(UserHandlers::onMQTTconnectHandler handler) {
+void basicSetup::onMQTTconnect(const UserHandlers::onMQTTconnectHandler &handler) {
 	_onConnectHandler.push_back(handler);
 }
-void basicSetup::onMQTTmessage(UserHandlers::onMQTTmesageHandler handler) {
+void basicSetup::onMQTTmessage(const UserHandlers::onMQTTmesageHandler &handler) {
 	_onMessageHandler.push_back(handler);
 }
 uint16_t basicSetup::MQTTpublish(const char *topic, const char *payload, uint8_t qos, bool retain) {
@@ -324,10 +324,10 @@ void basicSetup::_onMQTTconnect() {
 	Serial.println((String) "MQTT connected!\n " + AclientMQTT.getClientId() + "@" + config.mqtt.broker);
 	uint16_t subCommands = AclientMQTT.subscribe(((String) "ESP/" + AclientMQTT.getClientId() + "/commands").c_str(), 2);
 	uint16_t pubStatus = AclientMQTT.publish(((String) "ESP/" + AclientMQTT.getClientId() + "/status").c_str(), 2, true, "on");
-	for (auto handler : _onConnectHandler) handler();
+	for (const auto &handler : _onConnectHandler) handler();
 }
 void basicSetup::_onMQTTmessage(char *_topic, char *_payload) {
-	for (auto handler : _onMessageHandler) handler(_topic, _payload);
+	for (const auto &handler : _onMessageHandler) handler(_topic, _payload);
 }
 void basicSetup::MQTTsetup(bool &waitForConnection) {
 	AclientMQTT.setClientId(config.mqtt.client_ID);

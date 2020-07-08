@@ -41,13 +41,13 @@ void basicSetup::begin(bool waitForWiFi, bool waitForMQTT) {
 			}
 		}
 	}
-	WiFiSetup(waitForWiFi);
 	if (inclOTA) {
 		OTAsetup();
 	}
 	if (inclWebEditor && _fsStarted) {
 		HTTPsetup();
 	}
+	WiFiSetup(waitForWiFi);
 	if (inclMQTT) {
 		MQTTsetup(waitForMQTT);
 	}
@@ -230,12 +230,14 @@ void basicSetup::WiFiSetup(bool &waitForConnection) {
 			ArduinoOTA.begin();
 			Serial.println("OTA started!");
 		}
+		if (inclWebEditor) {
+			editorServer.begin();
+			Serial.println("webEditor started!");
+		}
 		if (inclMQTT) {
 			mqttReconnectTimer.once(1, []() {
 				AclientMQTT.connect();
 			});
-		}
-		if (inclWebEditor) {
 		}
 	});
 	WiFiDisconnectedHandler = WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected &evt) {
@@ -389,6 +391,4 @@ void basicSetup::HTTPsetup() {
 	editorServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
 		request->redirect("/edit");
 	});
-	editorServer.begin();
-	Serial.println("webEditor started!");
 }

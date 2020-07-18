@@ -17,11 +17,11 @@
 #define WIFI_DNS2 "1.1.1.1"            // optional
 #endif
 // OTA settings
-#define OTA_HOST "esp8266-wemos"    // optional
+// #define OTA_HOST "esp8266-wemos"    // optional
 // MQTT settings
 #define MQTT_BROKER "broker-hostname"
 #define MQTT_BROKER_PORT 1883
-#define MQTT_CLIENTID "wemos"
+// #define MQTT_CLIENTID "wemos"
 #define MQTT_KEEPALIVE 15
 #if MQTT_SET_LASTWILL
 #define MQTT_WILL_TOPIC "ESP/%s/status"    // optional (%s = MQTT_CLIENTID)

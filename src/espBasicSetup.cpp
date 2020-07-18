@@ -41,13 +41,13 @@ void basicSetup::begin(bool waitForWiFi, bool waitForMQTT) {
 			}
 		}
 	}
-	WiFiSetup(waitForWiFi);
 	if (inclOTA) {
 		OTAsetup();
 	}
 	if (inclWebEditor && _fsStarted) {
 		HTTPsetup();
 	}
+	WiFiSetup(waitForWiFi);
 	if (inclMQTT) {
 		MQTTsetup(waitForMQTT);
 	}
@@ -66,19 +66,19 @@ basicSetup::Config::WiFi::WiFi() {
 #endif
 };
 basicSetup::Config::OTA::OTA() {
-#ifndef OTA_HOST_SUFFIX
+#ifndef OTA_HOST
 	sprintf(hostname, "esp8266-%06x", ESP.getChipId());
 #else
-	sprintf(hostname, "esp8266-%s", OTA_HOST_SUFFIX);
+	strcpy(hostname, OTA_HOST);
 #endif
 };
 basicSetup::Config::MQTT::MQTT() {
 	strcpy(broker, MQTT_BROKER);
 	broker_port = MQTT_BROKER_PORT;
-#ifndef MQTT_CLIENTID_SUFFIX
+#ifndef MQTT_CLIENTID
 	sprintf(client_ID, "esp8266-%06x", ESP.getChipId());
 #else
-	sprintf(client_ID, "esp8266%s", MQTT_CLIENTID_SUFFIX);
+	strcpy(client_ID, MQTT_CLIENTID);
 #endif
 	keepalive = MQTT_KEEPALIVE;
 #if MQTT_SET_LASTWILL
@@ -149,8 +149,8 @@ bool basicSetup::Config::loadConfig(String filename) {
 	strcpy(config.mqtt.user, MQTT["user"]);    // "mqtt-user"
 	strcpy(config.mqtt.pass, MQTT["pass"]);    // "mqtt-password"
 #endif
-	const char *HTTP_user = doc["HTTP"]["user"];    // "admin"
-	const char *HTTP_pass = doc["HTTP"]["pass"];    // "admin"
+	strcpy(config.http.user, doc["HTTP"]["user"]);    // "admin"
+	strcpy(config.http.pass, doc["HTTP"]["pass"]);    // "admin"
 
 	Serial.println(filename + " laded!");
 	if (!LittleFS.exists("backup-" + filename)) {
@@ -230,12 +230,14 @@ void basicSetup::WiFiSetup(bool &waitForConnection) {
 			ArduinoOTA.begin();
 			Serial.println("OTA started!");
 		}
+		if (inclWebEditor) {
+			editorServer.begin();
+			Serial.println("webEditor started!");
+		}
 		if (inclMQTT) {
 			mqttReconnectTimer.once(1, []() {
 				AclientMQTT.connect();
 			});
-		}
-		if (inclWebEditor) {
 		}
 	});
 	WiFiDisconnectedHandler = WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected &evt) {
@@ -308,10 +310,10 @@ void basicSetup::OTAsetup() {
 	});
 }
 
-void basicSetup::onMQTTconnect(UserHandlers::onMQTTconnectHandler handler) {
+void basicSetup::onMQTTconnect(const UserHandlers::onMQTTconnectHandler &handler) {
 	_onConnectHandler.push_back(handler);
 }
-void basicSetup::onMQTTmessage(UserHandlers::onMQTTmesageHandler handler) {
+void basicSetup::onMQTTmessage(const UserHandlers::onMQTTmesageHandler &handler) {
 	_onMessageHandler.push_back(handler);
 }
 uint16_t basicSetup::MQTTpublish(const char *topic, const char *payload, uint8_t qos, bool retain) {
@@ -324,10 +326,10 @@ void basicSetup::_onMQTTconnect() {
 	Serial.println((String) "MQTT connected!\n " + AclientMQTT.getClientId() + "@" + config.mqtt.broker);
 	uint16_t subCommands = AclientMQTT.subscribe(((String) "ESP/" + AclientMQTT.getClientId() + "/commands").c_str(), 2);
 	uint16_t pubStatus = AclientMQTT.publish(((String) "ESP/" + AclientMQTT.getClientId() + "/status").c_str(), 2, true, "on");
-	for (auto handler : _onConnectHandler) handler();
+	for (const auto &handler : _onConnectHandler) handler();
 }
 void basicSetup::_onMQTTmessage(char *_topic, char *_payload) {
-	for (auto handler : _onMessageHandler) handler(_topic, _payload);
+	for (const auto &handler : _onMessageHandler) handler(_topic, _payload);
 }
 void basicSetup::MQTTsetup(bool &waitForConnection) {
 	AclientMQTT.setClientId(config.mqtt.client_ID);
@@ -389,6 +391,4 @@ void basicSetup::HTTPsetup() {
 	editorServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
 		request->redirect("/edit");
 	});
-	editorServer.begin();
-	Serial.println("webEditor started!");
 }

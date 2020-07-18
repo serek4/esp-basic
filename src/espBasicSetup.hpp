@@ -90,6 +90,12 @@ class basicSetup {
   private:
 	std::vector<UserHandlers::onMQTTconnectHandler> _onConnectHandler;
 	std::vector<UserHandlers::onMQTTmesageHandler> _onMessageHandler;
+	
+	bool _inclConfigFile;
+	bool _inclOTA;
+	bool _inclMQTT;
+	bool _inclWebEditor;
+
 	bool _fsStarted;
 
 	void _onMQTTconnect();

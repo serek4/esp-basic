@@ -1,5 +1,4 @@
 #include <espBasicSetup.h>
-#include <secrets.h>
 
 basicSetup mySetup;
 

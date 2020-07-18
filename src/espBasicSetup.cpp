@@ -1,5 +1,4 @@
 #include "espBasicSetup.hpp"
-#include "secrets.h"
 
 basicSetup::Config config;
 WiFiEventHandler WiFiConnectedHandler, gotIpHandler, WiFiDisconnectedHandler;
@@ -8,29 +7,23 @@ AsyncMqttClient AclientMQTT;
 Ticker mqttReconnectTimer;
 AsyncWebServer editorServer(80);
 
-bool inclConfigFile;
-bool inclOTA;
-bool inclMQTT;
-bool inclWebEditor;
-
 basicSetup::basicSetup()
+    : _fsStarted(false)
+    , _inclConfigFile(true)
+    , _inclOTA(true)
+    , _inclMQTT(true)
+    , _inclWebEditor(true) {}
+basicSetup::basicSetup(bool inclConfigFile, bool inclOTA, bool inclMQTT, bool inclWebEditor)
     : _fsStarted(false) {
-	inclConfigFile = true;
-	inclOTA = true;
-	inclMQTT = true;
-	inclWebEditor = true;
-}
-basicSetup::basicSetup(bool _inclConfigFile, bool _inclOTA, bool _inclMQTT, bool _inclWebEditor)
-    : _fsStarted(false) {
-	inclConfigFile = _inclConfigFile;
-	inclOTA = _inclOTA;
-	inclMQTT = _inclMQTT;
-	inclWebEditor = _inclWebEditor;
+	_inclConfigFile = inclConfigFile;
+	_inclOTA = inclOTA;
+	_inclMQTT = inclMQTT;
+	_inclWebEditor = inclWebEditor;
 }
 void basicSetup::begin(bool waitForWiFi, bool waitForMQTT) {
 	Serial.begin(115200);
 	Serial.println("");
-	if (inclConfigFile) {
+	if (_inclConfigFile) {
 		_fsStarted = FSsetup();
 		if (_fsStarted) {
 			if (!config.loadConfig()) {
@@ -41,14 +34,14 @@ void basicSetup::begin(bool waitForWiFi, bool waitForMQTT) {
 			}
 		}
 	}
-	if (inclOTA) {
+	if (_inclOTA) {
 		OTAsetup();
 	}
-	if (inclWebEditor && _fsStarted) {
+	if (_inclWebEditor && _fsStarted) {
 		HTTPsetup();
 	}
 	WiFiSetup(waitForWiFi);
-	if (inclMQTT) {
+	if (_inclMQTT) {
 		MQTTsetup(waitForMQTT);
 	}
 }
@@ -224,31 +217,31 @@ void basicSetup::WiFiSetup(bool &waitForConnection) {
 	WiFiConnectedHandler = WiFi.onStationModeConnected([](const WiFiEventStationModeConnected &evt) {
 		Serial.println("WiFi connected!\n SSID: " + WiFi.SSID());
 	});
-	gotIpHandler = WiFi.onStationModeGotIP([](const WiFiEventStationModeGotIP &evt) {
+	gotIpHandler = WiFi.onStationModeGotIP([&](const WiFiEventStationModeGotIP &evt) {
 		Serial.println(" IP:   " + WiFi.localIP().toString());
-		if (inclOTA) {
+		if (_inclOTA) {
 			ArduinoOTA.begin();
 			Serial.println("OTA started!");
 		}
-		if (inclWebEditor) {
+		if (_inclWebEditor) {
 			editorServer.begin();
 			Serial.println("webEditor started!");
 		}
-		if (inclMQTT) {
+		if (_inclMQTT) {
 			mqttReconnectTimer.once(1, []() {
 				AclientMQTT.connect();
 			});
 		}
 	});
-	WiFiDisconnectedHandler = WiFi.onStationModeDisconnected([](const WiFiEventStationModeDisconnected &evt) {
+	WiFiDisconnectedHandler = WiFi.onStationModeDisconnected([&](const WiFiEventStationModeDisconnected &evt) {
 		WiFi.disconnect(true);
 		Serial.println("WiFi disconnected, reconnecting!");
-		if (inclOTA) {
+		if (_inclOTA) {
 		}
-		if (inclMQTT) {
+		if (_inclMQTT) {
 			mqttReconnectTimer.detach();
 		}
-		if (inclWebEditor) {
+		if (_inclWebEditor) {
 		}
 		wifiReconnectTimer.once(2, []() {
 			WiFi.begin(config.wifi.ssid, config.wifi.pass);

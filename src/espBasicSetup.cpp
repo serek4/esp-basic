@@ -3,7 +3,7 @@
 basicSetup::Config config;
 WiFiEventHandler WiFiConnectedHandler, gotIpHandler, WiFiDisconnectedHandler;
 Ticker wifiReconnectTimer;
-AsyncMqttClient AclientMQTT;
+PangolinMQTT AclientMQTT;
 Ticker mqttReconnectTimer;
 AsyncWebServer editorServer(80);
 
@@ -309,8 +309,8 @@ void basicSetup::onMQTTconnect(const UserHandlers::onMQTTconnectHandler &handler
 void basicSetup::onMQTTmessage(const UserHandlers::onMQTTmesageHandler &handler) {
 	_onMessageHandler.push_back(handler);
 }
-uint16_t basicSetup::MQTTpublish(const char *topic, const char *payload, uint8_t qos, bool retain) {
-	return AclientMQTT.publish(topic, qos, retain, payload);
+void basicSetup::MQTTpublish(const char *topic, const char *payload, uint8_t qos, bool retain) {
+	AclientMQTT.publish(topic, qos, retain, (uint8_t *)payload, (size_t)strlen(payload) + 1, false);
 }
 uint16_t MQTTsubscribe(const char *topic, uint8_t qos) {
 	return AclientMQTT.subscribe(topic, qos);
@@ -318,10 +318,10 @@ uint16_t MQTTsubscribe(const char *topic, uint8_t qos) {
 void basicSetup::_onMQTTconnect() {
 	Serial.println((String) "MQTT connected!\n " + AclientMQTT.getClientId() + "@" + config.mqtt.broker);
 	uint16_t subCommands = AclientMQTT.subscribe(((String) "ESP/" + AclientMQTT.getClientId() + "/commands").c_str(), 2);
-	uint16_t pubStatus = AclientMQTT.publish(((String) "ESP/" + AclientMQTT.getClientId() + "/status").c_str(), 2, true, "on");
+	AclientMQTT.publish(((String) "ESP/" + AclientMQTT.getClientId() + "/status").c_str(), 2, true, (uint8_t *)"on", strlen("on"), false);
 	for (const auto &handler : _onConnectHandler) handler();
 }
-void basicSetup::_onMQTTmessage(char *_topic, char *_payload) {
+void basicSetup::_onMQTTmessage(const char *_topic, const char *_payload) {
 	for (const auto &handler : _onMessageHandler) handler(_topic, _payload);
 }
 void basicSetup::MQTTsetup(bool &waitForConnection) {
@@ -337,12 +337,13 @@ void basicSetup::MQTTsetup(bool &waitForConnection) {
 	AclientMQTT.onConnect([&](bool sessionPresent) {
 		_onMQTTconnect();
 	});
-	AclientMQTT.onMessage([&](char *topic, char *payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
+	AclientMQTT.onMessage([&](const char *topic, uint8_t *payload, PANGO_PROPS_t properties, size_t len, size_t index, size_t total) {
 		char fixedPayload[len + 1];
 		fixedPayload[len] = '\0';
-		_onMQTTmessage(topic, strncpy(fixedPayload, payload, len));
+		strncpy(fixedPayload, PANGO::payloadToCstring(payload, len), len);
+		_onMQTTmessage(topic, fixedPayload);
 	});
-	AclientMQTT.onDisconnect([](AsyncMqttClientDisconnectReason reason) {
+	AclientMQTT.onDisconnect([](int8_t reason) {
 		Serial.println((String) "MQTT disconnected: [" + (int)reason + "]!");
 		if (WiFi.isConnected()) {
 			mqttReconnectTimer.once(10, []() { AclientMQTT.connect(); });

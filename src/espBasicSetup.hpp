@@ -3,16 +3,16 @@
 
 #include <ArduinoJson.h>
 #include <ArduinoOTA.h>
-#include <AsyncMqttClient.h>
 #include <ESP8266WiFi.h>
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
+#include <PangolinMQTT.h>
 #include <SPIFFSEditor.h>
 #include <Ticker.h>
 
 namespace UserHandlers {
 typedef std::function<void()> onMQTTconnectHandler;
-typedef std::function<void(char *_topic, char *_payload)> onMQTTmesageHandler;
+typedef std::function<void(const char *_topic, const char *_payload)> onMQTTmesageHandler;
 }    // namespace UserHandlers
 
 class basicSetup {
@@ -78,7 +78,7 @@ class basicSetup {
 	void waitForMQTT();
 	void onMQTTconnect(const UserHandlers::onMQTTconnectHandler &handler);
 	void onMQTTmessage(const UserHandlers::onMQTTmesageHandler &handler);
-	uint16_t MQTTpublish(const char *topic, const char *payload, uint8_t qos = 0, bool retain = false);
+	void MQTTpublish(const char *topic, const char *payload, uint8_t qos = 0, bool retain = false);
 	uint16_t MQTTsubscribe(const char *topic, uint8_t qos = 0);
 	bool FSsetup();
 	void HTTPsetup();
@@ -90,7 +90,7 @@ class basicSetup {
   private:
 	std::vector<UserHandlers::onMQTTconnectHandler> _onConnectHandler;
 	std::vector<UserHandlers::onMQTTmesageHandler> _onMessageHandler;
-	
+
 	bool _inclConfigFile;
 	bool _inclOTA;
 	bool _inclMQTT;
@@ -99,5 +99,5 @@ class basicSetup {
 	bool _fsStarted;
 
 	void _onMQTTconnect();
-	void _onMQTTmessage(char *_topic, char *_payload);
+	void _onMQTTmessage(const char *_topic, const char *_payload);
 };

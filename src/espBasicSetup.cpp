@@ -209,7 +209,7 @@ void BasicWiFi::setup(bool waitForConnection) {
 		}
 		if (sharedSetup._inclWebEditor) {
 		}
-		wifiReconnectTimer.once(2, [&]() {
+		wifiReconnectTimer.once(5, [&]() {
 			WiFi.begin(config.wifi.ssid, config.wifi.pass);
 		});
 	});

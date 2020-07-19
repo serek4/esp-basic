@@ -341,16 +341,16 @@ void BasicMQTT::waitForMQTT() {
 		int retry = 0;
 		Serial.print("Connecting MQTT");
 		while (!AclientMQTT.connected()) {
-			digitalWrite(LED_BUILTIN, LOW);
 			Serial.print(".");
+			digitalWrite(LED_BUILTIN, LOW);
 			delay(100);
 			digitalWrite(LED_BUILTIN, HIGH);
 			delay(150);
+			retry++;
 			if (retry >= 40) {
 				Serial.println("Can't connect to MQTT!");
 				break;
 			}
-			retry++;
 		}
 	}
 }

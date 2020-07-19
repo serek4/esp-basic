@@ -1,6 +1,6 @@
 #include "espBasicSetup.hpp"
 
-SharedSetup basicSetup;
+SharedSetup sharedSetup;
 BasicFS basicFS;
 BasicConfig config;
 WiFiEventHandler WiFiConnectedHandler, gotIpHandler, WiFiDisconnectedHandler;
@@ -8,6 +8,7 @@ Ticker wifiReconnectTimer;
 PangolinMQTT AclientMQTT;
 Ticker mqttReconnectTimer;
 AsyncWebServer editorServer(80);
+
 
 void espBasicSetup::begin() {
 	config.setup();
@@ -26,12 +27,12 @@ SharedSetup::SharedSetup()
 }
 
 BasicConfig::BasicConfig() {
-	basicSetup._inclConfig = true;
+	sharedSetup._inclConfig = true;
 }
 void BasicConfig::setup() {
-	if (!(basicSetup._fsStarted)) {
+	if (!(sharedSetup._fsStarted)) {
 		Serial.println("mount 1");
-		basicSetup._fsStarted = basicFS.setup();
+		sharedSetup._fsStarted = basicFS.setup();
 	}
 	if (!config.loadConfig()) {
 		if (!config.loadConfig("backup-config.json")) {
@@ -73,7 +74,7 @@ bool BasicConfig::loadConfig(String filename) {
 	strcpy(config.wifi.ssid, WiFi["ssid"]);    // "your-wifi-ssid"
 	strcpy(config.wifi.pass, WiFi["pass"]);    // "your-wifi-password"
 	config.wifi.mode = WiFi["mode"];           // "1"
-	if (basicSetup._staticIP) {
+	if (sharedSetup._staticIP) {
 		(config.wifi.IP).fromString((const char *)WiFi["IP"]);              // "192.168.0.150"
 		(config.wifi.subnet).fromString((const char *)WiFi["subnet"]);      // "255.255.255.0"
 		(config.wifi.gateway).fromString((const char *)WiFi["gateway"]);    // "192.168.0.1"
@@ -115,7 +116,7 @@ size_t BasicConfig::createConfig(String filename, bool save) {
 	WiFi["ssid"] = config.wifi.ssid;
 	WiFi["pass"] = config.wifi.pass;
 	WiFi["mode"] = config.wifi.mode;
-	if (basicSetup._staticIP) {
+	if (sharedSetup._staticIP) {
 		WiFi["IP"] = (config.wifi.IP).toString();
 		WiFi["subnet"] = (config.wifi.subnet).toString();
 		WiFi["gateway"] = (config.wifi.gateway).toString();
@@ -153,27 +154,14 @@ size_t BasicConfig::createConfig(String filename, bool save) {
 }
 
 
-BasicWiFi::BasicWiFi(const char *ssid, const char *pass, int mode)
-    : _ssid(ssid)
-    , _pass(pass)
-    , _mode(mode)
-    , _staticIP(false) {
+BasicWiFi::BasicWiFi(const char *ssid, const char *pass, int mode) {
 	strcpy(config.wifi.ssid, ssid);
 	strcpy(config.wifi.pass, pass);
 	config.wifi.mode = mode;
-	basicSetup._inclWiFi = true;
-	basicSetup._staticIP = false;
+	sharedSetup._inclWiFi = true;
+	sharedSetup._staticIP = false;
 }
-BasicWiFi::BasicWiFi(const char *ssid, const char *pass, int mode, const char *ip, const char *subnet, const char *gateway, const char *dns1, const char *dns2)
-    : _ssid(ssid)
-    , _pass(pass)
-    , _mode(mode)
-    , _staticIP(true) {
-	_ip.fromString(ip);
-	_subnet.fromString(subnet);
-	_gateway.fromString(gateway);
-	_dns1.fromString(dns1);
-	_dns2.fromString(dns2);
+BasicWiFi::BasicWiFi(const char *ssid, const char *pass, int mode, const char *ip, const char *subnet, const char *gateway, const char *dns1, const char *dns2) {
 	strcpy(config.wifi.ssid, ssid);
 	strcpy(config.wifi.pass, pass);
 	config.wifi.mode = mode;
@@ -182,30 +170,30 @@ BasicWiFi::BasicWiFi(const char *ssid, const char *pass, int mode, const char *i
 	(config.wifi.gateway).fromString(gateway);
 	(config.wifi.dns1).fromString(dns1);
 	(config.wifi.dns2).fromString(dns2);
-	basicSetup._inclWiFi = true;
-	basicSetup._staticIP = true;
+	sharedSetup._staticIP = true;
+	sharedSetup._inclWiFi = true;
 }
 void BasicWiFi::setup(bool waitForConnection) {
-	if (_staticIP) {
-		WiFi.config(_ip, _gateway, _subnet, _dns1, _dns2);
+	if (sharedSetup._staticIP) {
+		WiFi.config(config.wifi.IP, config.wifi.gateway, config.wifi.subnet, config.wifi.dns1, config.wifi.dns2);
 	}
-	WiFi.mode((WiFiMode_t)_mode);
+	WiFi.mode((WiFiMode_t)config.wifi.mode);
 	WiFi.persistent(false);
-	WiFi.begin(_ssid, _pass);
+	WiFi.begin(config.wifi.ssid, config.wifi.pass);
 	WiFiConnectedHandler = WiFi.onStationModeConnected([](const WiFiEventStationModeConnected &evt) {
 		Serial.println("WiFi connected!\n SSID: " + WiFi.SSID());
 	});
 	gotIpHandler = WiFi.onStationModeGotIP([&](const WiFiEventStationModeGotIP &evt) {
 		Serial.println(" IP:   " + WiFi.localIP().toString());
-		if (basicSetup._inclOTA) {
+		if (sharedSetup._inclOTA) {
 			ArduinoOTA.begin();
 			Serial.println("OTA started!");
 		}
-		if (basicSetup._inclWebEditor) {
+		if (sharedSetup._inclWebEditor) {
 			editorServer.begin();
 			Serial.println("webEditor started!");
 		}
-		if (basicSetup._inclMQTT) {
+		if (sharedSetup._inclMQTT) {
 			mqttReconnectTimer.once(1, []() {
 				AclientMQTT.connect();
 			});
@@ -214,15 +202,15 @@ void BasicWiFi::setup(bool waitForConnection) {
 	WiFiDisconnectedHandler = WiFi.onStationModeDisconnected([&](const WiFiEventStationModeDisconnected &evt) {
 		WiFi.disconnect(true);
 		Serial.println("WiFi disconnected, reconnecting!");
-		if (basicSetup._inclOTA) {
+		if (sharedSetup._inclOTA) {
 		}
-		if (basicSetup._inclMQTT) {
+		if (sharedSetup._inclMQTT) {
 			mqttReconnectTimer.detach();
 		}
-		if (basicSetup._inclWebEditor) {
+		if (sharedSetup._inclWebEditor) {
 		}
 		wifiReconnectTimer.once(2, [&]() {
-			WiFi.begin(_ssid, _pass);
+			WiFi.begin(config.wifi.ssid, config.wifi.pass);
 		});
 	});
 	if (waitForConnection) {
@@ -249,16 +237,14 @@ void BasicWiFi::waitForWiFi() {
 
 BasicOTA::BasicOTA() {
 	sprintf(config.ota.hostname, "esp8266-%06x", ESP.getChipId());
-	strcpy(_hostname, config.ota.hostname);
-	basicSetup._inclOTA = true;
+	sharedSetup._inclOTA = true;
 };
 BasicOTA::BasicOTA(const char *hostname) {
 	strcpy(config.ota.hostname, hostname);
-	strcpy(_hostname, hostname);
-	basicSetup._inclOTA = true;
+	sharedSetup._inclOTA = true;
 };
 void BasicOTA::setup() {
-	ArduinoOTA.setHostname(_hostname);
+	ArduinoOTA.setHostname(config.ota.hostname);
 	ArduinoOTA.onStart([]() {
 		String type;
 		if (ArduinoOTA.getCommand() == U_FLASH) {
@@ -292,26 +278,17 @@ void BasicOTA::setup() {
 }
 
 
-BasicMQTT::BasicMQTT(const char *broker_address, int broker_port, const char *clientID, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass)
-    : _broker_address(broker_address)
-    , _broker_port(broker_port)
-    , _clientID(clientID)
-    , _keepAlive(keepAlive)
-    , _willTopic(willTopic)
-    , _willMsg(willMsg)
-    , _user(user)
-    , _pass(pass) {
+BasicMQTT::BasicMQTT(const char *broker_address, int broker_port, const char *clientID, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass) {
 	strcpy(config.mqtt.broker, broker_address);
 	config.mqtt.broker_port = broker_port;
-	// sprintf(config.mqtt.client_ID, "esp8266-%06x", ESP.getChipId());
+	//TODO sprintf(config.mqtt.client_ID, "esp8266-%06x", ESP.getChipId());
 	strcpy(config.mqtt.client_ID, clientID);
 	config.mqtt.keepalive = keepAlive;
-	// sprintf(will_topic, MQTT_WILL_TOPIC, client_ID);
 	strcpy(config.mqtt.will_topic, willTopic);
 	strcpy(config.mqtt.will_msg, willMsg);
 	strcpy(config.mqtt.user, user);
 	strcpy(config.mqtt.pass, pass);
-	basicSetup._inclMQTT = true;
+	sharedSetup._inclMQTT = true;
 }
 void BasicMQTT::onConnect(const MQTTuserHandlers::onMQTTconnectHandler &handler) {
 	_onConnectHandler.push_back(handler);
@@ -326,7 +303,7 @@ uint16_t subscribe(const char *topic, uint8_t qos) {
 	return AclientMQTT.subscribe(topic, qos);
 }
 void BasicMQTT::_onConnect() {
-	Serial.println((String) "MQTT connected!\n " + AclientMQTT.getClientId() + "@" + _broker_address);
+	Serial.println((String) "MQTT connected!\n " + AclientMQTT.getClientId() + "@" + config.mqtt.broker);
 	uint16_t subCommands = AclientMQTT.subscribe(((String) "ESP/" + AclientMQTT.getClientId() + "/commands").c_str(), 2);
 	AclientMQTT.publish(((String) "ESP/" + AclientMQTT.getClientId() + "/status").c_str(), 2, true, (uint8_t *)"on", strlen("on"), false);
 	for (const auto &handler : _onConnectHandler) handler();
@@ -335,15 +312,11 @@ void BasicMQTT::_onMessage(const char *_topic, const char *_payload) {
 	for (const auto &handler : _onMessageHandler) handler(_topic, _payload);
 }
 void BasicMQTT::setup(bool waitForConnection) {
-	AclientMQTT.setClientId(_clientID);
-	AclientMQTT.setKeepAlive(_keepAlive);
-#if MQTT_SET_LASTWILL
-	AclientMQTT.setWill(_willTopic, 2, true, _willMsg);
-#endif
-#if MQTT_USE_CREDENTIALS
-	AclientMQTT.setCredentials(_user, _pass);
-#endif
-	AclientMQTT.setServer(_broker_address, _broker_port);
+	AclientMQTT.setClientId(config.mqtt.client_ID);
+	AclientMQTT.setKeepAlive(config.mqtt.keepalive);
+	AclientMQTT.setWill(config.mqtt.will_topic, 2, true, config.mqtt.will_msg);
+	AclientMQTT.setCredentials(config.mqtt.user, config.mqtt.pass);
+	AclientMQTT.setServer(config.mqtt.broker, config.mqtt.broker_port);
 	AclientMQTT.onConnect([&](bool sessionPresent) {
 		_onConnect();
 	});
@@ -385,7 +358,7 @@ void BasicMQTT::waitForMQTT() {
 
 BasicFS::BasicFS() {
 	Serial.println("mount 0");
-	basicSetup._fsStarted = basicFS.setup();
+	sharedSetup._fsStarted = basicFS.setup();
 }
 bool BasicFS::setup() {
 	while (!LittleFS.begin()) {
@@ -396,27 +369,23 @@ bool BasicFS::setup() {
 	return true;
 }
 
-BasicFileEditor::BasicFileEditor()
-    : _user("admin")
-    , _pass("admin") {
-	strcpy(config.http.user, _user);
-	strcpy(config.http.pass, _pass);
-	basicSetup._inclWebEditor = true;
+BasicFileEditor::BasicFileEditor() {
+	strcpy(config.http.user, "admin");
+	strcpy(config.http.pass, "admin");
+	sharedSetup._inclWebEditor = true;
 }
-BasicFileEditor::BasicFileEditor(const char *user, const char *pass)
-    : _user(user)
-    , _pass(pass) {
+BasicFileEditor::BasicFileEditor(const char *user, const char *pass) {
 	strcpy(config.http.user, user);
 	strcpy(config.http.pass, pass);
-	basicSetup._inclWebEditor = true;
+	sharedSetup._inclWebEditor = true;
 }
 void BasicFileEditor::setup() {
-	if (!(basicSetup._fsStarted)) {
+	if (!(sharedSetup._fsStarted)) {
 		Serial.println("mount 2");
-		basicSetup._fsStarted = basicFS.setup();
+		sharedSetup._fsStarted = basicFS.setup();
 	}
-	if (basicSetup._fsStarted) {
-		editorServer.addHandler(new SPIFFSEditor(_user, _pass, LittleFS));
+	if (sharedSetup._fsStarted) {
+		editorServer.addHandler(new SPIFFSEditor(config.http.user, config.http.pass, LittleFS));
 		editorServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
 			request->redirect("/edit");
 		});

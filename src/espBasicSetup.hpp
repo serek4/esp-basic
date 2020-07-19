@@ -22,22 +22,13 @@ class SharedSetup {
   public:
 	SharedSetup();
 
-  private:
 	bool _fsStarted;
 	bool _inclWebEditor;
 	bool _inclMQTT;
 	bool _inclWiFi;
 	bool _inclConfig;
 	bool _inclOTA;
-
 	bool _staticIP;
-
-	friend class BasicFS;
-	friend class BasicConfig;
-	friend class BasicFileEditor;
-	friend class BasicMQTT;
-	friend class BasicOTA;
-	friend class BasicWiFi;
 };
 
 
@@ -46,11 +37,6 @@ class BasicFS {
 	bool setup();
 
 	BasicFS();
-
-  private:
-	bool _fsStarted;
-
-	friend class SharedSetup;
 };
 
 class BasicConfig {
@@ -112,10 +98,6 @@ class BasicFileEditor {
 
 	BasicFileEditor();
 	BasicFileEditor(const char *user, const char *pass);
-
-  private:
-	const char *_user;
-	const char *_pass;
 };
 
 
@@ -136,15 +118,6 @@ class BasicMQTT {
 	BasicMQTT(const char *broker_address, int broker_port, const char *clientID, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass);
 
   private:
-	const char *_broker_address;
-	int _broker_port;
-	const char *_clientID;
-	int _keepAlive;
-	const char *_willTopic;
-	const char *_willMsg;
-	const char *_user;
-	const char *_pass;
-
 	std::vector<MQTTuserHandlers::onMQTTconnectHandler> _onConnectHandler;
 	std::vector<MQTTuserHandlers::onMQTTmesageHandler> _onMessageHandler;
 	void _onConnect();
@@ -158,9 +131,6 @@ class BasicOTA {
 
 	BasicOTA();
 	BasicOTA(const char *hostname);
-
-  private:
-	char _hostname[32];
 };
 
 
@@ -171,16 +141,4 @@ class BasicWiFi {
 
 	BasicWiFi(const char *ssid, const char *pass, int mode);
 	BasicWiFi(const char *ssid, const char *pass, int mode, const char *ip, const char *subnet, const char *gateway, const char *dns1, const char *dns2);
-
-  private:
-	const char *_ssid;
-	const char *_pass;
-	int _mode;
-	bool _waitForConnection;
-	bool _staticIP;
-	IPAddress _ip;
-	IPAddress _subnet;
-	IPAddress _gateway;
-	IPAddress _dns1;
-	IPAddress _dns2;
 };

@@ -1,12 +1,9 @@
 #include "setupAndSecrets.h"
 
+LocalSetup mySetup;
 
 void setup() {
 	mySetup.begin();
-	OTA.setup();
-	basicFileEditor.setup();
-	basicWiFi.setup(true);
-	MQTT.setup(true);
 	MQTT.onConnect(handleMQTTconnect);
 	MQTT.onMessage(handleIncMQTTmsg);
 }

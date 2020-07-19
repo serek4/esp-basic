@@ -26,8 +26,8 @@
 #define MQTT_CLIENTID "wemos"
 #define MQTT_KEEPALIVE 15
 #if MQTT_SET_LASTWILL
-#define MQTT_WILL_TOPIC "ESP/weemos/status"    // optional (%s = MQTT_CLIENTID)
-#define MQTT_WILL_MSG "off"                // optional
+#define MQTT_WILL_TOPIC "ESP/wemos/status"    // optional (%s = MQTT_CLIENTID)
+#define MQTT_WILL_MSG "off"                   // optional
 #endif
 #if MQTT_USE_CREDENTIALS
 #define MQTT_USER "mqtt-user"        // optional
@@ -38,10 +38,21 @@
 #define HTTP_PASS "admin"
 
 
-espBasicSetup mySetup;
-BasicMQTT MQTT(MQTT_BROKER, MQTT_BROKER_PORT, MQTT_CLIENTID, MQTT_KEEPALIVE, MQTT_WILL_TOPIC, MQTT_WILL_MSG, MQTT_USER, MQTT_PASS);
+espBasicSetup _setup;
 BasicOTA OTA(OTA_HOST);
 BasicWiFi basicWiFi(WIFI_SSID, WIFI_PASS, WIFI_MODE, WIFI_IP, WIFI_SUBNET, WIFI_GATEWAY, WIFI_DNS1, WIFI_DNS2);
+BasicMQTT MQTT(MQTT_BROKER, MQTT_BROKER_PORT, MQTT_CLIENTID, MQTT_KEEPALIVE, MQTT_WILL_TOPIC, MQTT_WILL_MSG, MQTT_USER, MQTT_PASS);
 BasicFileEditor basicFileEditor(HTTP_USER, HTTP_PASS);
+
+class LocalSetup {
+  public:
+	void begin() {
+		_setup.begin();
+		OTA.setup();
+		basicFileEditor.setup();
+		basicWiFi.setup(true);
+		MQTT.setup(true);
+	}
+};
 
 #endif

@@ -113,6 +113,9 @@ class BasicMQTT {
 	void onConnect(const MQTTuserHandlers::onMQTTconnectHandler &handler);
 	void onMessage(const MQTTuserHandlers::onMQTTmesageHandler &handler);
 	void publish(const char *topic, const char *payload, uint8_t qos = 0, bool retain = false);
+	void publish(const char *topic, int payload, uint8_t qos = 0, bool retain = false);
+	void publish(const char *topic, float payload, uint8_t qos = 0, bool retain = false) { publish(topic, payload, 3, 2, qos, retain); };
+	void publish(const char *topic, float payload, signed char width, unsigned char prec, uint8_t qos = 0, bool retain = false);
 	uint16_t subscribe(const char *topic, uint8_t qos = 0);
 
 	BasicMQTT(const char *broker_address, int broker_port, const char *clientID, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass);

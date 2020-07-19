@@ -299,6 +299,16 @@ void BasicMQTT::onMessage(const MQTTuserHandlers::onMQTTmesageHandler &handler) 
 void BasicMQTT::publish(const char *topic, const char *payload, uint8_t qos, bool retain) {
 	AclientMQTT.publish(topic, qos, retain, (uint8_t *)payload, (size_t)strlen(payload) + 1, false);
 }
+void BasicMQTT::publish(const char *topic, int payload, uint8_t qos, bool retain) {
+	char numberBuffer[12];
+	itoa(payload, numberBuffer, 10);
+	AclientMQTT.publish(topic, qos, retain, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer) + 1, false);
+}
+void BasicMQTT::publish(const char *topic, float payload, signed char width, unsigned char prec, uint8_t qos, bool retain) {
+	char numberBuffer[12];
+	dtostrf(payload, width, prec, numberBuffer);
+	AclientMQTT.publish(topic, qos, retain, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer) + 1, false);
+}
 uint16_t subscribe(const char *topic, uint8_t qos) {
 	return AclientMQTT.subscribe(topic, qos);
 }

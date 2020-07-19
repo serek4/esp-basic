@@ -1,12 +1,11 @@
-#include <espBasicSetup.h>
-#include <secrets.h>
+#include "setupAndSecrets.h"
 
-basicSetup mySetup;
+LocalSetup mySetup;
 
 void setup() {
 	mySetup.begin();
-	mySetup.onMQTTconnect(handleMQTTconnect);
-	mySetup.onMQTTmessage(handleIncMQTTmsg);
+	MQTT.onConnect(handleMQTTconnect);
+	MQTT.onMessage(handleIncMQTTmsg);
 }
 
 void loop() {
@@ -17,7 +16,7 @@ void loop() {
 void handleMQTTconnect() {
 	Serial.println("User handler for MQTT onConnect");
 }
-void handleIncMQTTmsg(char *topic, char *payload) {
+void handleIncMQTTmsg(const char *topic, const char *payload) {
 	Serial.printf("Incomming mqtt message!\n msg.topic:   %s\n msg.payload: %s\n", topic, payload);
-	mySetup.MQTTpublish("ESP/wemos/feedback", payload);
+	MQTT.publish("ESP/wemos/feedback", payload);
 }

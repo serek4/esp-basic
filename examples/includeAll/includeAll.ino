@@ -1,4 +1,4 @@
-#include "setupAndSecrets.h"
+#include "setup.h"
 
 LocalSetup mySetup;
 

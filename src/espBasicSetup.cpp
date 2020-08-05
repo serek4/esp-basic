@@ -7,7 +7,7 @@ WiFiEventHandler WiFiConnectedHandler, gotIpHandler, WiFiDisconnectedHandler;
 Ticker wifiReconnectTimer;
 PangolinMQTT AclientMQTT;
 Ticker mqttReconnectTimer;
-AsyncWebServer _editorServer(80);
+AsyncWebServer _serverHttp(80);
 
 
 void espBasicSetup::begin() {
@@ -20,8 +20,7 @@ SharedSetup::SharedSetup()
     , _inclWiFi(false)
     , _inclOTA(false)
     , _inclMQTT(false)
-    , _inclWebEditor(false) {
-
+    , _inclServerHttp(false) {
 	Serial.begin(115200);
 	Serial.println("");
 }
@@ -189,9 +188,9 @@ void BasicWiFi::setup(bool waitForConnection) {
 			ArduinoOTA.begin();
 			Serial.println("OTA started!");
 		}
-		if (sharedSetup._inclWebEditor) {
-			_editorServer.begin();
-			Serial.println("webEditor started!");
+		if (sharedSetup._inclServerHttp) {
+			_serverHttp.begin();
+			Serial.println("http server started!");
 		}
 		if (sharedSetup._inclMQTT) {
 			mqttReconnectTimer.once(1, []() {
@@ -207,7 +206,7 @@ void BasicWiFi::setup(bool waitForConnection) {
 		if (sharedSetup._inclMQTT) {
 			mqttReconnectTimer.detach();
 		}
-		if (sharedSetup._inclWebEditor) {
+		if (sharedSetup._inclServerHttp) {
 		}
 		wifiReconnectTimer.once(5, [&]() {
 			WiFi.begin(config.wifi.ssid, config.wifi.pass);
@@ -379,27 +378,43 @@ bool BasicFS::setup() {
 	return true;
 }
 
-BasicFileEditor::BasicFileEditor() 
-	: editorServer(_editorServer) {
+BasicServerHttp::BasicServerHttp() 
+	: serverHttp(_serverHttp) {
 	strcpy(config.http.user, "admin");
 	strcpy(config.http.pass, "admin");
-	sharedSetup._inclWebEditor = true;
+	sharedSetup._inclServerHttp = true;
 }
-BasicFileEditor::BasicFileEditor(const char *user, const char *pass)
-	: editorServer(_editorServer) {
+BasicServerHttp::BasicServerHttp(const char *user, const char *pass)
+	: serverHttp(_serverHttp) {
 	strcpy(config.http.user, user);
 	strcpy(config.http.pass, pass);
-	sharedSetup._inclWebEditor = true;
+	sharedSetup._inclServerHttp = true;
 }
-void BasicFileEditor::setup() {
+void BasicServerHttp::setup() {
 	if (!(sharedSetup._fsStarted)) {
 		Serial.println("mount 2");
 		sharedSetup._fsStarted = basicFS.setup();
 	}
 	if (sharedSetup._fsStarted) {
-		_editorServer.addHandler(new SPIFFSEditor(config.http.user, config.http.pass, LittleFS));
-		_editorServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+		_serverHttp.addHandler(new SPIFFSEditor(config.http.user, config.http.pass, LittleFS));
+		_serverHttp.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
 			request->redirect("/edit");
+		});
+		_serverHttp.onNotFound([](AsyncWebServerRequest *request) {
+			String message = "File Not Found\n\n";
+			message += "\nURI: ";
+			message += request->url();
+			message += "\nMethod: ";
+			message += request->methodToString();
+			message += "\nArguments: ";
+			message += request->args();
+			message += "\n";
+			for (uint8_t i = 0; i < request->args(); i++) {
+				message += " " + request->argName(i);
+				message += ": " + request->arg(i) + "\n";
+			}
+			message += "\n";
+			request->send(404, "text/plain", message);
 		});
 	}
 }

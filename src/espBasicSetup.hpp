@@ -23,7 +23,7 @@ class SharedSetup {
 	SharedSetup();
 
 	bool _fsStarted;
-	bool _inclWebEditor;
+	bool _inclServerHttp;
 	bool _inclMQTT;
 	bool _inclWiFi;
 	bool _inclConfig;
@@ -92,14 +92,14 @@ class BasicConfig {
 };
 
 
-class BasicFileEditor {
+class BasicServerHttp {
   public:
 	void setup();
 
-	BasicFileEditor();
-	BasicFileEditor(const char *user, const char *pass);
+	BasicServerHttp();
+	BasicServerHttp(const char *user, const char *pass);
 
-	AsyncWebServer &editorServer;
+	AsyncWebServer &serverHttp;
 };
 
 

@@ -42,15 +42,15 @@ espBasicSetup _setup;
 BasicOTA OTA(OTA_HOST);
 BasicWiFi basicWiFi(WIFI_SSID, WIFI_PASS, WIFI_MODE, WIFI_IP, WIFI_SUBNET, WIFI_GATEWAY, WIFI_DNS1, WIFI_DNS2);
 BasicMQTT MQTT(MQTT_BROKER, MQTT_BROKER_PORT, MQTT_CLIENTID, MQTT_KEEPALIVE, MQTT_WILL_TOPIC, MQTT_WILL_MSG, MQTT_USER, MQTT_PASS);
-BasicFileEditor basicFileEditor(HTTP_USER, HTTP_PASS);
-AsyncWebServer &httpServer =  basicFileEditor.editorServer;    // only for cleaner sketch code
+BasicServerHttp basicServerHttp(HTTP_USER, HTTP_PASS);
+AsyncWebServer &httpServer =  basicServerHttp.serverHttp;    // only for cleaner sketch code
 
 class LocalSetup {
   public:
 	void begin() {
 		_setup.begin();
 		OTA.setup();
-		basicFileEditor.setup();
+		basicServerHttp.setup();
 		basicWiFi.setup(true);
 		MQTT.setup(true);
 	}

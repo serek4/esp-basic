@@ -15,13 +15,9 @@ class BasicSetup {
   public:
 	void begin();
 
-	BasicSetup(){};
-};
+	BasicSetup();
 
-class SharedSetup {
-  public:
-	SharedSetup();
-
+  private:
 	bool _fsStarted;
 	bool _inclWebEditor;
 	bool _inclMQTT;
@@ -29,6 +25,13 @@ class SharedSetup {
 	bool _inclConfig;
 	bool _inclOTA;
 	bool _staticIP;
+
+	friend class BasicFS;
+	friend class BasicConfig;
+	friend class BasicFileEditor;
+	friend class BasicMQTT;
+	friend class BasicOTA;
+	friend class BasicWiFi;
 };
 
 

@@ -11,11 +11,51 @@
 #include <functional>
 #include <vector>
 
+
+struct ConfigData {
+	// WiFi settings
+	struct WiFi {
+		char ssid[32];
+		char pass[64];
+		int mode;
+		IPAddress IP;         // optional
+		IPAddress subnet;     // optional
+		IPAddress gateway;    // optional
+		IPAddress dns1;       // optional
+		IPAddress dns2;       // optional
+	};
+	// OTA settings
+	struct OTA {
+		char hostname[32];
+	};
+	// MQTT settings
+	struct MQTT {
+		char broker[32];
+		int broker_port;
+		char client_ID[32];
+		int keepalive;
+		char will_topic[64];    // optional
+		char will_msg[16];      // optional
+		char user[16];          // optional
+		char pass[16];          // optional
+	};
+	// web file editor
+	struct HTTP {
+		char user[16];
+		char pass[16];
+	};
+	WiFi wifi;
+	OTA ota;
+	MQTT mqtt;
+	HTTP http;
+};
+
 class espBasicSetup {
   public:
 	void begin();
+	ConfigData &config;
 
-	espBasicSetup(){};
+	espBasicSetup();
 };
 
 class SharedSetup {
@@ -41,49 +81,6 @@ class BasicFS {
 
 class BasicConfig {
   public:
-	// WiFi settings
-	class WiFi {
-	  public:
-		char ssid[32];
-		char pass[64];
-		int mode;
-		IPAddress IP;         // optional
-		IPAddress subnet;     // optional
-		IPAddress gateway;    // optional
-		IPAddress dns1;       // optional
-		IPAddress dns2;       // optional
-		WiFi(){};
-	};
-	// OTA settings
-	class OTA {
-	  public:
-		char hostname[32];
-		OTA(){};
-	};
-	// MQTT settings
-	class MQTT {
-	  public:
-		char broker[32];
-		int broker_port;
-		char client_ID[32];
-		int keepalive;
-		char will_topic[64];    // optional
-		char will_msg[16];      // optional
-		char user[16];          // optional
-		char pass[16];          // optional
-		MQTT(){};
-	};
-	// web file editor
-	class HTTP {
-	  public:
-		char user[16];
-		char pass[16];
-		HTTP(){};
-	};
-	WiFi wifi;
-	OTA ota;
-	MQTT mqtt;
-	HTTP http;
 	void setup();
 	size_t createConfig(String filename = "config.json", bool save = true);
 	bool loadConfig(String filename = "config.json");

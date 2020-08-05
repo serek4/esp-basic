@@ -19,7 +19,7 @@ class BasicSetup {
 
   private:
 	bool _fsStarted;
-	bool _inclWebEditor;
+	bool _inclServerHttp;
 	bool _inclMQTT;
 	bool _inclWiFi;
 	bool _inclConfig;
@@ -28,7 +28,7 @@ class BasicSetup {
 
 	friend class BasicFS;
 	friend class BasicConfig;
-	friend class BasicFileEditor;
+	friend class BasicServerHttp;
 	friend class BasicMQTT;
 	friend class BasicOTA;
 	friend class BasicWiFi;
@@ -95,12 +95,14 @@ class BasicConfig {
 };
 
 
-class BasicFileEditor {
+class BasicServerHttp {
   public:
 	void setup();
 
-	BasicFileEditor();
-	BasicFileEditor(const char *user, const char *pass);
+	BasicServerHttp();
+	BasicServerHttp(const char *user, const char *pass);
+
+	AsyncWebServer &serverHttp;
 };
 
 

@@ -10,7 +10,7 @@ Ticker mqttReconnectTimer;
 AsyncWebServer editorServer(80);
 
 
-void espBasicSetup::begin() {
+void BasicSetup::begin() {
 	config.setup();
 }
 

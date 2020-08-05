@@ -1,6 +1,7 @@
-#include "setup.h"
+#include "secrets.h"
+#include <espBasicSetup.h>
 
-LocalSetup mySetup;
+EspBasicSetup mySetup;
 
 void setup() {
 	mySetup.begin();

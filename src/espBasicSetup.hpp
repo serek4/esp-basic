@@ -11,11 +11,11 @@
 #include <functional>
 #include <vector>
 
-class espBasicSetup {
+class BasicSetup {
   public:
 	void begin();
 
-	espBasicSetup(){};
+	BasicSetup(){};
 };
 
 class SharedSetup {

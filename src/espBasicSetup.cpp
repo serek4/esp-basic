@@ -7,7 +7,7 @@ WiFiEventHandler WiFiConnectedHandler, gotIpHandler, WiFiDisconnectedHandler;
 Ticker wifiReconnectTimer;
 PangolinMQTT AclientMQTT;
 Ticker mqttReconnectTimer;
-AsyncWebServer editorServer(80);
+AsyncWebServer _editorServer(80);
 
 
 void espBasicSetup::begin() {
@@ -190,7 +190,7 @@ void BasicWiFi::setup(bool waitForConnection) {
 			Serial.println("OTA started!");
 		}
 		if (sharedSetup._inclWebEditor) {
-			editorServer.begin();
+			_editorServer.begin();
 			Serial.println("webEditor started!");
 		}
 		if (sharedSetup._inclMQTT) {
@@ -379,12 +379,14 @@ bool BasicFS::setup() {
 	return true;
 }
 
-BasicFileEditor::BasicFileEditor() {
+BasicFileEditor::BasicFileEditor() 
+	: editorServer(_editorServer) {
 	strcpy(config.http.user, "admin");
 	strcpy(config.http.pass, "admin");
 	sharedSetup._inclWebEditor = true;
 }
-BasicFileEditor::BasicFileEditor(const char *user, const char *pass) {
+BasicFileEditor::BasicFileEditor(const char *user, const char *pass)
+	: editorServer(_editorServer) {
 	strcpy(config.http.user, user);
 	strcpy(config.http.pass, pass);
 	sharedSetup._inclWebEditor = true;
@@ -395,8 +397,8 @@ void BasicFileEditor::setup() {
 		sharedSetup._fsStarted = basicFS.setup();
 	}
 	if (sharedSetup._fsStarted) {
-		editorServer.addHandler(new SPIFFSEditor(config.http.user, config.http.pass, LittleFS));
-		editorServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+		_editorServer.addHandler(new SPIFFSEditor(config.http.user, config.http.pass, LittleFS));
+		_editorServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
 			request->redirect("/edit");
 		});
 	}

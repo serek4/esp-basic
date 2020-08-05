@@ -98,6 +98,8 @@ class BasicFileEditor {
 
 	BasicFileEditor();
 	BasicFileEditor(const char *user, const char *pass);
+
+	AsyncWebServer &editorServer;
 };
 
 

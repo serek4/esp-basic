@@ -367,8 +367,6 @@ void BasicMQTT::waitForMQTT() {
 
 
 BasicFS::BasicFS() {
-	Serial.println("mount 0");
-	_basicSetup._fsStarted = basicFS.setup();
 }
 bool BasicFS::setup() {
 	while (!LittleFS.begin()) {

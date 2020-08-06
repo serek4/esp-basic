@@ -50,27 +50,29 @@ struct ConfigData {
 	HTTP http;
 };
 
-class espBasicSetup {
+class BasicSetup {
   public:
 	void begin();
 	ConfigData &config;
 
-	espBasicSetup();
-};
+	BasicSetup();
 
-class SharedSetup {
-  public:
-	SharedSetup();
-
+  private:
 	bool _fsStarted;
-	bool _inclWebEditor;
+	bool _inclServerHttp;
 	bool _inclMQTT;
 	bool _inclWiFi;
 	bool _inclConfig;
 	bool _inclOTA;
 	bool _staticIP;
-};
 
+	friend class BasicFS;
+	friend class BasicConfig;
+	friend class BasicServerHttp;
+	friend class BasicMQTT;
+	friend class BasicOTA;
+	friend class BasicWiFi;
+};
 
 class BasicFS {
   public:
@@ -89,12 +91,14 @@ class BasicConfig {
 };
 
 
-class BasicFileEditor {
+class BasicServerHttp {
   public:
 	void setup();
 
-	BasicFileEditor();
-	BasicFileEditor(const char *user, const char *pass);
+	BasicServerHttp();
+	BasicServerHttp(const char *user, const char *pass);
+
+	AsyncWebServer &serverHttp;
 };
 
 

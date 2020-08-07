@@ -50,30 +50,6 @@ struct ConfigData {
 	HTTP http;
 };
 
-class BasicSetup {
-  public:
-	void begin();
-	ConfigData &config;
-
-	BasicSetup();
-
-  private:
-	bool _fsStarted;
-	bool _inclServerHttp;
-	bool _inclMQTT;
-	bool _inclWiFi;
-	bool _inclConfig;
-	bool _inclOTA;
-	bool _staticIP;
-
-	friend class BasicFS;
-	friend class BasicConfig;
-	friend class BasicServerHttp;
-	friend class BasicMQTT;
-	friend class BasicOTA;
-	friend class BasicWiFi;
-};
-
 class BasicFS {
   public:
 	bool setup();
@@ -81,13 +57,28 @@ class BasicFS {
 	BasicFS();
 };
 
+class ImportSetup {
+  public:
+	void WIFIsettings(const char *ssid, const char *pass, int mode, bool staticIP, const char *IP, const char *subnet, const char *gateway, const char *dns1, const char *dns2);
+	void OTAsettings(const char *hostname);
+	void MQTTsettings(const char *broker_address, int broker_port, const char *clientID, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass);
+	void ServerHttpSettings(const char *user, const char *pass);
+
+  private:
+};
+
 class BasicConfig {
   public:
 	void setup();
-	size_t createConfig(String filename = "config.json", bool save = true);
-	bool loadConfig(String filename = "config.json");
+	size_t createConfig(ConfigData &config, String filename = "config.json", bool save = true);
+	bool loadConfig(ConfigData &config, String filename = "config.json");
 
 	BasicConfig();
+
+  private:
+	bool _checkJsonVariant(char *saveTo, JsonVariant string);
+	bool _checkJsonVariant(IPAddress &saveTo, JsonVariant IPstring);
+	bool _checkJsonVariant(int &saveTo, JsonVariant number);
 };
 
 
@@ -96,9 +87,6 @@ class BasicServerHttp {
 	void setup();
 
 	BasicServerHttp();
-	BasicServerHttp(const char *user, const char *pass);
-
-	AsyncWebServer &serverHttp;
 };
 
 
@@ -119,7 +107,7 @@ class BasicMQTT {
 	void publish(const char *topic, float payload, signed char width, unsigned char prec, uint8_t qos = 0, bool retain = false);
 	uint16_t subscribe(const char *topic, uint8_t qos = 0);
 
-	BasicMQTT(const char *broker_address, int broker_port, const char *clientID, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass);
+	BasicMQTT();
 
   private:
 	std::vector<MQTTuserHandlers::onMQTTconnectHandler> _onConnectHandler;
@@ -134,15 +122,40 @@ class BasicOTA {
 	void setup();
 
 	BasicOTA();
-	BasicOTA(const char *hostname);
 };
 
 
 class BasicWiFi {
   public:
 	void waitForWiFi();
-	void setup(bool waitForConnection);
+	void setup(bool waitForConnection, bool staticIP);
 
-	BasicWiFi(const char *ssid, const char *pass, int mode);
-	BasicWiFi(const char *ssid, const char *pass, int mode, const char *ip, const char *subnet, const char *gateway, const char *dns1, const char *dns2);
+	BasicWiFi();
+};
+
+class BasicSetup {
+  public:
+	void begin();
+	ConfigData &config;
+	BasicMQTT &MQTT;
+	AsyncWebServer &serverHttp;
+
+	BasicSetup();
+
+  private:
+	bool _fsStarted;
+	bool _inclServerHttp;
+	bool _inclMQTT;
+	bool _inclWiFi;
+	bool _inclConfig;
+	bool _inclOTA;
+	bool _staticIP;
+
+	friend class ImportSetup;
+	friend class BasicFS;
+	friend class BasicConfig;
+	friend class BasicServerHttp;
+	friend class BasicMQTT;
+	friend class BasicOTA;
+	friend class BasicWiFi;
 };

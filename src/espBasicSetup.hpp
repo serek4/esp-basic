@@ -93,6 +93,7 @@ class BasicServerHttp {
 namespace MQTTuserHandlers {
 typedef std::function<void()> onMQTTconnectHandler;
 typedef std::function<void(const char *_topic, const char *_payload)> onMQTTmesageHandler;
+typedef std::function<void(int8_t reason)> onMQTTdisconnectHandler;
 }    // namespace MQTTuserHandlers
 
 class BasicMQTT {
@@ -101,6 +102,7 @@ class BasicMQTT {
 	void waitForMQTT();
 	void onConnect(const MQTTuserHandlers::onMQTTconnectHandler &handler);
 	void onMessage(const MQTTuserHandlers::onMQTTmesageHandler &handler);
+	void onDisconnect(const MQTTuserHandlers::onMQTTdisconnectHandler &handler);
 	void publish(const char *topic, const char *payload, uint8_t qos = 0, bool retain = false);
 	void publish(const char *topic, int payload, uint8_t qos = 0, bool retain = false);
 	void publish(const char *topic, float payload, uint8_t qos = 0, bool retain = false) { publish(topic, payload, 3, 2, qos, retain); };
@@ -112,8 +114,10 @@ class BasicMQTT {
   private:
 	std::vector<MQTTuserHandlers::onMQTTconnectHandler> _onConnectHandler;
 	std::vector<MQTTuserHandlers::onMQTTmesageHandler> _onMessageHandler;
+	std::vector<MQTTuserHandlers::onMQTTdisconnectHandler> _onDisconnectHandler;
 	void _onConnect();
 	void _onMessage(const char *_topic, const char *_payload);
+	void _onDisconnect(int8_t reason);
 };
 
 

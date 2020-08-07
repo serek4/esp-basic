@@ -131,6 +131,11 @@ class BasicWiFi {
 	void setup(bool waitForConnection, bool staticIP);
 
 	BasicWiFi();
+
+  private:
+	void _checkConnection();
+
+	friend class BasicSetup;
 };
 
 class BasicSetup {

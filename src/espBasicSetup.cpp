@@ -31,8 +31,9 @@ BasicSetup::BasicSetup()
 }
 void BasicSetup::begin() {
 	_basicConfig.setup();
-	_basicWiFi.setup(true, _basicSetup._staticIP);
 	_basicOTA.setup();
+	_basicWiFi.setup(true, _basicSetup._staticIP);
+	_basicWiFi._checkConnection();
 	_MQTT.setup(true);
 	_basicServerHttp.setup();
 }
@@ -287,6 +288,15 @@ void BasicWiFi::waitForWiFi() {
 			break;
 		}
 	}
+}
+void BasicWiFi::_checkConnection() {
+	IPAddress buffer;
+	Serial.print("checking DNS server");
+	while (WiFi.hostByName("google.com", buffer) == 0) {
+		Serial.print(".");
+		delay(100);
+	}
+	Serial.println(" OK!");
 }
 
 BasicOTA::BasicOTA() {

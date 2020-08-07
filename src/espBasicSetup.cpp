@@ -163,14 +163,18 @@ bool BasicConfig::loadConfig(ConfigData &config, String filename) {
 		return false;
 	}
 	Serial.println(filename + " laded!");
-	if (!LittleFS.exists("backup-" + filename)) {
-		createConfig(config, "backup-" + filename);
+	if (!LittleFS.exists("backup-config.json")) {
+		createConfig(config, "backup-config.json");
 	} else {
-		File backup = LittleFS.open("backup-" + filename, "r");
-		size_t backupfileSize = backup.size();
-		backup.close();
-		if (configfileSize != backupfileSize) {
-			createConfig(config, "backup-" + filename);
+		if (filename == "backup-config.json") {
+			createConfig(config, "config.json");
+		} else {
+			File backup = LittleFS.open("backup-config.json", "r");
+			size_t backupfileSize = backup.size();
+			backup.close();
+			if (configfileSize != backupfileSize) {
+				createConfig(config, "backup-config.json");
+			}
 		}
 	}
 	return true;

@@ -347,6 +347,9 @@ void BasicMQTT::onConnect(const MQTTuserHandlers::onMQTTconnectHandler &handler)
 void BasicMQTT::onMessage(const MQTTuserHandlers::onMQTTmesageHandler &handler) {
 	_onMessageHandler.push_back(handler);
 }
+void BasicMQTT::onDisconnect(const MQTTuserHandlers::onMQTTdisconnectHandler &handler) {
+	_onDisconnectHandler.push_back(handler);
+}
 void BasicMQTT::publish(const char *topic, const char *payload, uint8_t qos, bool retain) {
 	_clientMQTT.publish(topic, qos, retain, (uint8_t *)payload, (size_t)strlen(payload) + 1, false);
 }
@@ -372,6 +375,13 @@ void BasicMQTT::_onConnect() {
 void BasicMQTT::_onMessage(const char *_topic, const char *_payload) {
 	for (const auto &handler : _onMessageHandler) handler(_topic, _payload);
 }
+void BasicMQTT::_onDisconnect(int8_t reason) {
+	Serial.println((String) "MQTT disconnected: [" + (int)reason + "]!");
+	if (WiFi.isConnected()) {
+		_mqttReconnectTimer.once(10, []() { _clientMQTT.connect(); });
+	}
+	for (const auto &handler : _onDisconnectHandler) handler(reason);
+}
 void BasicMQTT::setup(bool waitForConnection) {
 	//TODO sprintf(_config.mqtt.client_ID, "esp8266-%06x", ESP.getChipId());
 	_clientMQTT.setClientId(_config.mqtt.client_ID);
@@ -388,11 +398,8 @@ void BasicMQTT::setup(bool waitForConnection) {
 		strncpy(fixedPayload, PANGO::payloadToCstring(payload, len), len);
 		_onMessage(topic, fixedPayload);
 	});
-	_clientMQTT.onDisconnect([](int8_t reason) {
-		Serial.println((String) "MQTT disconnected: [" + (int)reason + "]!");
-		if (WiFi.isConnected()) {
-			_mqttReconnectTimer.once(10, []() { _clientMQTT.connect(); });
-		}
+	_clientMQTT.onDisconnect([&](int8_t reason) {
+		_onDisconnect(reason);
 	});
 	if (waitForConnection) {
 		waitForMQTT();

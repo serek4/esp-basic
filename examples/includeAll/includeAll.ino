@@ -5,6 +5,9 @@ EspBasicSetup mySetup;
 
 void setup() {
 	mySetup.begin();
+	WIFI.onConnected(handleWiFiConnected);
+	WIFI.onGotIP(handleWiFiGotIP);
+	WIFI.onDisconnected(handleWiFiDisconnected);
 	MQTT.onConnect(handleMQTTconnect);
 	MQTT.onMessage(handleIncMQTTmsg);
 	MQTT.onDisconnect(handleMQTTdisconnect);
@@ -13,6 +16,16 @@ void setup() {
 void loop() {
 	ArduinoOTA.handle();
 	delay(10);
+}
+
+void handleWiFiConnected(const WiFiEventStationModeConnected &evt) {
+	Serial.println("User handler for WIFI onConnected");
+}
+void handleWiFiGotIP(const WiFiEventStationModeGotIP &evt) {
+	Serial.println("User handler for WIFI onGotIP");
+}
+void handleWiFiDisconnected(const WiFiEventStationModeDisconnected &evt) {
+	Serial.println("User handler for WIFI onDisconnected");
 }
 
 void handleMQTTconnect() {

@@ -5,6 +5,7 @@
 
 BasicSetup basicSetup;
 ConfigData &config = basicSetup.config;                // only for cleaner sketch code
+BasicWiFi &WIFI = basicSetup.WIFI;                     // only for cleaner sketch code
 BasicMQTT &MQTT = basicSetup.MQTT;                     // only for cleaner sketch code
 AsyncWebServer &httpServer = basicSetup.serverHttp;    // only for cleaner sketch code
 

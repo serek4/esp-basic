@@ -129,15 +129,30 @@ class BasicOTA {
 };
 
 
+namespace WiFiUserHandlers {
+typedef std::function<void(const WiFiEventStationModeConnected &evt)> onWiFiConnectHandler;
+typedef std::function<void(const WiFiEventStationModeGotIP &evt)> onWiFiGotIPhandler;
+typedef std::function<void(const WiFiEventStationModeDisconnected &evt)> onWiFiDisconnectHandler;
+}    // namespace WiFiUserHandlers
+
 class BasicWiFi {
   public:
-	void waitForWiFi();
 	void setup(bool waitForConnection, bool staticIP);
+	void waitForWiFi();
+	void onConnected(const WiFiUserHandlers::onWiFiConnectHandler &handler);
+	void onGotIP(const WiFiUserHandlers::onWiFiGotIPhandler &handler);
+	void onDisconnected(const WiFiUserHandlers::onWiFiDisconnectHandler &handler);
 
 	BasicWiFi();
 
   private:
+	std::vector<WiFiUserHandlers::onWiFiConnectHandler> _onConnectHandler;
+	std::vector<WiFiUserHandlers::onWiFiGotIPhandler> _onGotIPhandler;
+	std::vector<WiFiUserHandlers::onWiFiDisconnectHandler> _onDisconnectHandler;
 	void _checkConnection();
+	void _onConnected(const WiFiEventStationModeConnected &evt);
+	void _onGotIP(const WiFiEventStationModeGotIP &evt);
+	void _onDisconnected(const WiFiEventStationModeDisconnected &evt);
 
 	friend class BasicSetup;
 };
@@ -146,6 +161,7 @@ class BasicSetup {
   public:
 	void begin();
 	ConfigData &config;
+	BasicWiFi &WIFI;
 	BasicMQTT &MQTT;
 	AsyncWebServer &serverHttp;
 

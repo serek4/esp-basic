@@ -390,11 +390,17 @@ uint16_t subscribe(const char *topic, uint8_t qos) {
 }
 void BasicMQTT::_onConnect() {
 	Serial.println((String) "MQTT connected!\n " + _clientMQTT.getClientId() + "@" + _config.mqtt.broker);
+	uint16_t subStatus = _clientMQTT.subscribe(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), 2);
 	uint16_t subCommands = _clientMQTT.subscribe(((String) "ESP/" + _clientMQTT.getClientId() + "/commands").c_str(), 2);
 	_clientMQTT.publish(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), 2, true, (uint8_t *)"on", strlen("on"), false);
 	for (const auto &handler : _onConnectHandler) handler();
 }
 void BasicMQTT::_onMessage(const char *_topic, const char *_payload) {
+	if (strcmp(_topic, _config.mqtt.will_topic) == 0) {
+		if (strcmp(_payload, _config.mqtt.will_msg) == 0) {
+			_clientMQTT.publish(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), 2, true, (uint8_t *)"on", strlen("on"), false);
+		}
+	}
 	for (const auto &handler : _onMessageHandler) handler(_topic, _payload);
 }
 void BasicMQTT::_onDisconnect(int8_t reason) {

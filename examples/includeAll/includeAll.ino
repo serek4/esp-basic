@@ -7,9 +7,9 @@ char *testStr = USER_STR;
 int testInt = USER_INT;
 
 void setup() {
-	basicSetup.userConfig.SetUserConfigSize(JSON_OBJECT_SIZE(2) + 40);
-	basicSetup.userConfig.loadUserConfig(loadConfig);
-	basicSetup.userConfig.saveUserConfig(saveConfig);
+	mySetup.config.SetUserConfigSize(JSON_OBJECT_SIZE(2) + 40);
+	mySetup.config.loadUserConfig(loadConfig);
+	mySetup.config.saveUserConfig(saveConfig);
 	mySetup.begin();
 	WIFI.onConnected(handleWiFiConnected);
 	WIFI.onGotIP(handleWiFiGotIP);
@@ -26,8 +26,8 @@ void loop() {
 
 bool loadConfig(JsonObject config) {
 	bool succes = true;
-	if (!basicSetup.userConfig.checkJsonVariant(testStr, config["teststr"])) succes &= false;
-	if (!basicSetup.userConfig.checkJsonVariant(testInt, config["testint"])) succes &= false;
+	if (!mySetup.config.checkJsonVariant(testStr, config["teststr"])) succes &= false;
+	if (!mySetup.config.checkJsonVariant(testInt, config["testint"])) succes &= false;
 	return succes;
 }
 void saveConfig(JsonObject config) {

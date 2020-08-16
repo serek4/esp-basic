@@ -86,21 +86,21 @@ void BasicConfig::setup() {
 	}
 	_defaultConfig.~ConfigData();
 }
-bool BasicConfig::_checkJsonVariant(char *saveTo, JsonVariant string) {
+bool BasicConfig::checkJsonVariant(char *saveTo, JsonVariant string) {
 	if (string.is<char *>()) {
 		strcpy(saveTo, string);
 		return true;
 	}
 	return false;
 }
-bool BasicConfig::_checkJsonVariant(IPAddress &saveTo, JsonVariant IPstring) {
+bool BasicConfig::checkJsonVariant(IPAddress &saveTo, JsonVariant IPstring) {
 	if (IPstring.is<const char *>()) {
 		saveTo.fromString((const char *)IPstring);
 		return true;
 	}
 	return false;
 }
-bool BasicConfig::_checkJsonVariant(int &saveTo, JsonVariant number) {
+bool BasicConfig::checkJsonVariant(int &saveTo, JsonVariant number) {
 	if (number.is<int>()) {
 		saveTo = number;
 		return true;
@@ -119,8 +119,10 @@ void BasicConfig::loadUserConfig(const configUserHandlers::loadConfigHandler &ha
 void BasicConfig::_saveUserConfig(JsonObject &userConfig) {
 	for (const auto &handler : _saveConfigHandler) handler(userConfig);
 }
-void BasicConfig::_loadUserConfig(JsonObject &userConfig) {
-	for (const auto &handler : _loadConfigHandler) handler(userConfig);
+bool BasicConfig::_loadUserConfig(JsonObject &userConfig) {
+	bool test = false;
+	for (const auto &handler : _loadConfigHandler) test = handler(userConfig);
+	return test;
 }
 bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 	if (!LittleFS.exists(filename)) {
@@ -146,42 +148,38 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 	bool mismatch = false;
 	JsonObject WiFi = doc["WiFi"];
 	if (!WiFi.isNull()) {
-		if (!_checkJsonVariant(config.wifi.ssid, WiFi["ssid"])) mismatch |= true;    // "your-wifi-ssid"
-		if (!_checkJsonVariant(config.wifi.pass, WiFi["pass"])) mismatch |= true;    // "your-wifi-password"
-		if (!_checkJsonVariant(config.wifi.mode, WiFi["mode"])) mismatch |= true;    // "1"
+		if (!checkJsonVariant(config.wifi.ssid, WiFi["ssid"])) mismatch |= true;    // "your-wifi-ssid"
+		if (!checkJsonVariant(config.wifi.pass, WiFi["pass"])) mismatch |= true;    // "your-wifi-password"
+		if (!checkJsonVariant(config.wifi.mode, WiFi["mode"])) mismatch |= true;    // "1"
 		if (_basicSetup._staticIP) {
-			if (!_checkJsonVariant(config.wifi.IP, WiFi["IP"])) mismatch |= true;              // "192.168.0.150"
-			if (!_checkJsonVariant(config.wifi.subnet, WiFi["subnet"])) mismatch |= true;      // "255.255.255.0"
-			if (!_checkJsonVariant(config.wifi.gateway, WiFi["gateway"])) mismatch |= true;    // "192.168.0.1"
-			if (!_checkJsonVariant(config.wifi.dns1, WiFi["dns1"])) mismatch |= true;          // "192.168.0.1"
-			if (!_checkJsonVariant(config.wifi.dns2, WiFi["dns2"])) mismatch |= true;          // "1.1.1.1"
+			if (!checkJsonVariant(config.wifi.IP, WiFi["IP"])) mismatch |= true;              // "192.168.0.150"
+			if (!checkJsonVariant(config.wifi.subnet, WiFi["subnet"])) mismatch |= true;      // "255.255.255.0"
+			if (!checkJsonVariant(config.wifi.gateway, WiFi["gateway"])) mismatch |= true;    // "192.168.0.1"
+			if (!checkJsonVariant(config.wifi.dns1, WiFi["dns1"])) mismatch |= true;          // "192.168.0.1"
+			if (!checkJsonVariant(config.wifi.dns2, WiFi["dns2"])) mismatch |= true;          // "1.1.1.1"
 		}
 	} else {
 		mismatch |= true;
 	}
-	if (!_checkJsonVariant(config.ota.hostname, doc["OTA"]["host"])) mismatch |= true;    // "esp8266-chipID"
+	if (!checkJsonVariant(config.ota.hostname, doc["OTA"]["host"])) mismatch |= true;    // "esp8266-chipID"
 	JsonObject MQTT = doc["MQTT"];
 	if (!MQTT.isNull()) {
-		if (!_checkJsonVariant(config.mqtt.broker, MQTT["broker"])) mismatch |= true;              // "brocker-hostname"
-		if (!_checkJsonVariant(config.mqtt.broker_port, MQTT["broker_port"])) mismatch |= true;    // 1883
-		if (!_checkJsonVariant(config.mqtt.client_ID, MQTT["client_ID"])) mismatch |= true;        // "esp8266chipID"
-		if (!_checkJsonVariant(config.mqtt.keepalive, MQTT["keepalive"])) mismatch |= true;        // 15
-		if (!_checkJsonVariant(config.mqtt.will_topic, MQTT["will_topic"])) mismatch |= true;      // "ESP/esp8266chipID/status"
-		if (!_checkJsonVariant(config.mqtt.will_msg, MQTT["will_msg"])) mismatch |= true;          // "off"
-		if (!_checkJsonVariant(config.mqtt.user, MQTT["user"])) mismatch |= true;                  // "mqtt-user"
-		if (!_checkJsonVariant(config.mqtt.pass, MQTT["pass"])) mismatch |= true;                  // "mqtt-password"
+		if (!checkJsonVariant(config.mqtt.broker, MQTT["broker"])) mismatch |= true;              // "brocker-hostname"
+		if (!checkJsonVariant(config.mqtt.broker_port, MQTT["broker_port"])) mismatch |= true;    // 1883
+		if (!checkJsonVariant(config.mqtt.client_ID, MQTT["client_ID"])) mismatch |= true;        // "esp8266chipID"
+		if (!checkJsonVariant(config.mqtt.keepalive, MQTT["keepalive"])) mismatch |= true;        // 15
+		if (!checkJsonVariant(config.mqtt.will_topic, MQTT["will_topic"])) mismatch |= true;      // "ESP/esp8266chipID/status"
+		if (!checkJsonVariant(config.mqtt.will_msg, MQTT["will_msg"])) mismatch |= true;          // "off"
+		if (!checkJsonVariant(config.mqtt.user, MQTT["user"])) mismatch |= true;                  // "mqtt-user"
+		if (!checkJsonVariant(config.mqtt.pass, MQTT["pass"])) mismatch |= true;                  // "mqtt-password"
 	} else {
 		mismatch |= true;
 	}
-	if (!_checkJsonVariant(config.http.user, doc["HTTP"]["user"])) mismatch |= true;    // "admin"
-	if (!_checkJsonVariant(config.http.pass, doc["HTTP"]["pass"])) mismatch |= true;    // "admin"
+	if (!checkJsonVariant(config.http.user, doc["HTTP"]["user"])) mismatch |= true;    // "admin"
+	if (!checkJsonVariant(config.http.pass, doc["HTTP"]["pass"])) mismatch |= true;    // "admin"
 	if (_userConfigSize != 0) {
 		JsonObject userSettings = doc["userSettings"];
-		if (!userSettings.isNull()) {
-			_loadUserConfig(userSettings);
-		} else {
-			mismatch |= true;
-		}
+		mismatch |= !_loadUserConfig(userSettings);
 	}
 	if (mismatch) {
 		Serial.println("Configuration in " + filename + " mismatch!");

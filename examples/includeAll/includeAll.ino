@@ -3,6 +3,9 @@
 
 EspBasicSetup mySetup;
 
+char *testStr = USER_STR;
+int testInt = USER_INT;
+
 void setup() {
 	basicSetup.userConfig.SetUserConfigSize(JSON_OBJECT_SIZE(2) + 40);
 	basicSetup.userConfig.loadUserConfig(loadConfig);
@@ -21,13 +24,15 @@ void loop() {
 	delay(10);
 }
 
-void loadConfig(JsonObject config) {
-	Serial.println(config["teststr"].as<char *>());
-	Serial.println(config["testint"].as<int>());
+bool loadConfig(JsonObject config) {
+	bool succes = true;
+	if (!basicSetup.userConfig.checkJsonVariant(testStr, config["teststr"])) succes &= false;
+	if (!basicSetup.userConfig.checkJsonVariant(testInt, config["testint"])) succes &= false;
+	return succes;
 }
 void saveConfig(JsonObject config) {
-	config["teststr"] = "test";
-	config["testint"] = 22;
+	config["teststr"] = testStr;
+	config["testint"] = testInt;
 }
 void handleWiFiConnected(const WiFiEventStationModeConnected &evt) {
 	Serial.println("User handler for WIFI onConnected");

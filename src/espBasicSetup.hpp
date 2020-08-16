@@ -69,7 +69,7 @@ class ImportSetup {
 
 namespace configUserHandlers {
 typedef std::function<void(JsonObject &userConfig)> saveConfigHandler;
-typedef std::function<void(JsonObject &userConfig)> loadConfigHandler;
+typedef std::function<bool(JsonObject &userConfig)> loadConfigHandler;
 }    // namespace configUserHandlers
 
 class BasicConfig {
@@ -78,6 +78,9 @@ class BasicConfig {
 	void SetUserConfigSize(size_t size);
 	void saveUserConfig(const configUserHandlers::saveConfigHandler &handler);
 	void loadUserConfig(const configUserHandlers::loadConfigHandler &handler);
+	bool checkJsonVariant(char *saveTo, JsonVariant string);
+	bool checkJsonVariant(IPAddress &saveTo, JsonVariant IPstring);
+	bool checkJsonVariant(int &saveTo, JsonVariant number);
 
 	BasicConfig();
 
@@ -86,12 +89,9 @@ class BasicConfig {
 	std::vector<configUserHandlers::loadConfigHandler> _loadConfigHandler;
 	size_t _userConfigSize = 0;
 	void _saveUserConfig(JsonObject &userConfig);
-	void _loadUserConfig(JsonObject &userConfig);
+	bool _loadUserConfig(JsonObject &userConfig);
 	size_t _createConfig(ConfigData &config, String filename = "config.json", bool save = true);
 	bool _loadConfig(ConfigData &config, String filename = "config.json");
-	bool _checkJsonVariant(char *saveTo, JsonVariant string);
-	bool _checkJsonVariant(IPAddress &saveTo, JsonVariant IPstring);
-	bool _checkJsonVariant(int &saveTo, JsonVariant number);
 };
 
 

@@ -34,5 +34,8 @@
 // web file editor
 #define HTTP_USER "admin"
 #define HTTP_PASS "admin"
+// user custom settings
+#define USER_STR "teststr"
+#define USER_INT 15
 
 #endif

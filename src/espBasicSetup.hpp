@@ -67,15 +67,28 @@ class ImportSetup {
   private:
 };
 
+namespace configUserHandlers {
+typedef std::function<void(JsonObject &userConfig)> saveConfigHandler;
+typedef std::function<void(JsonObject &userConfig)> loadConfigHandler;
+}    // namespace configUserHandlers
+
 class BasicConfig {
   public:
 	void setup();
-	size_t createConfig(ConfigData &config, String filename = "config.json", bool save = true);
-	bool loadConfig(ConfigData &config, String filename = "config.json");
+	void SetUserConfigSize(size_t size);
+	void saveUserConfig(const configUserHandlers::saveConfigHandler &handler);
+	void loadUserConfig(const configUserHandlers::loadConfigHandler &handler);
 
 	BasicConfig();
 
   private:
+	std::vector<configUserHandlers::saveConfigHandler> _saveConfigHandler;
+	std::vector<configUserHandlers::loadConfigHandler> _loadConfigHandler;
+	size_t _userConfigSize = 0;
+	void _saveUserConfig(JsonObject &userConfig);
+	void _loadUserConfig(JsonObject &userConfig);
+	size_t _createConfig(ConfigData &config, String filename = "config.json", bool save = true);
+	bool _loadConfig(ConfigData &config, String filename = "config.json");
 	bool _checkJsonVariant(char *saveTo, JsonVariant string);
 	bool _checkJsonVariant(IPAddress &saveTo, JsonVariant IPstring);
 	bool _checkJsonVariant(int &saveTo, JsonVariant number);
@@ -161,6 +174,7 @@ class BasicSetup {
   public:
 	void begin();
 	ConfigData &config;
+	BasicConfig &userConfig;
 	BasicWiFi &WIFI;
 	BasicMQTT &MQTT;
 	AsyncWebServer &serverHttp;

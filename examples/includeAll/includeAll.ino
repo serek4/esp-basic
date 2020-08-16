@@ -4,6 +4,9 @@
 EspBasicSetup mySetup;
 
 void setup() {
+	basicSetup.userConfig.SetUserConfigSize(JSON_OBJECT_SIZE(2) + 40);
+	basicSetup.userConfig.loadUserConfig(loadConfig);
+	basicSetup.userConfig.saveUserConfig(saveConfig);
 	mySetup.begin();
 	WIFI.onConnected(handleWiFiConnected);
 	WIFI.onGotIP(handleWiFiGotIP);
@@ -18,6 +21,14 @@ void loop() {
 	delay(10);
 }
 
+void loadConfig(JsonObject config) {
+	Serial.println(config["teststr"].as<char *>());
+	Serial.println(config["testint"].as<int>());
+}
+void saveConfig(JsonObject config) {
+	config["teststr"] = "test";
+	config["testint"] = 22;
+}
 void handleWiFiConnected(const WiFiEventStationModeConnected &evt) {
 	Serial.println("User handler for WIFI onConnected");
 }

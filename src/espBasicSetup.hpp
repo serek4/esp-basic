@@ -78,6 +78,7 @@ class BasicConfig {
 	void SetUserConfigSize(size_t size);
 	void saveUserConfig(const configUserHandlers::saveConfigHandler &handler);
 	void loadUserConfig(const configUserHandlers::loadConfigHandler &handler);
+	bool checkJsonVariant(bool &saveTo, JsonVariant bit);
 	bool checkJsonVariant(char *saveTo, JsonVariant string);
 	bool checkJsonVariant(IPAddress &saveTo, JsonVariant IPstring);
 	bool checkJsonVariant(int &saveTo, JsonVariant number);

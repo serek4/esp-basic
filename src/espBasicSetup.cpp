@@ -86,6 +86,13 @@ void BasicConfig::setup() {
 	}
 	_defaultConfig.~ConfigData();
 }
+bool BasicConfig::checkJsonVariant(bool &saveTo, JsonVariant bit) {
+	if (bit.is<bool>()) {
+		saveTo = bit;
+		return true;
+	}
+	return false;
+}
 bool BasicConfig::checkJsonVariant(char *saveTo, JsonVariant string) {
 	if (string.is<char *>()) {
 		strcpy(saveTo, string);

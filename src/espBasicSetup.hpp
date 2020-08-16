@@ -81,6 +81,7 @@ class BasicConfig {
 	bool checkJsonVariant(char *saveTo, JsonVariant string);
 	bool checkJsonVariant(IPAddress &saveTo, JsonVariant IPstring);
 	bool checkJsonVariant(int &saveTo, JsonVariant number);
+	bool checkJsonVariant(float &saveTo, JsonVariant number);
 
 	BasicConfig();
 

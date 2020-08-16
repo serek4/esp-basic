@@ -107,6 +107,13 @@ bool BasicConfig::checkJsonVariant(int &saveTo, JsonVariant number) {
 	}
 	return false;
 }
+bool BasicConfig::checkJsonVariant(float &saveTo, JsonVariant number) {
+	if (number.is<float>()) {
+		saveTo = number;
+		return true;
+	}
+	return false;
+}
 void BasicConfig::SetUserConfigSize(size_t size) {
 	_userConfigSize = size;
 }

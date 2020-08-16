@@ -2,8 +2,16 @@
 #include <espBasicSetup.h>
 
 EspBasicSetup mySetup;
+struct UserConfig {
+	char *testStr = USER_STR;
+	int testInt = USER_INT;
+} myConfig;
+
 
 void setup() {
+	mySetup.config.SetUserConfigSize(JSON_OBJECT_SIZE(2) + 40);
+	mySetup.config.loadUserConfig(loadConfig);
+	mySetup.config.saveUserConfig(saveConfig);
 	mySetup.begin();
 	WIFI.onConnected(handleWiFiConnected);
 	WIFI.onGotIP(handleWiFiGotIP);
@@ -18,6 +26,16 @@ void loop() {
 	delay(10);
 }
 
+bool loadConfig(JsonObject config) {
+	bool succes = true;
+	if (!mySetup.config.checkJsonVariant(myConfig.testStr, config["teststr"])) succes &= false;
+	if (!mySetup.config.checkJsonVariant(myConfig.testInt, config["testint"])) succes &= false;
+	return succes;
+}
+void saveConfig(JsonObject config) {
+	config["teststr"] = myConfig.testStr;
+	config["testint"] = myConfig.testInt;
+}
 void handleWiFiConnected(const WiFiEventStationModeConnected &evt) {
 	Serial.println("User handler for WIFI onConnected");
 }

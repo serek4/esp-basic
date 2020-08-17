@@ -18,6 +18,7 @@ struct ConfigData {
 		char ssid[32];
 		char pass[64];
 		int mode;
+		bool wait;
 		IPAddress IP;         // optional
 		IPAddress subnet;     // optional
 		IPAddress gateway;    // optional
@@ -34,6 +35,7 @@ struct ConfigData {
 		int broker_port;
 		char client_ID[32];
 		int keepalive;
+		bool wait;
 		char will_topic[64];    // optional
 		char will_msg[16];      // optional
 		char user[16];          // optional
@@ -59,9 +61,9 @@ class BasicFS {
 
 class ImportSetup {
   public:
-	void WIFIsettings(const char *ssid, const char *pass, int mode, bool staticIP, const char *IP, const char *subnet, const char *gateway, const char *dns1, const char *dns2);
+	void WIFIsettings(const char *ssid, const char *pass, int mode, bool wait, bool staticIP, const char *IP, const char *subnet, const char *gateway, const char *dns1, const char *dns2);
 	void OTAsettings(const char *hostname);
-	void MQTTsettings(const char *broker_address, int broker_port, const char *clientID, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass);
+	void MQTTsettings(const char *broker_address, int broker_port, const char *clientID, int keepAlive, bool wait, const char *willTopic, const char *willMsg, const char *user, const char *pass);
 	void ServerHttpSettings(const char *user, const char *pass);
 
   private:

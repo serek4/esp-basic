@@ -34,16 +34,17 @@ BasicSetup::BasicSetup()
 void BasicSetup::begin() {
 	_basicConfig.setup();
 	_basicOTA.setup();
-	_basicWiFi.setup(true, _basicSetup._staticIP);
+	_basicWiFi.setup(_config.wifi.wait, _basicSetup._staticIP);
 	_basicWiFi._checkConnection();
-	_MQTT.setup(true);
+	_MQTT.setup(_config.mqtt.wait);
 	_basicServerHttp.setup();
 }
 
-void ImportSetup::WIFIsettings(const char *ssid, const char *pass, int mode, bool staticIP, const char *IP, const char *subnet, const char *gateway, const char *dns1, const char *dns2) {
+void ImportSetup::WIFIsettings(const char *ssid, const char *pass, int mode, bool wait, bool staticIP, const char *IP, const char *subnet, const char *gateway, const char *dns1, const char *dns2) {
 	strcpy(_defaultConfig.wifi.ssid, ssid);
 	strcpy(_defaultConfig.wifi.pass, pass);
 	_defaultConfig.wifi.mode = mode;
+	_defaultConfig.wifi.wait = wait;
 	_basicSetup._staticIP = staticIP;
 	(_defaultConfig.wifi.IP).fromString(IP);
 	(_defaultConfig.wifi.subnet).fromString(subnet);
@@ -58,11 +59,12 @@ void ImportSetup::ServerHttpSettings(const char *user, const char *pass) {
 	strcpy(_defaultConfig.http.user, user);
 	strcpy(_defaultConfig.http.pass, pass);
 }
-void ImportSetup::MQTTsettings(const char *broker_address, int broker_port, const char *clientID, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass) {
+void ImportSetup::MQTTsettings(const char *broker_address, int broker_port, const char *clientID, int keepAlive, bool wait, const char *willTopic, const char *willMsg, const char *user, const char *pass) {
 	strcpy(_defaultConfig.mqtt.broker, broker_address);
 	_defaultConfig.mqtt.broker_port = broker_port;
 	strcpy(_defaultConfig.mqtt.client_ID, clientID);
 	_defaultConfig.mqtt.keepalive = keepAlive;
+	_defaultConfig.mqtt.wait = wait;
 	strcpy(_defaultConfig.mqtt.will_topic, willTopic);
 	strcpy(_defaultConfig.mqtt.will_msg, willMsg);
 	strcpy(_defaultConfig.mqtt.user, user);
@@ -150,7 +152,7 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 		return false;
 	}
 	size_t configfileSize = configFile.size();
-	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + 2 * JSON_OBJECT_SIZE(8) + 390 + _userConfigSize;
+	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + 2 * JSON_OBJECT_SIZE(9) + 380 + _userConfigSize;
 	DynamicJsonDocument doc(capacity);
 	DeserializationError error = deserializeJson(doc, configFile);
 	configFile.close();
@@ -165,6 +167,7 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 		if (!checkJsonVariant(config.wifi.ssid, WiFi["ssid"])) mismatch |= true;    // "your-wifi-ssid"
 		if (!checkJsonVariant(config.wifi.pass, WiFi["pass"])) mismatch |= true;    // "your-wifi-password"
 		if (!checkJsonVariant(config.wifi.mode, WiFi["mode"])) mismatch |= true;    // "1"
+		if (!checkJsonVariant(config.wifi.wait, WiFi["wait"])) mismatch |= true;    // true
 		if (_basicSetup._staticIP) {
 			if (!checkJsonVariant(config.wifi.IP, WiFi["IP"])) mismatch |= true;              // "192.168.0.150"
 			if (!checkJsonVariant(config.wifi.subnet, WiFi["subnet"])) mismatch |= true;      // "255.255.255.0"
@@ -182,6 +185,7 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 		if (!checkJsonVariant(config.mqtt.broker_port, MQTT["broker_port"])) mismatch |= true;    // 1883
 		if (!checkJsonVariant(config.mqtt.client_ID, MQTT["client_ID"])) mismatch |= true;        // "esp8266chipID"
 		if (!checkJsonVariant(config.mqtt.keepalive, MQTT["keepalive"])) mismatch |= true;        // 15
+		if (!checkJsonVariant(config.mqtt.wait, MQTT["wait"])) mismatch |= true;                  // true
 		if (!checkJsonVariant(config.mqtt.will_topic, MQTT["will_topic"])) mismatch |= true;      // "ESP/esp8266chipID/status"
 		if (!checkJsonVariant(config.mqtt.will_msg, MQTT["will_msg"])) mismatch |= true;          // "off"
 		if (!checkJsonVariant(config.mqtt.user, MQTT["user"])) mismatch |= true;                  // "mqtt-user"
@@ -218,13 +222,14 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 	return true;
 }
 size_t BasicConfig::_createConfig(ConfigData &config, String filename, bool save) {
-	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + 2 * JSON_OBJECT_SIZE(8) + 390 + _userConfigSize;
+	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + 2 * JSON_OBJECT_SIZE(9) + 380 + _userConfigSize;
 	DynamicJsonDocument doc(capacity);
 
 	JsonObject WiFi = doc.createNestedObject("WiFi");
 	WiFi["ssid"] = config.wifi.ssid;
 	WiFi["pass"] = config.wifi.pass;
 	WiFi["mode"] = config.wifi.mode;
+	WiFi["wait"] = config.wifi.wait;
 	if (_basicSetup._staticIP) {
 		WiFi["IP"] = (config.wifi.IP).toString();
 		WiFi["subnet"] = (config.wifi.subnet).toString();
@@ -240,6 +245,7 @@ size_t BasicConfig::_createConfig(ConfigData &config, String filename, bool save
 	MQTT["broker_port"] = config.mqtt.broker_port;
 	MQTT["client_ID"] = config.mqtt.client_ID;
 	MQTT["keepalive"] = config.mqtt.keepalive;
+	MQTT["wait"] = config.mqtt.wait;
 	MQTT["will_topic"] = config.mqtt.will_topic;
 	MQTT["will_msg"] = config.mqtt.will_msg;
 	MQTT["user"] = config.mqtt.user;

@@ -120,6 +120,7 @@ class BasicMQTT {
 	void onDisconnect(const MQTTuserHandlers::onMQTTdisconnectHandler &handler);
 	void publish(const char *topic, const char *payload, uint8_t qos = 0, bool retain = false);
 	void publish(const char *topic, int payload, uint8_t qos = 0, bool retain = false);
+	void publish(const char *topic, long payload, uint8_t qos = 0, bool retain = false);
 	void publish(const char *topic, float payload, uint8_t qos = 0, bool retain = false) { publish(topic, payload, 3, 2, qos, retain); };
 	void publish(const char *topic, float payload, signed char width, unsigned char prec, uint8_t qos = 0, bool retain = false);
 	uint16_t subscribe(const char *topic, uint8_t qos = 0);

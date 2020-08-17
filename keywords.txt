@@ -7,25 +7,30 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-basicSetup  KEYWORD1
+EspBasicSetup  KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
-createConfig   KEYWORD2
-loadConfig   KEYWORD2
-WiFiSetup   KEYWORD2
-waitForWiFi   KEYWORD2
-OTAsetup   KEYWORD2
-MQTTsetup   KEYWORD2
+WIFIsettings   KEYWORD2
+OTAsettings   KEYWORD2
+MQTTsettings   KEYWORD2
+ServerHttpSettings   KEYWORD2
+SetUserConfigSize   KEYWORD2
+saveUserConfig   KEYWORD2
+loadUserConfig   KEYWORD2
+checkJsonVariant   KEYWORD2
 waitForMQTT   KEYWORD2
-onMQTTconnect   KEYWORD2
-onMQTTmessage   KEYWORD2
-MQTTpublish   KEYWORD2
-MQTTsubscribe   KEYWORD2
-FSsetup   KEYWORD2
-HTTPsetup   KEYWORD2
+onConnect   KEYWORD2
+onMessage   KEYWORD2
+onDisconnect   KEYWORD2
+publish   KEYWORD2
+subscribe   KEYWORD2
+waitForWiFi   KEYWORD2
+onConnected   KEYWORD2
+onGotIP   KEYWORD2
+onDisconnected   KEYWORD2
 begin   KEYWORD2
 
 #######################################

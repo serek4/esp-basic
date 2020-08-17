@@ -61,7 +61,8 @@ class BasicFS {
 
 class ImportSetup {
   public:
-	void WIFIsettings(const char *ssid, const char *pass, int mode, bool wait, bool staticIP, const char *IP, const char *subnet, const char *gateway, const char *dns1, const char *dns2);
+	void WIFIsettings(const char *ssid, const char *pass, int mode, bool wait, const char *IP, const char *subnet, const char *gateway, const char *dns1, const char *dns2);
+	void WIFIsettings(const char *ssid, const char *pass, int mode, bool wait);
 	void OTAsettings(const char *hostname);
 	void MQTTsettings(const char *broker_address, int broker_port, const char *clientID, int keepAlive, bool wait, const char *willTopic, const char *willMsg, const char *user, const char *pass);
 	void ServerHttpSettings(const char *user, const char *pass);

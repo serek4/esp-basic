@@ -40,17 +40,24 @@ void BasicSetup::begin() {
 	_basicServerHttp.setup();
 }
 
-void ImportSetup::WIFIsettings(const char *ssid, const char *pass, int mode, bool wait, bool staticIP, const char *IP, const char *subnet, const char *gateway, const char *dns1, const char *dns2) {
+void ImportSetup::WIFIsettings(const char *ssid, const char *pass, int mode, bool wait, const char *IP, const char *subnet, const char *gateway, const char *dns1, const char *dns2) {
 	strcpy(_defaultConfig.wifi.ssid, ssid);
 	strcpy(_defaultConfig.wifi.pass, pass);
 	_defaultConfig.wifi.mode = mode;
 	_defaultConfig.wifi.wait = wait;
-	_basicSetup._staticIP = staticIP;
+	_basicSetup._staticIP = true;
 	(_defaultConfig.wifi.IP).fromString(IP);
 	(_defaultConfig.wifi.subnet).fromString(subnet);
 	(_defaultConfig.wifi.gateway).fromString(gateway);
 	(_defaultConfig.wifi.dns1).fromString(dns1);
 	(_defaultConfig.wifi.dns2).fromString(dns2);
+}
+void ImportSetup::WIFIsettings(const char *ssid, const char *pass, int mode, bool wait) {
+	strcpy(_defaultConfig.wifi.ssid, ssid);
+	strcpy(_defaultConfig.wifi.pass, pass);
+	_defaultConfig.wifi.mode = mode;
+	_defaultConfig.wifi.wait = wait;
+	_basicSetup._staticIP = false;
 }
 void ImportSetup::OTAsettings(const char *hostname) {
 	strcpy(_defaultConfig.ota.hostname, hostname);

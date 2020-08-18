@@ -9,6 +9,8 @@ struct UserConfig {
 
 
 void setup() {
+	Serial.begin(115200);
+	Serial.println("");
 	mySetup.config.SetUserConfigSize(JSON_OBJECT_SIZE(2) + 40);
 	mySetup.config.loadUserConfig(loadConfig);
 	mySetup.config.saveUserConfig(saveConfig);

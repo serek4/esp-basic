@@ -28,8 +28,6 @@ BasicSetup::BasicSetup()
     , _inclOTA(false)
     , _inclMQTT(false)
     , _inclServerHttp(false) {
-	Serial.begin(115200);
-	Serial.println("");
 }
 void BasicSetup::begin() {
 	_basicConfig.setup();

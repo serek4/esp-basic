@@ -35,7 +35,6 @@ void BasicSetup::begin() {
 	_basicConfig.setup();
 	_basicOTA.setup();
 	_basicWiFi.setup(_config.wifi.wait, _basicSetup._staticIP);
-	_basicWiFi._checkConnection();
 	_MQTT.setup(_config.mqtt.wait);
 	_basicServerHttp.setup();
 }
@@ -345,6 +344,7 @@ void BasicWiFi::setup(bool waitForConnection, bool staticIP) {
 	});
 	if (waitForConnection) {
 		waitForWiFi();
+		_checkConnection();
 	}
 }
 void BasicWiFi::waitForWiFi() {

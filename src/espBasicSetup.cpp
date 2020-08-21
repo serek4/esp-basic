@@ -355,9 +355,15 @@ void BasicWiFi::waitForWiFi() {
 void BasicWiFi::_checkConnection() {
 	IPAddress buffer;
 	Serial.print("checking DNS server");
+	int retry = 0;
 	while (WiFi.hostByName("google.com", buffer) == 0) {
 		Serial.print(".");
 		delay(100);
+		retry++;
+		if (retry > 3) {
+			Serial.println("DNS does not work!");
+			break;
+		}
 	}
 	Serial.println(" OK!");
 }

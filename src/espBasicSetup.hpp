@@ -18,7 +18,6 @@ struct ConfigData {
 		char ssid[32];
 		char pass[64];
 		int mode;
-		bool wait;
 		IPAddress IP;         // optional
 		IPAddress subnet;     // optional
 		IPAddress gateway;    // optional
@@ -35,7 +34,6 @@ struct ConfigData {
 		int broker_port;
 		char client_ID[32];
 		int keepalive;
-		bool wait;
 		char will_topic[64];    // optional
 		char will_msg[16];      // optional
 		char user[16];          // optional
@@ -61,10 +59,10 @@ class BasicFS {
 
 class ImportSetup {
   public:
-	void WIFIsettings(const char *ssid, const char *pass, int mode, bool wait, const char *IP, const char *subnet, const char *gateway, const char *dns1, const char *dns2);
-	void WIFIsettings(const char *ssid, const char *pass, int mode, bool wait);
+	void WIFIsettings(const char *ssid, const char *pass, int mode, const char *IP, const char *subnet, const char *gateway, const char *dns1, const char *dns2);
+	void WIFIsettings(const char *ssid, const char *pass, int mode);
 	void OTAsettings(const char *hostname);
-	void MQTTsettings(const char *broker_address, int broker_port, const char *clientID, int keepAlive, bool wait, const char *willTopic, const char *willMsg, const char *user, const char *pass);
+	void MQTTsettings(const char *broker_address, int broker_port, const char *clientID, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass);
 	void ServerHttpSettings(const char *user, const char *pass);
 
   private:
@@ -116,7 +114,7 @@ typedef std::function<void(int8_t reason)> onMQTTdisconnectHandler;
 
 class BasicMQTT {
   public:
-	void setup(bool waitForConnection);
+	void setup();
 	void waitForMQTT();
 	void onConnect(const MQTTuserHandlers::onMQTTconnectHandler &handler);
 	void onMessage(const MQTTuserHandlers::onMQTTmesageHandler &handler);
@@ -156,7 +154,7 @@ typedef std::function<void(const WiFiEventStationModeDisconnected &evt)> onWiFiD
 
 class BasicWiFi {
   public:
-	void setup(bool waitForConnection, bool staticIP);
+	void setup(bool staticIP);
 	void waitForWiFi();
 	void onConnected(const WiFiUserHandlers::onWiFiConnectHandler &handler);
 	void onGotIP(const WiFiUserHandlers::onWiFiGotIPhandler &handler);

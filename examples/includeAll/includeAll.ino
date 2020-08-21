@@ -18,9 +18,11 @@ void setup() {
 	WIFI.onConnected(handleWiFiConnected);
 	WIFI.onGotIP(handleWiFiGotIP);
 	WIFI.onDisconnected(handleWiFiDisconnected);
+	WIFI.waitForWiFi();
 	MQTT.onConnect(handleMQTTconnect);
 	MQTT.onMessage(handleIncMQTTmsg);
 	MQTT.onDisconnect(handleMQTTdisconnect);
+	MQTT.waitForMQTT();
 }
 
 void loop() {

@@ -89,6 +89,12 @@ void BasicConfig::setup() {
 	}
 	_defaultConfig.~ConfigData();
 }
+void BasicConfig::saveConfig(ConfigData &config) {
+	_createConfig(config);
+}
+void BasicConfig::loadConfig(ConfigData &config) {
+	_loadConfig(config);
+}
 bool BasicConfig::checkJsonVariant(bool &saveTo, JsonVariant bit) {
 	if (bit.is<bool>()) {
 		saveTo = bit;

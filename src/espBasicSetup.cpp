@@ -449,7 +449,7 @@ void BasicMQTT::publish(const char *topic, float payload, signed char width, uns
 	dtostrf(payload, width, prec, numberBuffer);
 	_clientMQTT.publish(topic, qos, retain, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer) + 1, false);
 }
-uint16_t subscribe(const char *topic, uint8_t qos) {
+uint16_t BasicMQTT::subscribe(const char *topic, uint8_t qos) {
 	return _clientMQTT.subscribe(topic, qos);
 }
 void BasicMQTT::_onConnect() {

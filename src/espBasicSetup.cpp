@@ -28,6 +28,9 @@ BasicSetup::BasicSetup()
     , _inclOTA(false)
     , _inclMQTT(false)
     , _inclServerHttp(false) {
+	if (_useLed) {
+		pinMode(LED_BUILTIN, OUTPUT);
+	}
 }
 void BasicSetup::begin() {
 	_basicConfig.setup();
@@ -343,13 +346,16 @@ void BasicWiFi::setup(bool staticIP) {
 void BasicWiFi::waitForWiFi() {
 	Serial.print("Connecting to WiFi");
 	int retry = 0;
-	pinMode(LED_BUILTIN, OUTPUT);
 	while (WiFi.status() != WL_CONNECTED) {
 		Serial.print(".");
-		digitalWrite(LED_BUILTIN, LOW);
-		delay(200);
-		digitalWrite(LED_BUILTIN, HIGH);
-		delay(300);
+		if (BasicSetup::_useLed) {
+			digitalWrite(LED_BUILTIN, LOW);
+			delay(200);
+			digitalWrite(LED_BUILTIN, HIGH);
+			delay(300);
+		} else {
+			delay(500);
+		}
 		retry++;
 		if (retry >= 20) {
 			Serial.println("Can't connect to WiFi!");
@@ -491,10 +497,14 @@ void BasicMQTT::waitForMQTT() {
 	Serial.print("Connecting MQTT");
 	while (!_clientMQTT.connected()) {
 		Serial.print(".");
-		digitalWrite(LED_BUILTIN, LOW);
-		delay(100);
-		digitalWrite(LED_BUILTIN, HIGH);
-		delay(150);
+		if (BasicSetup::_useLed) {
+			digitalWrite(LED_BUILTIN, LOW);
+			delay(100);
+			digitalWrite(LED_BUILTIN, HIGH);
+			delay(150);
+		} else {
+			delay(250);
+		}
 		retry++;
 		if (retry >= 40) {
 			Serial.println("Can't connect to MQTT!");

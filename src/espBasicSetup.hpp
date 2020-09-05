@@ -195,6 +195,7 @@ class BasicSetup {
 	bool _inclConfig;
 	bool _inclOTA;
 	bool _staticIP;
+	static bool _useLed;
 
 	friend class ImportSetup;
 	friend class BasicFS;

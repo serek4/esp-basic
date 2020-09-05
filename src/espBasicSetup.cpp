@@ -28,23 +28,22 @@ BasicSetup::BasicSetup()
     , _inclOTA(false)
     , _inclMQTT(false)
     , _inclServerHttp(false) {
-	Serial.begin(115200);
-	Serial.println("");
+	if (_useLed) {
+		pinMode(LED_BUILTIN, OUTPUT);
+	}
 }
 void BasicSetup::begin() {
 	_basicConfig.setup();
 	_basicOTA.setup();
-	_basicWiFi.setup(_config.wifi.wait, _basicSetup._staticIP);
-	_basicWiFi._checkConnection();
-	_MQTT.setup(_config.mqtt.wait);
+	_basicWiFi.setup(_basicSetup._staticIP);
+	_MQTT.setup();
 	_basicServerHttp.setup();
 }
 
-void ImportSetup::WIFIsettings(const char *ssid, const char *pass, int mode, bool wait, const char *IP, const char *subnet, const char *gateway, const char *dns1, const char *dns2) {
+void ImportSetup::WIFIsettings(const char *ssid, const char *pass, int mode, const char *IP, const char *subnet, const char *gateway, const char *dns1, const char *dns2) {
 	strcpy(_defaultConfig.wifi.ssid, ssid);
 	strcpy(_defaultConfig.wifi.pass, pass);
 	_defaultConfig.wifi.mode = mode;
-	_defaultConfig.wifi.wait = wait;
 	_basicSetup._staticIP = true;
 	(_defaultConfig.wifi.IP).fromString(IP);
 	(_defaultConfig.wifi.subnet).fromString(subnet);
@@ -52,11 +51,10 @@ void ImportSetup::WIFIsettings(const char *ssid, const char *pass, int mode, boo
 	(_defaultConfig.wifi.dns1).fromString(dns1);
 	(_defaultConfig.wifi.dns2).fromString(dns2);
 }
-void ImportSetup::WIFIsettings(const char *ssid, const char *pass, int mode, bool wait) {
+void ImportSetup::WIFIsettings(const char *ssid, const char *pass, int mode) {
 	strcpy(_defaultConfig.wifi.ssid, ssid);
 	strcpy(_defaultConfig.wifi.pass, pass);
 	_defaultConfig.wifi.mode = mode;
-	_defaultConfig.wifi.wait = wait;
 	_basicSetup._staticIP = false;
 }
 void ImportSetup::OTAsettings(const char *hostname) {
@@ -66,12 +64,11 @@ void ImportSetup::ServerHttpSettings(const char *user, const char *pass) {
 	strcpy(_defaultConfig.http.user, user);
 	strcpy(_defaultConfig.http.pass, pass);
 }
-void ImportSetup::MQTTsettings(const char *broker_address, int broker_port, const char *clientID, int keepAlive, bool wait, const char *willTopic, const char *willMsg, const char *user, const char *pass) {
+void ImportSetup::MQTTsettings(const char *broker_address, int broker_port, const char *clientID, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass) {
 	strcpy(_defaultConfig.mqtt.broker, broker_address);
 	_defaultConfig.mqtt.broker_port = broker_port;
 	strcpy(_defaultConfig.mqtt.client_ID, clientID);
 	_defaultConfig.mqtt.keepalive = keepAlive;
-	_defaultConfig.mqtt.wait = wait;
 	strcpy(_defaultConfig.mqtt.will_topic, willTopic);
 	strcpy(_defaultConfig.mqtt.will_msg, willMsg);
 	strcpy(_defaultConfig.mqtt.user, user);
@@ -94,6 +91,12 @@ void BasicConfig::setup() {
 		}
 	}
 	_defaultConfig.~ConfigData();
+}
+void BasicConfig::saveConfig(ConfigData &config) {
+	_createConfig(config);
+}
+void BasicConfig::loadConfig(ConfigData &config) {
+	_loadConfig(config);
 }
 bool BasicConfig::checkJsonVariant(bool &saveTo, JsonVariant bit) {
 	if (bit.is<bool>()) {
@@ -174,7 +177,6 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 		if (!checkJsonVariant(config.wifi.ssid, WiFi["ssid"])) mismatch |= true;    // "your-wifi-ssid"
 		if (!checkJsonVariant(config.wifi.pass, WiFi["pass"])) mismatch |= true;    // "your-wifi-password"
 		if (!checkJsonVariant(config.wifi.mode, WiFi["mode"])) mismatch |= true;    // "1"
-		if (!checkJsonVariant(config.wifi.wait, WiFi["wait"])) mismatch |= true;    // true
 		if (_basicSetup._staticIP) {
 			if (!checkJsonVariant(config.wifi.IP, WiFi["IP"])) mismatch |= true;              // "192.168.0.150"
 			if (!checkJsonVariant(config.wifi.subnet, WiFi["subnet"])) mismatch |= true;      // "255.255.255.0"
@@ -192,7 +194,6 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 		if (!checkJsonVariant(config.mqtt.broker_port, MQTT["broker_port"])) mismatch |= true;    // 1883
 		if (!checkJsonVariant(config.mqtt.client_ID, MQTT["client_ID"])) mismatch |= true;        // "esp8266chipID"
 		if (!checkJsonVariant(config.mqtt.keepalive, MQTT["keepalive"])) mismatch |= true;        // 15
-		if (!checkJsonVariant(config.mqtt.wait, MQTT["wait"])) mismatch |= true;                  // true
 		if (!checkJsonVariant(config.mqtt.will_topic, MQTT["will_topic"])) mismatch |= true;      // "ESP/esp8266chipID/status"
 		if (!checkJsonVariant(config.mqtt.will_msg, MQTT["will_msg"])) mismatch |= true;          // "off"
 		if (!checkJsonVariant(config.mqtt.user, MQTT["user"])) mismatch |= true;                  // "mqtt-user"
@@ -236,7 +237,6 @@ size_t BasicConfig::_createConfig(ConfigData &config, String filename, bool save
 	WiFi["ssid"] = config.wifi.ssid;
 	WiFi["pass"] = config.wifi.pass;
 	WiFi["mode"] = config.wifi.mode;
-	WiFi["wait"] = config.wifi.wait;
 	if (_basicSetup._staticIP) {
 		WiFi["IP"] = (config.wifi.IP).toString();
 		WiFi["subnet"] = (config.wifi.subnet).toString();
@@ -252,7 +252,6 @@ size_t BasicConfig::_createConfig(ConfigData &config, String filename, bool save
 	MQTT["broker_port"] = config.mqtt.broker_port;
 	MQTT["client_ID"] = config.mqtt.client_ID;
 	MQTT["keepalive"] = config.mqtt.keepalive;
-	MQTT["wait"] = config.mqtt.wait;
 	MQTT["will_topic"] = config.mqtt.will_topic;
 	MQTT["will_msg"] = config.mqtt.will_msg;
 	MQTT["user"] = config.mqtt.user;
@@ -327,7 +326,7 @@ void BasicWiFi::_onDisconnected(const WiFiEventStationModeDisconnected &evt) {
 	});
 	for (const auto &handler : _onDisconnectHandler) handler(evt);
 }
-void BasicWiFi::setup(bool waitForConnection, bool staticIP) {
+void BasicWiFi::setup(bool staticIP) {
 	if (staticIP) {
 		WiFi.config(_config.wifi.IP, _config.wifi.gateway, _config.wifi.subnet, _config.wifi.dns1, _config.wifi.dns2);
 	}
@@ -343,33 +342,40 @@ void BasicWiFi::setup(bool waitForConnection, bool staticIP) {
 	_WiFiDisconnectedHandler = WiFi.onStationModeDisconnected([&](const WiFiEventStationModeDisconnected &evt) {
 		_onDisconnected(evt);
 	});
-	if (waitForConnection) {
-		waitForWiFi();
-	}
 }
 void BasicWiFi::waitForWiFi() {
 	Serial.print("Connecting to WiFi");
 	int retry = 0;
-	pinMode(LED_BUILTIN, OUTPUT);
 	while (WiFi.status() != WL_CONNECTED) {
 		Serial.print(".");
-		digitalWrite(LED_BUILTIN, LOW);
-		delay(200);
-		digitalWrite(LED_BUILTIN, HIGH);
-		delay(300);
+		if (BasicSetup::_useLed) {
+			digitalWrite(LED_BUILTIN, LOW);
+			delay(200);
+			digitalWrite(LED_BUILTIN, HIGH);
+			delay(300);
+		} else {
+			delay(500);
+		}
 		retry++;
 		if (retry >= 20) {
 			Serial.println("Can't connect to WiFi!");
 			break;
 		}
 	}
+	_checkConnection();
 }
 void BasicWiFi::_checkConnection() {
 	IPAddress buffer;
 	Serial.print("checking DNS server");
+	int retry = 0;
 	while (WiFi.hostByName("google.com", buffer) == 0) {
 		Serial.print(".");
 		delay(100);
+		retry++;
+		if (retry > 3) {
+			Serial.println("DNS does not work!");
+			break;
+		}
 	}
 	Serial.println(" OK!");
 }
@@ -443,7 +449,7 @@ void BasicMQTT::publish(const char *topic, float payload, signed char width, uns
 	dtostrf(payload, width, prec, numberBuffer);
 	_clientMQTT.publish(topic, qos, retain, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer) + 1, false);
 }
-uint16_t subscribe(const char *topic, uint8_t qos) {
+uint16_t BasicMQTT::subscribe(const char *topic, uint8_t qos) {
 	return _clientMQTT.subscribe(topic, qos);
 }
 void BasicMQTT::_onConnect() {
@@ -462,13 +468,11 @@ void BasicMQTT::_onMessage(const char *_topic, const char *_payload) {
 	for (const auto &handler : _onMessageHandler) handler(_topic, _payload);
 }
 void BasicMQTT::_onDisconnect(int8_t reason) {
-	Serial.println((String) "MQTT disconnected: [" + (int)reason + "]!");
-	if (WiFi.isConnected()) {
-		_mqttReconnectTimer.once(10, []() { _clientMQTT.connect(); });
-	}
+	Serial.println("MQTT disconnected: [" + String(reason, 10) + "]!");
+	_mqttReconnectTimer.once(10, []() { _clientMQTT.connect(); });
 	for (const auto &handler : _onDisconnectHandler) handler(reason);
 }
-void BasicMQTT::setup(bool waitForConnection) {
+void BasicMQTT::setup() {
 	//TODO sprintf(_config.mqtt.client_ID, "esp8266-%06x", ESP.getChipId());
 	_clientMQTT.setClientId(_config.mqtt.client_ID);
 	_clientMQTT.setKeepAlive(_config.mqtt.keepalive);
@@ -487,25 +491,24 @@ void BasicMQTT::setup(bool waitForConnection) {
 	_clientMQTT.onDisconnect([&](int8_t reason) {
 		_onDisconnect(reason);
 	});
-	if (waitForConnection) {
-		waitForMQTT();
-	}
 }
 void BasicMQTT::waitForMQTT() {
-	if (WiFi.status() == WL_CONNECTED) {
-		int retry = 0;
-		Serial.print("Connecting MQTT");
-		while (!_clientMQTT.connected()) {
-			Serial.print(".");
+	int retry = 0;
+	Serial.print("Connecting MQTT");
+	while (!_clientMQTT.connected()) {
+		Serial.print(".");
+		if (BasicSetup::_useLed) {
 			digitalWrite(LED_BUILTIN, LOW);
 			delay(100);
 			digitalWrite(LED_BUILTIN, HIGH);
 			delay(150);
-			retry++;
-			if (retry >= 40) {
-				Serial.println("Can't connect to MQTT!");
-				break;
-			}
+		} else {
+			delay(250);
+		}
+		retry++;
+		if (retry >= 40) {
+			Serial.println("Can't connect to MQTT!");
+			break;
 		}
 	}
 }

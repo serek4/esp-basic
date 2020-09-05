@@ -17,6 +17,8 @@ WIFIsettings   KEYWORD2
 OTAsettings   KEYWORD2
 MQTTsettings   KEYWORD2
 ServerHttpSettings   KEYWORD2
+saveConfig  KEYWORD2
+loadConfig    KEYWORD2
 SetUserConfigSize   KEYWORD2
 saveUserConfig   KEYWORD2
 loadUserConfig   KEYWORD2

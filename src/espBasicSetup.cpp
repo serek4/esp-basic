@@ -439,9 +439,19 @@ void BasicMQTT::publish(const char *topic, int payload, uint8_t qos, bool retain
 	itoa(payload, numberBuffer, 10);
 	_clientMQTT.publish(topic, qos, retain, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer), false);
 }
+void BasicMQTT::publish(const char *topic, uint16_t payload, uint8_t qos, bool retain) {
+	char numberBuffer[12];
+	utoa(payload, numberBuffer, 10);
+	_clientMQTT.publish(topic, qos, retain, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer), false);
+}
 void BasicMQTT::publish(const char *topic, long payload, uint8_t qos, bool retain) {
 	char numberBuffer[12];
 	ltoa(payload, numberBuffer, 10);
+	_clientMQTT.publish(topic, qos, retain, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer), false);
+}
+void BasicMQTT::publish(const char *topic, u_long payload, uint8_t qos, bool retain) {
+	char numberBuffer[12];
+	ultoa(payload, numberBuffer, 10);
 	_clientMQTT.publish(topic, qos, retain, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer), false);
 }
 void BasicMQTT::publish(const char *topic, float payload, signed char width, unsigned char prec, uint8_t qos, bool retain) {

@@ -358,7 +358,7 @@ void BasicWiFi::waitForWiFi(int waitTime) {
 		}
 		if (millis() - startWaitingAt > waitTime * 1000) {
 			Serial.println("Can't connect to WiFi!");
-			break;
+			return;
 		}
 	}
 	_checkConnection();
@@ -373,7 +373,7 @@ void BasicWiFi::_checkConnection() {
 		retry++;
 		if (retry > 3) {
 			Serial.println("DNS does not work!");
-			break;
+			return;
 		}
 	}
 	Serial.println(" OK!");

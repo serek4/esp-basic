@@ -492,8 +492,8 @@ void BasicMQTT::setup() {
 		_onDisconnect(reason);
 	});
 }
-void BasicMQTT::waitForMQTT() {
-	int retry = 0;
+void BasicMQTT::waitForMQTT(int waitTime) {
+	u_long startWaitingAt = millis();
 	Serial.print("Connecting MQTT");
 	while (!_clientMQTT.connected()) {
 		Serial.print(".");
@@ -505,8 +505,7 @@ void BasicMQTT::waitForMQTT() {
 		} else {
 			delay(250);
 		}
-		retry++;
-		if (retry >= 40) {
+		if (millis() - startWaitingAt > waitTime * 1000) {
 			Serial.println("Can't connect to MQTT!");
 			break;
 		}

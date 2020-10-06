@@ -157,7 +157,7 @@ typedef std::function<void(const WiFiEventStationModeDisconnected &evt)> onWiFiD
 class BasicWiFi {
   public:
 	void setup(bool staticIP);
-	void waitForWiFi();
+	void waitForWiFi(int waitTime = 10);
 	void onConnected(const WiFiUserHandlers::onWiFiConnectHandler &handler);
 	void onGotIP(const WiFiUserHandlers::onWiFiGotIPhandler &handler);
 	void onDisconnected(const WiFiUserHandlers::onWiFiDisconnectHandler &handler);

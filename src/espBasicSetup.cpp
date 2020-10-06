@@ -343,9 +343,9 @@ void BasicWiFi::setup(bool staticIP) {
 		_onDisconnected(evt);
 	});
 }
-void BasicWiFi::waitForWiFi() {
-	Serial.print("Connecting to WiFi");
-	int retry = 0;
+void BasicWiFi::waitForWiFi(int waitTime) {
+	Serial.print("Waiting for WiFi connection");
+	u_long startWaitingAt = millis();
 	while (WiFi.status() != WL_CONNECTED) {
 		Serial.print(".");
 		if (BasicSetup::_useLed) {
@@ -356,8 +356,7 @@ void BasicWiFi::waitForWiFi() {
 		} else {
 			delay(500);
 		}
-		retry++;
-		if (retry >= 20) {
+		if (millis() - startWaitingAt > waitTime * 1000) {
 			Serial.println("Can't connect to WiFi!");
 			break;
 		}

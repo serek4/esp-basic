@@ -76,6 +76,8 @@ typedef std::function<bool(JsonObject &userConfig)> loadConfigHandler;
 class BasicConfig {
   public:
 	void setup();
+	void saveConfig(ConfigData &config);
+	void loadConfig(ConfigData &config);
 	void SetUserConfigSize(size_t size);
 	void saveUserConfig(const configUserHandlers::saveConfigHandler &handler);
 	void loadUserConfig(const configUserHandlers::loadConfigHandler &handler);
@@ -193,6 +195,7 @@ class BasicSetup {
 	bool _inclConfig;
 	bool _inclOTA;
 	bool _staticIP;
+	static bool _useLed;
 
 	friend class ImportSetup;
 	friend class BasicFS;

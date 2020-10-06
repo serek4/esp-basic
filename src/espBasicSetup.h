@@ -6,6 +6,7 @@
 #include "espBasicSetup.hpp"
 
 
+bool BasicSetup::_useLed = USE_BUILDIN_LED;
 BasicSetup basicSetup;
 ConfigData &config = basicSetup.config;                // only for cleaner sketch code
 BasicWiFi &WIFI = basicSetup.WIFI;                     // only for cleaner sketch code

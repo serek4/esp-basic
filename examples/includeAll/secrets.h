@@ -1,6 +1,7 @@
 #ifndef SECRETS_H_
 #define SECRETS_H_
 
+#define USE_BUILDIN_LED true
 #define STATIC_IP false
 #define MQTT_SET_LASTWILL true
 #define MQTT_USE_CREDENTIALS true

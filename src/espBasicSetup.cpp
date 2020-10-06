@@ -28,6 +28,9 @@ BasicSetup::BasicSetup()
     , _inclOTA(false)
     , _inclMQTT(false)
     , _inclServerHttp(false) {
+	if (_useLed) {
+		pinMode(LED_BUILTIN, OUTPUT);
+	}
 }
 void BasicSetup::begin() {
 	_basicConfig.setup();
@@ -88,6 +91,12 @@ void BasicConfig::setup() {
 		}
 	}
 	_defaultConfig.~ConfigData();
+}
+void BasicConfig::saveConfig(ConfigData &config) {
+	_createConfig(config);
+}
+void BasicConfig::loadConfig(ConfigData &config) {
+	_loadConfig(config);
 }
 bool BasicConfig::checkJsonVariant(bool &saveTo, JsonVariant bit) {
 	if (bit.is<bool>()) {
@@ -337,13 +346,16 @@ void BasicWiFi::setup(bool staticIP) {
 void BasicWiFi::waitForWiFi() {
 	Serial.print("Connecting to WiFi");
 	int retry = 0;
-	pinMode(LED_BUILTIN, OUTPUT);
 	while (WiFi.status() != WL_CONNECTED) {
 		Serial.print(".");
-		digitalWrite(LED_BUILTIN, LOW);
-		delay(200);
-		digitalWrite(LED_BUILTIN, HIGH);
-		delay(300);
+		if (BasicSetup::_useLed) {
+			digitalWrite(LED_BUILTIN, LOW);
+			delay(200);
+			digitalWrite(LED_BUILTIN, HIGH);
+			delay(300);
+		} else {
+			delay(500);
+		}
 		retry++;
 		if (retry >= 20) {
 			Serial.println("Can't connect to WiFi!");
@@ -437,7 +449,7 @@ void BasicMQTT::publish(const char *topic, float payload, signed char width, uns
 	dtostrf(payload, width, prec, numberBuffer);
 	_clientMQTT.publish(topic, qos, retain, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer) + 1, false);
 }
-uint16_t subscribe(const char *topic, uint8_t qos) {
+uint16_t BasicMQTT::subscribe(const char *topic, uint8_t qos) {
 	return _clientMQTT.subscribe(topic, qos);
 }
 void BasicMQTT::_onConnect() {
@@ -485,10 +497,14 @@ void BasicMQTT::waitForMQTT() {
 	Serial.print("Connecting MQTT");
 	while (!_clientMQTT.connected()) {
 		Serial.print(".");
-		digitalWrite(LED_BUILTIN, LOW);
-		delay(100);
-		digitalWrite(LED_BUILTIN, HIGH);
-		delay(150);
+		if (BasicSetup::_useLed) {
+			digitalWrite(LED_BUILTIN, LOW);
+			delay(100);
+			digitalWrite(LED_BUILTIN, HIGH);
+			delay(150);
+		} else {
+			delay(250);
+		}
 		retry++;
 		if (retry >= 40) {
 			Serial.println("Can't connect to MQTT!");

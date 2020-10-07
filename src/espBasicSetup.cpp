@@ -1,7 +1,6 @@
 #include "espBasicSetup.hpp"
 
 BasicSetup _basicSetup;
-BasicFS _basicFS;
 ConfigData _defaultConfig;
 ConfigData _config;
 BasicConfig _basicConfig;
@@ -476,16 +475,4 @@ void BasicMQTT::waitForMQTT(int waitTime) {
 			break;
 		}
 	}
-}
-
-
-BasicFS::BasicFS() {
-}
-bool BasicFS::setup() {
-	while (!LittleFS.begin()) {
-		Serial.println("LittleFS mount failed!");
-		return false;
-	}
-	Serial.println("LittleFS mounted!");
-	return true;
 }

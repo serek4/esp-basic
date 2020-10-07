@@ -3,7 +3,6 @@
 #include "Arduino.h"
 #include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
-#include <LittleFS.h>
 #include <PangolinMQTT.h>
 #include <Ticker.h>
 #include <functional>
@@ -11,6 +10,7 @@
 
 #include "plugins/basicOTA.hpp"
 #include "plugins/basicServerHttp.hpp"
+#include "plugins/basicFS.hpp"
 
 
 struct ConfigData {
@@ -49,13 +49,6 @@ struct ConfigData {
 	OTA ota;
 	MQTT mqtt;
 	HTTP http;
-};
-
-class BasicFS {
-  public:
-	bool setup();
-
-	BasicFS();
 };
 
 class ImportSetup {
@@ -194,7 +187,6 @@ class BasicSetup {
 };
 
 extern BasicSetup _basicSetup;
-extern BasicFS _basicFS;
 extern ConfigData _defaultConfig;
 extern ConfigData _config;
 extern BasicConfig _basicConfig;

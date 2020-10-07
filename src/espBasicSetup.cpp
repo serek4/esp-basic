@@ -6,7 +6,6 @@ ConfigData _defaultConfig;
 ConfigData _config;
 BasicConfig _basicConfig;
 BasicWiFi _basicWiFi;
-BasicOTA _basicOTA;
 BasicMQTT _MQTT;
 BasicServerHttp _basicServerHttp;
 WiFiEventHandler _WiFiConnectedHandler, _WiFiGotIpHandler, _WiFiDisconnectedHandler;
@@ -296,7 +295,7 @@ void BasicWiFi::_onConnected(const WiFiEventStationModeConnected &evt) {
 }
 void BasicWiFi::_onGotIP(const WiFiEventStationModeGotIP &evt) {
 	Serial.println(" IP:   " + WiFi.localIP().toString());
-	if (_basicSetup._inclOTA) {
+	if (_basicOTA._inclOTA) {
 		ArduinoOTA.begin();
 		Serial.println("OTA started!");
 	}
@@ -314,7 +313,7 @@ void BasicWiFi::_onGotIP(const WiFiEventStationModeGotIP &evt) {
 void BasicWiFi::_onDisconnected(const WiFiEventStationModeDisconnected &evt) {
 	WiFi.disconnect(true);
 	Serial.println("WiFi disconnected, reconnecting!");
-	if (_basicSetup._inclOTA) {
+	if (_basicOTA._inclOTA) {
 	}
 	if (_basicSetup._inclMQTT) {
 		_mqttReconnectTimer.detach();
@@ -378,45 +377,6 @@ void BasicWiFi::_checkConnection() {
 	}
 	Serial.println(" OK!");
 }
-
-BasicOTA::BasicOTA() {
-	_basicSetup._inclOTA = true;
-};
-void BasicOTA::setup() {
-	// TODO sprintf(_config.ota.hostname, "esp8266-%06x", ESP.getChipId());
-	ArduinoOTA.setHostname(_config.ota.hostname);
-	ArduinoOTA.onStart([]() {
-		String type;
-		if (ArduinoOTA.getCommand() == U_FLASH) {
-			type = "sketch";
-		} else {    // U_FS
-			type = "filesystem";
-		}
-		// NOTE: if updating FS this would be the place to unmount FS using FS.end()
-		Serial.println("Start updating " + type);
-	});
-	ArduinoOTA.onEnd([]() {
-		Serial.println("\nEnd");
-	});
-	ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-		Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-	});
-	ArduinoOTA.onError([](ota_error_t error) {
-		Serial.printf("Error[%u]: ", error);
-		if (error == OTA_AUTH_ERROR) {
-			Serial.println("Auth Failed");
-		} else if (error == OTA_BEGIN_ERROR) {
-			Serial.println("Begin Failed");
-		} else if (error == OTA_CONNECT_ERROR) {
-			Serial.println("Connect Failed");
-		} else if (error == OTA_RECEIVE_ERROR) {
-			Serial.println("Receive Failed");
-		} else if (error == OTA_END_ERROR) {
-			Serial.println("End Failed");
-		}
-	});
-}
-
 
 BasicMQTT::BasicMQTT() {
 	_basicSetup._inclMQTT = true;

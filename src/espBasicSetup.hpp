@@ -2,7 +2,6 @@
 
 #include "Arduino.h"
 #include <ArduinoJson.h>
-#include <ArduinoOTA.h>
 #include <ESP8266WiFi.h>
 #include <LittleFS.h>
 #include <PangolinMQTT.h>
@@ -10,6 +9,8 @@
 #include <Ticker.h>
 #include <functional>
 #include <vector>
+
+#include "plugins/basicOTA.hpp"
 
 
 struct ConfigData {
@@ -143,14 +144,6 @@ class BasicMQTT {
 };
 
 
-class BasicOTA {
-  public:
-	void setup();
-
-	BasicOTA();
-};
-
-
 namespace WiFiUserHandlers {
 typedef std::function<void(const WiFiEventStationModeConnected &evt)> onWiFiConnectHandler;
 typedef std::function<void(const WiFiEventStationModeGotIP &evt)> onWiFiGotIPhandler;
@@ -208,3 +201,11 @@ class BasicSetup {
 	friend class BasicOTA;
 	friend class BasicWiFi;
 };
+
+extern BasicSetup _basicSetup;
+extern BasicFS _basicFS;
+extern ConfigData _defaultConfig;
+extern ConfigData _config;
+extern BasicConfig _basicConfig;
+extern BasicWiFi _basicWiFi;
+extern BasicMQTT _MQTT;

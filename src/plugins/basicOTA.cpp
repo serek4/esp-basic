@@ -2,7 +2,8 @@
 
 
 BasicOTA::BasicOTA()
-    : _inclOTA(true){};
+    : _inclOTA(true) {
+}
 
 void BasicOTA::setup() {
 	// TODO sprintf(_config.ota.hostname, "esp8266-%06x", ESP.getChipId());

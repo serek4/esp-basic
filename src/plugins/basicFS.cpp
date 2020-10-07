@@ -1,8 +1,10 @@
 #include "basicFS.hpp"
 
 
-BasicFS::BasicFS() {
+BasicFS::BasicFS()
+    : _inclFS(true) {
 }
+
 bool BasicFS::setup() {
 	while (!LittleFS.begin()) {
 		Serial.println("LittleFS mount failed!");

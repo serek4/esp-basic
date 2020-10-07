@@ -1,20 +1,20 @@
 #pragma once
 
-#include "./espBasicSetup.hpp"
+#include "../espBasicSetup.hpp"
 #include <ESPAsyncWebServer.h>
 #include <LittleFS.h>
 #include <SPIFFSEditor.h>
 
 class BasicServerHttp {
   public:
-	  void setup();
+	void setup();
 
-	  BasicServerHttp();
+	BasicServerHttp();
 
   private:
-	  bool _inclServerHttp;
+	bool _inclServerHttp;
 
-	  friend class BasicWiFi;
+	friend class BasicSetup;
 };
 
 extern BasicServerHttp _basicServerHttp;

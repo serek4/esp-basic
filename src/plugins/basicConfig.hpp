@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./espBasicSetup.hpp"
+#include "../espBasicSetup.hpp"
 #include "IPAddress.h"
 #include <ArduinoJson.h>
 #include <functional>
@@ -85,8 +85,10 @@ class BasicConfig {
 	bool _loadUserConfig(JsonObject &userConfig);
 	size_t _createConfig(ConfigData &config, String filename = "config.json", bool save = true);
 	bool _loadConfig(ConfigData &config, String filename = "config.json");
+	bool _inclConfig;
+
+	friend class BasicSetup;
 };
 
 extern BasicConfig _basicConfig;
 extern ConfigData _config;
-extern ConfigData _defaultConfig;

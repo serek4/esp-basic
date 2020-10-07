@@ -3,7 +3,9 @@
 AsyncWebServer _serverHttp(80);
 
 BasicServerHttp::BasicServerHttp()
-    : _inclServerHttp(true) {}
+    : _inclServerHttp(true) {
+}
+
 void BasicServerHttp::setup() {
 	if (!(_basicSetup._fsStarted)) {
 		Serial.println("mount 2");

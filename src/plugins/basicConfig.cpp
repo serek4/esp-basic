@@ -40,9 +40,10 @@ void ImportSetup::MQTTsettings(const char *broker_address, int broker_port, cons
 }
 
 
-BasicConfig::BasicConfig() {
-	_basicSetup._inclConfig = true;
+BasicConfig::BasicConfig()
+    : _inclConfig(true) {
 }
+
 void BasicConfig::setup() {
 	if (!(_basicSetup._fsStarted)) {
 		Serial.println("mount 1");

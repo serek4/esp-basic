@@ -7,7 +7,6 @@
 
 
 bool BasicSetup::_useLed = USE_BUILDIN_LED;
-BasicSetup basicSetup;
 ConfigData &config = _config;                // only for cleaner sketch code
 BasicWiFi &WIFI = _basicWiFi;                // only for cleaner sketch code
 BasicMQTT &MQTT = _basicMQTT;                // only for cleaner sketch code
@@ -29,7 +28,7 @@ class EspBasicSetup {
 	};
 	BasicConfig &config;
 	void begin() {
-		basicSetup.begin();
+		_basicSetup.begin();
 	}
 
   private:

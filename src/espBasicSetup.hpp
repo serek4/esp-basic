@@ -19,6 +19,7 @@ class BasicSetup {
 
   private:
 	bool _fsStarted;
+	bool _inclFS;
 	bool _inclServerHttp;
 	bool _inclMQTT;
 	bool _inclWiFi;

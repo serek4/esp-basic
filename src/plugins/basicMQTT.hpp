@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./espBasicSetup.hpp"
+#include "../espBasicSetup.hpp"
 #include <PangolinMQTT.h>
 #include <Ticker.h>
 #include <functional>
@@ -33,15 +33,15 @@ class BasicMQTT {
 	BasicMQTT();
 
   private:
-	bool _inclMQTT;
 	std::vector<MQTTuserHandlers::onMQTTconnectHandler> _onConnectHandler;
 	std::vector<MQTTuserHandlers::onMQTTmesageHandler> _onMessageHandler;
 	std::vector<MQTTuserHandlers::onMQTTdisconnectHandler> _onDisconnectHandler;
 	void _onConnect();
 	void _onMessage(const char *_topic, const char *_payload);
 	void _onDisconnect(int8_t reason);
+	bool _inclMQTT;
 
-	friend class BasicWiFi;
+	friend class BasicSetup;
 };
 
 extern BasicMQTT _basicMQTT;

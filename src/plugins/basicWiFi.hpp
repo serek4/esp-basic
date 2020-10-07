@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./espBasicSetup.hpp"
+#include "../espBasicSetup.hpp"
 #include <ESP8266WiFi.h>
 #include <Ticker.h>
 #include <functional>
@@ -31,6 +31,7 @@ class BasicWiFi {
 	void _onConnected(const WiFiEventStationModeConnected &evt);
 	void _onGotIP(const WiFiEventStationModeGotIP &evt);
 	void _onDisconnected(const WiFiEventStationModeDisconnected &evt);
+	bool _inclWiFi;
 
 	friend class BasicSetup;
 };

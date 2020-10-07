@@ -4,9 +4,10 @@
 WiFiEventHandler _WiFiConnectedHandler, _WiFiGotIpHandler, _WiFiDisconnectedHandler;
 Ticker _wifiReconnectTimer;
 
-BasicWiFi::BasicWiFi() {
-	_basicSetup._inclWiFi = true;
+BasicWiFi::BasicWiFi()
+    : _inclWiFi(true) {
 }
+
 void BasicWiFi::onConnected(const WiFiUserHandlers::onWiFiConnectHandler &handler) {
 	_onConnectHandler.push_back(handler);
 }
@@ -22,15 +23,15 @@ void BasicWiFi::_onConnected(const WiFiEventStationModeConnected &evt) {
 }
 void BasicWiFi::_onGotIP(const WiFiEventStationModeGotIP &evt) {
 	Serial.println(" IP:   " + WiFi.localIP().toString());
-	if (_basicOTA._inclOTA) {
+	if (_basicSetup._inclOTA) {
 		ArduinoOTA.begin();
 		Serial.println("OTA started!");
 	}
-	if (_basicServerHttp._inclServerHttp) {
+	if (_basicSetup._inclServerHttp) {
 		_serverHttp.begin();
 		Serial.println("http server started!");
 	}
-	if (_basicMQTT._inclMQTT) {
+	if (_basicSetup._inclMQTT) {
 		_mqttReconnectTimer.once(1, []() {
 			_clientMQTT.connect();
 		});
@@ -40,12 +41,12 @@ void BasicWiFi::_onGotIP(const WiFiEventStationModeGotIP &evt) {
 void BasicWiFi::_onDisconnected(const WiFiEventStationModeDisconnected &evt) {
 	WiFi.disconnect(true);
 	Serial.println("WiFi disconnected, reconnecting!");
-	if (_basicOTA._inclOTA) {
+	if (_basicSetup._inclOTA) {
 	}
 	if (_basicSetup._inclMQTT) {
 		_mqttReconnectTimer.detach();
 	}
-	if (_basicServerHttp._inclServerHttp) {
+	if (_basicSetup._inclServerHttp) {
 	}
 	_wifiReconnectTimer.once(5, [&]() {
 		WiFi.begin(_config.wifi.ssid, _config.wifi.pass);

@@ -3,11 +3,12 @@
 
 BasicSetup::BasicSetup()
     : _fsStarted(false)
-    , _inclConfig(false)
-    , _inclWiFi(false)
-    , _inclOTA(false)
-    , _inclMQTT(false)
-    , _inclServerHttp(false) {
+    , _inclFS(_basicFS._inclFS)
+    , _inclConfig(_basicConfig._inclConfig)
+    , _inclWiFi(_basicWiFi._inclWiFi)
+    , _inclOTA(_basicOTA._inclOTA)
+    , _inclMQTT(_basicMQTT._inclMQTT)
+    , _inclServerHttp(_basicServerHttp._inclServerHttp) {
 	if (_useLed) {
 		pinMode(LED_BUILTIN, OUTPUT);
 	}
@@ -15,9 +16,9 @@ BasicSetup::BasicSetup()
 void BasicSetup::begin() {
 	_basicConfig.setup();
 	_basicOTA.setup();
-	_basicWiFi.setup(_basicSetup._staticIP);
 	_basicMQTT.setup();
 	_basicServerHttp.setup();
+	_basicWiFi.setup(_basicSetup._staticIP);
 }
 
 BasicSetup _basicSetup;

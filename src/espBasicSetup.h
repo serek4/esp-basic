@@ -9,7 +9,7 @@
 bool BasicSetup::_useLed = USE_BUILDIN_LED;
 BasicSetup basicSetup;
 ConfigData &config = basicSetup.config;      // only for cleaner sketch code
-BasicWiFi &WIFI = basicSetup.WIFI;           // only for cleaner sketch code
+BasicWiFi &WIFI = _basicWiFi;                // only for cleaner sketch code
 BasicMQTT &MQTT = basicSetup.MQTT;           // only for cleaner sketch code
 AsyncWebServer &httpServer = _serverHttp;    // only for cleaner sketch code
 

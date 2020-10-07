@@ -2,7 +2,6 @@
 
 #include "Arduino.h"
 #include <ArduinoJson.h>
-#include <ESP8266WiFi.h>
 #include <PangolinMQTT.h>
 #include <Ticker.h>
 #include <functional>
@@ -11,6 +10,7 @@
 #include "plugins/basicOTA.hpp"
 #include "plugins/basicServerHttp.hpp"
 #include "plugins/basicFS.hpp"
+#include "plugins/basicWiFi.hpp"
 
 
 struct ConfigData {
@@ -129,40 +129,11 @@ class BasicMQTT {
 };
 
 
-namespace WiFiUserHandlers {
-typedef std::function<void(const WiFiEventStationModeConnected &evt)> onWiFiConnectHandler;
-typedef std::function<void(const WiFiEventStationModeGotIP &evt)> onWiFiGotIPhandler;
-typedef std::function<void(const WiFiEventStationModeDisconnected &evt)> onWiFiDisconnectHandler;
-}    // namespace WiFiUserHandlers
-
-class BasicWiFi {
-  public:
-	void setup(bool staticIP);
-	void waitForWiFi(int waitTime = 10);
-	void onConnected(const WiFiUserHandlers::onWiFiConnectHandler &handler);
-	void onGotIP(const WiFiUserHandlers::onWiFiGotIPhandler &handler);
-	void onDisconnected(const WiFiUserHandlers::onWiFiDisconnectHandler &handler);
-
-	BasicWiFi();
-
-  private:
-	std::vector<WiFiUserHandlers::onWiFiConnectHandler> _onConnectHandler;
-	std::vector<WiFiUserHandlers::onWiFiGotIPhandler> _onGotIPhandler;
-	std::vector<WiFiUserHandlers::onWiFiDisconnectHandler> _onDisconnectHandler;
-	void _checkConnection();
-	void _onConnected(const WiFiEventStationModeConnected &evt);
-	void _onGotIP(const WiFiEventStationModeGotIP &evt);
-	void _onDisconnected(const WiFiEventStationModeDisconnected &evt);
-
-	friend class BasicSetup;
-};
-
 class BasicSetup {
   public:
 	void begin();
 	ConfigData &config;
 	BasicConfig &userConfig;
-	BasicWiFi &WIFI;
 	BasicMQTT &MQTT;
 
 	BasicSetup();
@@ -190,5 +161,6 @@ extern BasicSetup _basicSetup;
 extern ConfigData _defaultConfig;
 extern ConfigData _config;
 extern BasicConfig _basicConfig;
-extern BasicWiFi _basicWiFi;
 extern BasicMQTT _MQTT;
+extern PangolinMQTT _clientMQTT;
+extern Ticker _mqttReconnectTimer;

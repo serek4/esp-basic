@@ -117,13 +117,16 @@ typedef std::function<void(int8_t reason)> onMQTTdisconnectHandler;
 class BasicMQTT {
   public:
 	void setup();
-	void waitForMQTT();
+	void waitForMQTT(int waitTime = 10);
 	void onConnect(const MQTTuserHandlers::onMQTTconnectHandler &handler);
 	void onMessage(const MQTTuserHandlers::onMQTTmesageHandler &handler);
 	void onDisconnect(const MQTTuserHandlers::onMQTTdisconnectHandler &handler);
 	void publish(const char *topic, const char *payload, uint8_t qos = 0, bool retain = false);
 	void publish(const char *topic, int payload, uint8_t qos = 0, bool retain = false);
+	void publish(const char *topic, uint8_t payload, uint8_t qos = 0, bool retain = false) { publish(topic, (int)payload, qos, retain); };
+	void publish(const char *topic, uint16_t payload, uint8_t qos = 0, bool retain = false);
 	void publish(const char *topic, long payload, uint8_t qos = 0, bool retain = false);
+	void publish(const char *topic, u_long payload, uint8_t qos = 0, bool retain = false);
 	void publish(const char *topic, float payload, uint8_t qos = 0, bool retain = false) { publish(topic, payload, 3, 2, qos, retain); };
 	void publish(const char *topic, float payload, signed char width, unsigned char prec, uint8_t qos = 0, bool retain = false);
 	uint16_t subscribe(const char *topic, uint8_t qos = 0);
@@ -157,7 +160,7 @@ typedef std::function<void(const WiFiEventStationModeDisconnected &evt)> onWiFiD
 class BasicWiFi {
   public:
 	void setup(bool staticIP);
-	void waitForWiFi();
+	void waitForWiFi(int waitTime = 10);
 	void onConnected(const WiFiUserHandlers::onWiFiConnectHandler &handler);
 	void onGotIP(const WiFiUserHandlers::onWiFiGotIPhandler &handler);
 	void onDisconnected(const WiFiUserHandlers::onWiFiDisconnectHandler &handler);

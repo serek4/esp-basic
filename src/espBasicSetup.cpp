@@ -343,9 +343,9 @@ void BasicWiFi::setup(bool staticIP) {
 		_onDisconnected(evt);
 	});
 }
-void BasicWiFi::waitForWiFi() {
-	Serial.print("Connecting to WiFi");
-	int retry = 0;
+void BasicWiFi::waitForWiFi(int waitTime) {
+	Serial.print("Waiting for WiFi connection");
+	u_long startWaitingAt = millis();
 	while (WiFi.status() != WL_CONNECTED) {
 		Serial.print(".");
 		if (BasicSetup::_useLed) {
@@ -356,10 +356,9 @@ void BasicWiFi::waitForWiFi() {
 		} else {
 			delay(500);
 		}
-		retry++;
-		if (retry >= 20) {
+		if (millis() - startWaitingAt > waitTime * 1000) {
 			Serial.println("Can't connect to WiFi!");
-			break;
+			return;
 		}
 	}
 	_checkConnection();
@@ -374,7 +373,7 @@ void BasicWiFi::_checkConnection() {
 		retry++;
 		if (retry > 3) {
 			Serial.println("DNS does not work!");
-			break;
+			return;
 		}
 	}
 	Serial.println(" OK!");
@@ -432,22 +431,32 @@ void BasicMQTT::onDisconnect(const MQTTuserHandlers::onMQTTdisconnectHandler &ha
 	_onDisconnectHandler.push_back(handler);
 }
 void BasicMQTT::publish(const char *topic, const char *payload, uint8_t qos, bool retain) {
-	_clientMQTT.publish(topic, qos, retain, (uint8_t *)payload, (size_t)strlen(payload) + 1, false);
+	_clientMQTT.publish(topic, qos, retain, (uint8_t *)payload, (size_t)strlen(payload), false);
 }
 void BasicMQTT::publish(const char *topic, int payload, uint8_t qos, bool retain) {
 	char numberBuffer[12];
 	itoa(payload, numberBuffer, 10);
-	_clientMQTT.publish(topic, qos, retain, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer) + 1, false);
+	_clientMQTT.publish(topic, qos, retain, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer), false);
+}
+void BasicMQTT::publish(const char *topic, uint16_t payload, uint8_t qos, bool retain) {
+	char numberBuffer[12];
+	utoa(payload, numberBuffer, 10);
+	_clientMQTT.publish(topic, qos, retain, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer), false);
 }
 void BasicMQTT::publish(const char *topic, long payload, uint8_t qos, bool retain) {
 	char numberBuffer[12];
 	ltoa(payload, numberBuffer, 10);
-	_clientMQTT.publish(topic, qos, retain, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer) + 1, false);
+	_clientMQTT.publish(topic, qos, retain, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer), false);
+}
+void BasicMQTT::publish(const char *topic, u_long payload, uint8_t qos, bool retain) {
+	char numberBuffer[12];
+	ultoa(payload, numberBuffer, 10);
+	_clientMQTT.publish(topic, qos, retain, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer), false);
 }
 void BasicMQTT::publish(const char *topic, float payload, signed char width, unsigned char prec, uint8_t qos, bool retain) {
 	char numberBuffer[12];
 	dtostrf(payload, width, prec, numberBuffer);
-	_clientMQTT.publish(topic, qos, retain, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer) + 1, false);
+	_clientMQTT.publish(topic, qos, retain, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer), false);
 }
 uint16_t BasicMQTT::subscribe(const char *topic, uint8_t qos) {
 	return _clientMQTT.subscribe(topic, qos);
@@ -492,8 +501,8 @@ void BasicMQTT::setup() {
 		_onDisconnect(reason);
 	});
 }
-void BasicMQTT::waitForMQTT() {
-	int retry = 0;
+void BasicMQTT::waitForMQTT(int waitTime) {
+	u_long startWaitingAt = millis();
 	Serial.print("Connecting MQTT");
 	while (!_clientMQTT.connected()) {
 		Serial.print(".");
@@ -505,8 +514,7 @@ void BasicMQTT::waitForMQTT() {
 		} else {
 			delay(250);
 		}
-		retry++;
-		if (retry >= 40) {
+		if (millis() - startWaitingAt > waitTime * 1000) {
 			Serial.println("Can't connect to MQTT!");
 			break;
 		}

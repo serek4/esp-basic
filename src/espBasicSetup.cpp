@@ -7,12 +7,10 @@ ConfigData _config;
 BasicConfig _basicConfig;
 BasicWiFi _basicWiFi;
 BasicMQTT _MQTT;
-BasicServerHttp _basicServerHttp;
 WiFiEventHandler _WiFiConnectedHandler, _WiFiGotIpHandler, _WiFiDisconnectedHandler;
 Ticker _wifiReconnectTimer;
 PangolinMQTT _clientMQTT;
 Ticker _mqttReconnectTimer;
-AsyncWebServer _serverHttp(80);
 
 
 BasicSetup::BasicSetup()
@@ -20,7 +18,6 @@ BasicSetup::BasicSetup()
     , userConfig(_basicConfig)
     , WIFI(_basicWiFi)
     , MQTT(_MQTT)
-    , serverHttp(_serverHttp)
     , _fsStarted(false)
     , _inclConfig(false)
     , _inclWiFi(false)
@@ -299,7 +296,7 @@ void BasicWiFi::_onGotIP(const WiFiEventStationModeGotIP &evt) {
 		ArduinoOTA.begin();
 		Serial.println("OTA started!");
 	}
-	if (_basicSetup._inclServerHttp) {
+	if (_basicServerHttp._inclServerHttp) {
 		_serverHttp.begin();
 		Serial.println("http server started!");
 	}
@@ -318,7 +315,7 @@ void BasicWiFi::_onDisconnected(const WiFiEventStationModeDisconnected &evt) {
 	if (_basicSetup._inclMQTT) {
 		_mqttReconnectTimer.detach();
 	}
-	if (_basicSetup._inclServerHttp) {
+	if (_basicServerHttp._inclServerHttp) {
 	}
 	_wifiReconnectTimer.once(5, [&]() {
 		WiFi.begin(_config.wifi.ssid, _config.wifi.pass);
@@ -491,36 +488,4 @@ bool BasicFS::setup() {
 	}
 	Serial.println("LittleFS mounted!");
 	return true;
-}
-
-BasicServerHttp::BasicServerHttp() {
-	_basicSetup._inclServerHttp = true;
-}
-void BasicServerHttp::setup() {
-	if (!(_basicSetup._fsStarted)) {
-		Serial.println("mount 2");
-		_basicSetup._fsStarted = _basicFS.setup();
-	}
-	if (_basicSetup._fsStarted) {
-		_serverHttp.addHandler(new SPIFFSEditor(_config.http.user, _config.http.pass, LittleFS));
-		_serverHttp.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-			request->redirect("/edit");
-		});
-		_serverHttp.onNotFound([](AsyncWebServerRequest *request) {
-			String message = "File Not Found\n\n";
-			message += "\nURI: ";
-			message += request->url();
-			message += "\nMethod: ";
-			message += request->methodToString();
-			message += "\nArguments: ";
-			message += request->args();
-			message += "\n";
-			for (uint8_t i = 0; i < request->args(); i++) {
-				message += " " + request->argName(i);
-				message += ": " + request->arg(i) + "\n";
-			}
-			message += "\n";
-			request->send(404, "text/plain", message);
-		});
-	}
 }

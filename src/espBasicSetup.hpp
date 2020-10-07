@@ -5,12 +5,12 @@
 #include <ESP8266WiFi.h>
 #include <LittleFS.h>
 #include <PangolinMQTT.h>
-#include <SPIFFSEditor.h>
 #include <Ticker.h>
 #include <functional>
 #include <vector>
 
 #include "plugins/basicOTA.hpp"
+#include "plugins/basicServerHttp.hpp"
 
 
 struct ConfigData {
@@ -101,14 +101,6 @@ class BasicConfig {
 };
 
 
-class BasicServerHttp {
-  public:
-	void setup();
-
-	BasicServerHttp();
-};
-
-
 namespace MQTTuserHandlers {
 typedef std::function<void()> onMQTTconnectHandler;
 typedef std::function<void(const char *_topic, const char *_payload)> onMQTTmesageHandler;
@@ -179,7 +171,6 @@ class BasicSetup {
 	BasicConfig &userConfig;
 	BasicWiFi &WIFI;
 	BasicMQTT &MQTT;
-	AsyncWebServer &serverHttp;
 
 	BasicSetup();
 

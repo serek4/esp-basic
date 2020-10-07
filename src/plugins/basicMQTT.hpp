@@ -33,12 +33,15 @@ class BasicMQTT {
 	BasicMQTT();
 
   private:
+	bool _inclMQTT;
 	std::vector<MQTTuserHandlers::onMQTTconnectHandler> _onConnectHandler;
 	std::vector<MQTTuserHandlers::onMQTTmesageHandler> _onMessageHandler;
 	std::vector<MQTTuserHandlers::onMQTTdisconnectHandler> _onDisconnectHandler;
 	void _onConnect();
 	void _onMessage(const char *_topic, const char *_payload);
 	void _onDisconnect(int8_t reason);
+
+	friend class BasicWiFi;
 };
 
 extern BasicMQTT _basicMQTT;

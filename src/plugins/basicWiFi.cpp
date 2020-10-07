@@ -30,7 +30,7 @@ void BasicWiFi::_onGotIP(const WiFiEventStationModeGotIP &evt) {
 		_serverHttp.begin();
 		Serial.println("http server started!");
 	}
-	if (_basicSetup._inclMQTT) {
+	if (_basicMQTT._inclMQTT) {
 		_mqttReconnectTimer.once(1, []() {
 			_clientMQTT.connect();
 		});

@@ -29,6 +29,7 @@ class BasicMQTT {
 	void publish(const char *topic, float payload, uint8_t qos = 0, bool retain = false) { publish(topic, payload, 3, 2, qos, retain); };
 	void publish(const char *topic, float payload, signed char width, unsigned char prec, uint8_t qos = 0, bool retain = false);
 	uint16_t subscribe(const char *topic, uint8_t qos = 0);
+	bool connected();
 
 	BasicMQTT();
 

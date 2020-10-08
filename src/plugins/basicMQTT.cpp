@@ -48,6 +48,10 @@ void BasicMQTT::publish(const char *topic, float payload, signed char width, uns
 uint16_t BasicMQTT::subscribe(const char *topic, uint8_t qos) {
 	return _clientMQTT.subscribe(topic, qos);
 }
+bool BasicMQTT::connected() {
+	_clientMQTT.connected();
+}
+
 void BasicMQTT::_onConnect() {
 	Serial.println((String) "MQTT connected!\n " + _clientMQTT.getClientId() + "@" + _config.mqtt.broker);
 	uint16_t subStatus = _clientMQTT.subscribe(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), 2);

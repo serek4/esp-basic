@@ -7,16 +7,15 @@
 
 
 bool BasicSetup::_useLed = USE_BUILDIN_LED;
-BasicSetup basicSetup;
-ConfigData &config = basicSetup.config;                // only for cleaner sketch code
-BasicWiFi &WIFI = basicSetup.WIFI;                     // only for cleaner sketch code
-BasicMQTT &MQTT = basicSetup.MQTT;                     // only for cleaner sketch code
-AsyncWebServer &httpServer = basicSetup.serverHttp;    // only for cleaner sketch code
+ConfigData &config = _config;                // only for cleaner sketch code
+BasicWiFi &WIFI = _basicWiFi;                // only for cleaner sketch code
+BasicMQTT &MQTT = _basicMQTT;                // only for cleaner sketch code
+AsyncWebServer &httpServer = _serverHttp;    // only for cleaner sketch code
 
 class EspBasicSetup {
   public:
 	EspBasicSetup()
-	    : config(basicSetup.userConfig) {
+	    : config(_basicConfig) {
 #if STATIC_IP
 		_import.WIFIsettings(WIFI_SSID, WIFI_PASS, WIFI_MODE, WIFI_IP, WIFI_SUBNET, WIFI_GATEWAY, WIFI_DNS1, WIFI_DNS2);
 #else
@@ -29,7 +28,7 @@ class EspBasicSetup {
 	};
 	BasicConfig &config;
 	void begin() {
-		basicSetup.begin();
+		_basicSetup.begin();
 	}
 
   private:

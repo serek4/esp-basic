@@ -38,6 +38,12 @@ void ImportSetup::MQTTsettings(const char *broker_address, int broker_port, cons
 	strcpy(_defaultConfig.mqtt.user, user);
 	strcpy(_defaultConfig.mqtt.pass, pass);
 }
+void ImportSetup::timeSettings(const char *NTP_server_address, int NTP_server_port, int timezone, bool summertime) {
+	strcpy(_defaultConfig.time.NTP_server_address, NTP_server_address);
+	_defaultConfig.time.NTP_server_port = NTP_server_port;
+	_defaultConfig.time.timezone = timezone;
+	_defaultConfig.time.summertime = summertime;
+}
 
 
 BasicConfig::BasicConfig()
@@ -128,7 +134,7 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 		return false;
 	}
 	size_t configfileSize = configFile.size();
-	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + 2 * JSON_OBJECT_SIZE(9) + 380 + _userConfigSize;
+	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(5) + 2 * JSON_OBJECT_SIZE(8) + 450 + _userConfigSize;
 	DynamicJsonDocument doc(capacity);
 	DeserializationError error = deserializeJson(doc, configFile);
 	configFile.close();
@@ -169,6 +175,15 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 	}
 	if (!checkJsonVariant(config.http.user, doc["HTTP"]["user"])) mismatch |= true;    // "admin"
 	if (!checkJsonVariant(config.http.pass, doc["HTTP"]["pass"])) mismatch |= true;    // "admin"
+	JsonObject time = doc["time"];
+	if (!time.isNull()) {
+		if (!checkJsonVariant(config.time.NTP_server_address, time["NTP_server_address"])) mismatch |= true;    // "router.lan"
+		if (!checkJsonVariant(config.time.NTP_server_port, time["NTP_server_port"])) mismatch |= true;          // 2390
+		if (!checkJsonVariant(config.time.timezone, time["timezone"])) mismatch |= true;                        // 1
+		if (!checkJsonVariant(config.time.summertime, time["summertime"])) mismatch |= true;                    // false
+	} else {
+		mismatch |= true;
+	}
 	if (_userConfigSize != 0) {
 		JsonObject userSettings = doc["userSettings"];
 		mismatch |= !_loadUserConfig(userSettings);
@@ -196,7 +211,7 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 	return true;
 }
 size_t BasicConfig::_createConfig(ConfigData &config, String filename, bool save) {
-	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + 2 * JSON_OBJECT_SIZE(9) + 380 + _userConfigSize;
+	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(5) + 2 * JSON_OBJECT_SIZE(8) + 450 + _userConfigSize;
 	DynamicJsonDocument doc(capacity);
 
 	JsonObject WiFi = doc.createNestedObject("WiFi");
@@ -222,9 +237,17 @@ size_t BasicConfig::_createConfig(ConfigData &config, String filename, bool save
 	MQTT["will_msg"] = config.mqtt.will_msg;
 	MQTT["user"] = config.mqtt.user;
 	MQTT["pass"] = config.mqtt.pass;
+
 	JsonObject HTTP = doc.createNestedObject("HTTP");
 	HTTP["user"] = config.http.user;
 	HTTP["pass"] = config.http.pass;
+
+	JsonObject time = doc.createNestedObject("time");
+	time["NTP_server_address"] = config.time.NTP_server_address;
+	time["NTP_server_port"] = config.time.NTP_server_port;
+	time["timezone"] = config.time.timezone;
+	time["summertime"] = config.time.summertime;
+
 	if (_userConfigSize != 0) {
 		JsonObject userSettings = doc.createNestedObject("userSettings");
 		_saveUserConfig(userSettings);

@@ -175,14 +175,16 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 	}
 	if (!checkJsonVariant(config.http.user, doc["HTTP"]["user"])) mismatch |= true;    // "admin"
 	if (!checkJsonVariant(config.http.pass, doc["HTTP"]["pass"])) mismatch |= true;    // "admin"
-	JsonObject time = doc["time"];
-	if (!time.isNull()) {
-		if (!checkJsonVariant(config.time.NTP_server_address, time["NTP_server_address"])) mismatch |= true;    // "router.lan"
-		if (!checkJsonVariant(config.time.NTP_server_port, time["NTP_server_port"])) mismatch |= true;          // 2390
-		if (!checkJsonVariant(config.time.timezone, time["timezone"])) mismatch |= true;                        // 1
-		if (!checkJsonVariant(config.time.summertime, time["summertime"])) mismatch |= true;                    // false
-	} else {
-		mismatch |= true;
+	if (BasicSetup::_inclTime) {
+		JsonObject time = doc["time"];
+		if (!time.isNull()) {
+			if (!checkJsonVariant(config.time.NTP_server_address, time["NTP_server_address"])) mismatch |= true;    // "router.lan"
+			if (!checkJsonVariant(config.time.NTP_server_port, time["NTP_server_port"])) mismatch |= true;          // 2390
+			if (!checkJsonVariant(config.time.timezone, time["timezone"])) mismatch |= true;                        // 1
+			if (!checkJsonVariant(config.time.summertime, time["summertime"])) mismatch |= true;                    // false
+		} else {
+			mismatch |= true;
+		}
 	}
 	if (_userConfigSize != 0) {
 		JsonObject userSettings = doc["userSettings"];
@@ -241,13 +243,13 @@ size_t BasicConfig::_createConfig(ConfigData &config, String filename, bool save
 	JsonObject HTTP = doc.createNestedObject("HTTP");
 	HTTP["user"] = config.http.user;
 	HTTP["pass"] = config.http.pass;
-
-	JsonObject time = doc.createNestedObject("time");
-	time["NTP_server_address"] = config.time.NTP_server_address;
-	time["NTP_server_port"] = config.time.NTP_server_port;
-	time["timezone"] = config.time.timezone;
-	time["summertime"] = config.time.summertime;
-
+	if (BasicSetup::_inclTime) {
+		JsonObject time = doc.createNestedObject("time");
+		time["NTP_server_address"] = config.time.NTP_server_address;
+		time["NTP_server_port"] = config.time.NTP_server_port;
+		time["timezone"] = config.time.timezone;
+		time["summertime"] = config.time.summertime;
+	}
 	if (_userConfigSize != 0) {
 		JsonObject userSettings = doc.createNestedObject("userSettings");
 		_saveUserConfig(userSettings);

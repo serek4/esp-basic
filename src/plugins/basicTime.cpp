@@ -10,8 +10,7 @@ time_t NTPSyncInterval = 12 * SECS_PER_HOUR;     // timeSet sync interval
 time_t NTPReSyncInterval = 1 * SECS_PER_HOUR;    // timeNeedsSync sync interval
 time_t NTPnoSyncInterval = 5 * SECS_PER_MIN;     // timeNotSet sync interval
 
-BasicTime::BasicTime()
-    : _inclTime(true) {
+BasicTime::BasicTime() {
 }
 
 void BasicTime::setup() {
@@ -23,7 +22,7 @@ void BasicTime::waitForNTP(int waitTime) {
 	BASICTIME_PRINT("Waiting for NTP connection");
 	while (timeStatus() != timeSet) {
 		BASICTIME_PRINT(".");
-        handle();
+		handle();
 		if (BasicSetup::_useLed) {
 			digitalWrite(LED_BUILTIN, LOW);
 			delay(100);
@@ -150,5 +149,3 @@ String BasicTime::parseTimestamp(time_t timestamp, bool wholeDate) {
 	}
 	return date + time;
 }
-
-BasicTime _basicTime;

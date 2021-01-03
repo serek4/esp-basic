@@ -8,8 +8,7 @@ BasicSetup::BasicSetup()
     , _inclWiFi(_basicWiFi._inclWiFi)
     , _inclOTA(_basicOTA._inclOTA)
     , _inclMQTT(_basicMQTT._inclMQTT)
-    , _inclServerHttp(_basicServerHttp._inclServerHttp)
-    , _inclTime(_basicTime._inclTime) {
+    , _inclServerHttp(_basicServerHttp._inclServerHttp) {
 	if (_useLed) {
 		pinMode(LED_BUILTIN, OUTPUT);
 	}
@@ -20,7 +19,6 @@ void BasicSetup::begin() {
 	_basicMQTT.setup();
 	_basicServerHttp.setup();
 	_basicWiFi.setup(_basicSetup._staticIP);
-    _basicTime.setup();
 }
 
 BasicSetup _basicSetup;

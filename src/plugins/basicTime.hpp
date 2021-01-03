@@ -18,28 +18,18 @@
 #define NTP_PACKET_SIZE 48    // NTP time stamp is in the first 48 bytes of the message
 #define NTP_TIMEOUT 1500
 
-// time_t requestNtpTime();
-// void NTPrequestCallback(AsyncUDPPacket &packet);
-// bool sendNTPpacket(IPAddress &address);
-// void NTPsyncInterval(const char * message);
-
 class BasicTime {
   public:
 	void setup();
-    void waitForNTP(int waitTime = 10);
+	void waitForNTP(int waitTime = 10);
 	void handle();
 	String parseTimestamp(time_t timeStamp, bool wholeDate = true);
 
 	BasicTime();
 
   private:
-	bool _inclTime;
 	static time_t _requestNtpTime();
 	static void _NTPrequestCallback(AsyncUDPPacket &packet);
 	static bool _sendNTPpacket(IPAddress &address);
 	static void _NTPsyncInterval(const char *message);
-
-	friend class BasicSetup;
 };
-
-extern BasicTime _basicTime;

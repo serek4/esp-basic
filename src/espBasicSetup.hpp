@@ -29,7 +29,7 @@ class BasicSetup {
 	bool _inclWiFi;
 	bool _inclConfig;
 	bool _inclOTA;
-    bool _inclTime;
+	static bool _inclTime;
 	bool _staticIP;
 	static bool _useLed;
 
@@ -40,7 +40,7 @@ class BasicSetup {
 	friend class BasicMQTT;
 	friend class BasicOTA;
 	friend class BasicWiFi;
-    friend class BasicTime;
+	friend class BasicTime;
 };
 
 extern BasicSetup _basicSetup;

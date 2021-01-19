@@ -39,10 +39,18 @@ struct ConfigData {
 		char user[16];
 		char pass[16];
 	};
-	WiFi wifi;
+	// ntp client
+	struct Time {
+		char NTP_server_address[32];
+		int NTP_server_port;
+        int timezone;
+		bool summertime;
+	};
+    WiFi wifi;
 	OTA ota;
 	MQTT mqtt;
 	HTTP http;
+    Time time;
 };
 
 class ImportSetup {
@@ -52,6 +60,7 @@ class ImportSetup {
 	void OTAsettings(const char *hostname);
 	void MQTTsettings(const char *broker_address, int broker_port, const char *clientID, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass);
 	void ServerHttpSettings(const char *user, const char *pass);
+	void timeSettings(const char *NTP_server_address, int NTP_server_port, int timezone, bool summertime);
 
   private:
 };

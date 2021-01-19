@@ -34,6 +34,8 @@ onConnected   KEYWORD2
 onGotIP   KEYWORD2
 onDisconnected   KEYWORD2
 begin   KEYWORD2
+waitForNTP  KEYWORD2
+parseTimestamp  KEYWORD2
 
 #######################################
 # (KEYWORD3)

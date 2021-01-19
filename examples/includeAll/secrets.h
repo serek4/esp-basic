@@ -4,6 +4,7 @@
 #define USE_BUILDIN_LED true
 
 #define TIME_PLUGIN true
+#define LOGGER_PLUGIN true
 
 #define STATIC_IP false
 #define MQTT_SET_LASTWILL true

@@ -23,7 +23,7 @@ class BasicTime {
 	void setup();
 	void waitForNTP(int waitTime = 10);
 	void handle();
-	String parseTimestamp(time_t timeStamp, bool wholeDate = true);
+	static String parseTimestamp(time_t timeStamp, bool wholeDate = true);
 
 	BasicTime();
 

@@ -8,8 +8,12 @@
 
 bool BasicSetup::_useLed = USE_BUILDIN_LED;
 bool BasicSetup::_inclTime = TIME_PLUGIN;
+bool BasicSetup::_inclLogger = LOGGER_PLUGIN;
 #if TIME_PLUGIN
 BasicTime NTPclient;
+#endif
+#if LOGGER_PLUGIN
+BasicLogs logger;
 #endif
 ConfigData &config = _config;                // only for cleaner sketch code
 BasicWiFi &WIFI = _basicWiFi;                // only for cleaner sketch code

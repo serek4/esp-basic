@@ -5,6 +5,7 @@
 
 #include "plugins/basicConfig.hpp"
 #include "plugins/basicFS.hpp"
+#include "plugins/basicLogs.hpp"
 #include "plugins/basicMQTT.hpp"
 #include "plugins/basicOTA.hpp"
 #include "plugins/basicServerHttp.hpp"
@@ -14,6 +15,7 @@
 
 #define DEBUG_PRINTER Serial
 #define BASIC_TIME_DEBUG
+#define BASIC_LOGS_DEBUG
 
 class BasicSetup {
   public:
@@ -30,6 +32,7 @@ class BasicSetup {
 	bool _inclConfig;
 	bool _inclOTA;
 	static bool _inclTime;
+	static bool _inclLogger;
 	bool _staticIP;
 	static bool _useLed;
 
@@ -41,6 +44,7 @@ class BasicSetup {
 	friend class BasicOTA;
 	friend class BasicWiFi;
 	friend class BasicTime;
+	friend class BasicLogger;
 };
 
 extern BasicSetup _basicSetup;

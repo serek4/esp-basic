@@ -31,9 +31,10 @@ void loop() {
 	ArduinoOTA.handle();
     NTPclient.handle();
 	if (millis() - loopDelay >= 60000) {
-		Serial.println(NTPclient.parseTimestamp(now()));
+        logger.saveLog(now(), ll_debug, NTPclient.parseTimestamp(now()));
 		loopDelay = millis();
 	}
+    logger.handle();
 	delay(10);
 }
 

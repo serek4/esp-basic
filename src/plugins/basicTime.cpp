@@ -116,36 +116,43 @@ void BasicTime::_NTPsyncInterval(const char *message) {
 			break;
 	}
 }
-//converting timestamp to human readable date string (RRRR.MM.DD hh:mm:ss, or time only hh:mm:ss)
-String BasicTime::parseTimestamp(time_t timestamp, bool wholeDate) {
-	String date = "";
-	String time;
-	if (!timestamp) {
-		time = "NTP fail";
-	} else {
+//converting timestamp to human readable date string (RRRR-MM-DD)
+String BasicTime::dateString(time_t timestamp) {
+	String date = "timeNotSet";
+	if (timeStatus() != timeNotSet) {
 		timestamp += _config.time.timezone * SECS_PER_HOUR;             // time zone +1h
 		if (_config.time.summertime) timestamp += 1 * SECS_PER_HOUR;    // summer time +1h
-		if (wholeDate) {
-			date = (String)(year(timestamp));
-			date += '-';
-			if (month(timestamp) < 10) date += '0';
-			date += (String)(month(timestamp));
-			date += '-';
-			if (day(timestamp) < 10) date += '0';
-			date += (String)(day(timestamp));
-			date += ' ';
-		}
-		if (hour(timestamp) < 10) time += '0';
-		time += (String)hour(timestamp);
-		time += ':';
-		if (minute(timestamp) < 10) time += '0';
-		time += (String)(minute(timestamp));
-		time += ':';
-		if (second(timestamp) < 10) time += '0';
-		time += (String)(second(timestamp));
-		if (timeStatus() == timeNeedsSync) {
-			time += "*";
-		}
+		date = (String)(year(timestamp));
+		date += '-';
+		if (month(timestamp) < 10) date += '0';
+		date += (String)(month(timestamp));
+		date += '-';
+		if (day(timestamp) < 10) date += '0';
+		date += (String)(day(timestamp));
 	}
-	return date + time;
+	return date;
+}
+//converting timestamp to human readable time string (hh:mm:ss)[24h]
+String BasicTime::timeString(time_t timestamp) {
+	String time = "";
+	if (timeStatus() != timeNotSet) {
+		timestamp += _config.time.timezone * SECS_PER_HOUR;             // time zone +1h
+		if (_config.time.summertime) timestamp += 1 * SECS_PER_HOUR;    // summer time +1h
+	}
+	if (hour(timestamp) < 10) time += '0';
+	time += (String)hour(timestamp);
+	time += ':';
+	if (minute(timestamp) < 10) time += '0';
+	time += (String)(minute(timestamp));
+	time += ':';
+	if (second(timestamp) < 10) time += '0';
+	time += (String)(second(timestamp));
+	if (timeStatus() == timeNeedsSync) {
+		time += "*";
+	}
+	return time;
+}
+//converting timestamp to human readable date time string (RRRR-MM-DD hh:mm:ss)[24h]
+String BasicTime::dateTimeString(time_t timestamp) {
+	return dateString(timestamp) + ' ' + timeString(timestamp);
 }

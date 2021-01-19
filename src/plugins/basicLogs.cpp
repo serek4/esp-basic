@@ -10,7 +10,7 @@ BasicLogs::~BasicLogs() {
 
 void BasicLogs::saveLog(time_t time, uint8_t logLevel, String message) {
 	constrain(logLevel, 0, 5);
-	_pendingLogs += BasicTime::parseTimestamp(time) + ", " + logLevelStr[logLevel] + ", " + message + '\n';
+	_pendingLogs += BasicTime::dateTimeString(time) + ", " + logLevelStr[logLevel] + ", " + message + '\n';
 }
 
 void BasicLogs::handle() {

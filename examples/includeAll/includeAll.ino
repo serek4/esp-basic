@@ -20,7 +20,7 @@ void setup() {
 	WIFI.onGotIP(handleWiFiGotIP);
 	WIFI.onDisconnected(handleWiFiDisconnected);
 	WIFI.waitForWiFi();
-    NTPclient.waitForNTP();
+	NTPclient.waitForNTP();
 	MQTT.onConnect(handleMQTTconnect);
 	MQTT.onMessage(handleIncMQTTmsg);
 	MQTT.onDisconnect(handleMQTTdisconnect);
@@ -29,11 +29,12 @@ void setup() {
 
 void loop() {
 	ArduinoOTA.handle();
-    NTPclient.handle();
+	NTPclient.handle();
 	if (millis() - loopDelay >= 60000) {
-		Serial.println(NTPclient.parseTimestamp(now()));
+		logger.saveLog(now(), ll_debug, NTPclient.dateTimeString(now()));
 		loopDelay = millis();
 	}
+	logger.handle();
 	delay(10);
 }
 

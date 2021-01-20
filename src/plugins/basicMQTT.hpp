@@ -6,6 +6,16 @@
 #include <functional>
 #include <vector>
 
+// clang-format off
+// Setup debug printing macros.
+#ifdef BASIC_MQTT_DEBUG
+#define BASICMQTT_PRINT(...) { DEBUG_PRINTER.print(__VA_ARGS__); }
+#define BASICMQTT_PRINTLN(...) { DEBUG_PRINTER.println(__VA_ARGS__); }
+#else
+#define BASICMQTT_PRINT(...) {}
+#define BASICMQTT_PRINTLN(...) {}
+#endif
+// clang-format on
 
 namespace MQTTuserHandlers {
 typedef std::function<void()> onMQTTconnectHandler;

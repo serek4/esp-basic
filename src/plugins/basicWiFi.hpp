@@ -6,6 +6,16 @@
 #include <functional>
 #include <vector>
 
+// clang-format off
+// Setup debug printing macros.
+#ifdef BASIC_WIFI_DEBUG
+#define BASICWIFI_PRINT(...) { DEBUG_PRINTER.print(__VA_ARGS__); }
+#define BASICWIFI_PRINTLN(...) { DEBUG_PRINTER.println(__VA_ARGS__); }
+#else
+#define BASICWIFI_PRINT(...) {}
+#define BASICWIFI_PRINTLN(...) {}
+#endif
+// clang-format on
 
 namespace WiFiUserHandlers {
 typedef std::function<void(const WiFiEventStationModeConnected &evt)> onWiFiConnectHandler;

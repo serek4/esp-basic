@@ -13,9 +13,19 @@
 #include "plugins/basicWiFi.hpp"
 
 
+// #define DEBUG_MESSAGES
+
+#ifdef DEBUG_MESSAGES
 #define DEBUG_PRINTER Serial
+#define BASIC_FS_DEBUG
+#define BASIC_CONFIG_DEBUG
+#define BASIC_WIFI_DEBUG
+#define BASIC_OTA_DEBUG
+#define BASIC_MQTT_DEBUG
+#define BASIC_SERVERHTTP_DEBUG
 #define BASIC_TIME_DEBUG
 #define BASIC_LOGS_DEBUG
+#endif
 
 class BasicSetup {
   public:

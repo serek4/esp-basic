@@ -26,6 +26,8 @@ typedef enum {
 class BasicLogs {
   private:
 	static String _pendingLogs;
+	static String _logBuffer;
+	static u_long _saveLogDelayTimer;
 	static const char *_logLevelStr[];
 
   public:

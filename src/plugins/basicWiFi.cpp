@@ -18,24 +18,24 @@ void BasicWiFi::onDisconnected(const WiFiUserHandlers::onWiFiDisconnectHandler &
 	_onDisconnectHandler.push_back(handler);
 }
 void BasicWiFi::_onConnected(const WiFiEventStationModeConnected &evt) {
-	Serial.println("WiFi connected!\n SSID: " + WiFi.SSID());
+	BASICWIFI_PRINTLN("WiFi connected!\n SSID: " + WiFi.SSID());
 	if (BasicSetup::_inclLogger) {
 		BasicLogs::saveLog(now(), ll_debug, "WiFi connected to: " + WiFi.SSID() + " [" + WiFi.BSSIDstr() + "]");
 	}
 	for (const auto &handler : _onConnectHandler) handler(evt);
 }
 void BasicWiFi::_onGotIP(const WiFiEventStationModeGotIP &evt) {
-	Serial.println(" IP:   " + WiFi.localIP().toString());
+	BASICWIFI_PRINTLN(" IP:   " + WiFi.localIP().toString());
 	if (BasicSetup::_inclLogger) {
 		BasicLogs::saveLog(now(), ll_debug, "got IP [" + (WiFi.localIP()).toString() + "]");
 	}
 	if (_basicSetup._inclOTA) {
 		ArduinoOTA.begin();
-		Serial.println("OTA started!");
+		BASICOTA_PRINTLN("OTA started!");
 	}
 	if (_basicSetup._inclServerHttp) {
 		_serverHttp.begin();
-		Serial.println("http server started!");
+		BASICSERVERHTTP_PRINTLN("http server started!");
 	}
 	if (_basicSetup._inclMQTT) {
 		_mqttReconnectTimer.once(1, []() {
@@ -46,7 +46,7 @@ void BasicWiFi::_onGotIP(const WiFiEventStationModeGotIP &evt) {
 }
 void BasicWiFi::_onDisconnected(const WiFiEventStationModeDisconnected &evt) {
 	WiFi.disconnect(true);
-	Serial.println("WiFi disconnected, reconnecting!");
+	BASICWIFI_PRINTLN("WiFi disconnected, reconnecting!");
 	if (BasicSetup::_inclLogger) {
 		BasicLogs::saveLog(now(), ll_debug, "WiFi disconnected [" + String(_wifiStatus[WiFi.status()]) + "]");
 	}
@@ -80,10 +80,10 @@ void BasicWiFi::setup(bool staticIP) {
 	});
 }
 void BasicWiFi::waitForWiFi(int waitTime) {
-	Serial.print("Waiting for WiFi connection");
+	BASICWIFI_PRINT("Waiting for WiFi connection");
 	u_long startWaitingAt = millis();
 	while (WiFi.status() != WL_CONNECTED) {
-		Serial.print(".");
+		BASICWIFI_PRINT(".");
 		if (BasicSetup::_useLed) {
 			digitalWrite(LED_BUILTIN, LOW);
 			delay(200);
@@ -93,7 +93,7 @@ void BasicWiFi::waitForWiFi(int waitTime) {
 			delay(500);
 		}
 		if (millis() - startWaitingAt > waitTime * 1000) {
-			Serial.println("Can't connect to WiFi!");
+			BASICWIFI_PRINTLN("Can't connect to WiFi!");
 			return;
 		}
 	}
@@ -101,18 +101,18 @@ void BasicWiFi::waitForWiFi(int waitTime) {
 }
 void BasicWiFi::_checkConnection() {
 	IPAddress buffer;
-	Serial.print("checking DNS server");
+	BASICWIFI_PRINT("checking DNS server");
 	int retry = 0;
 	while (WiFi.hostByName("google.com", buffer) == 0) {
-		Serial.print(".");
+		BASICWIFI_PRINT(".");
 		delay(100);
 		retry++;
 		if (retry > 3) {
-			Serial.println("DNS does not work!");
+			BASICWIFI_PRINTLN("DNS does not work!");
 			return;
 		}
 	}
-	Serial.println(" OK!");
+	BASICWIFI_PRINTLN(" OK!");
 }
 
 BasicWiFi _basicWiFi;

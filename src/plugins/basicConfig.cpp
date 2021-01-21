@@ -52,12 +52,12 @@ BasicConfig::BasicConfig()
 
 void BasicConfig::setup() {
 	if (!(_basicSetup._fsStarted)) {
-		Serial.println("mount 1");
+		BASICFS_PRINTLN("mount 1");
 		_basicSetup._fsStarted = _basicFS.setup();
 	}
 	if (!_basicConfig._loadConfig(_config)) {
 		if (!_basicConfig._loadConfig(_config, "backup-config.json")) {
-			Serial.println("Loading default settings!");
+			BASICCONFIG_PRINTLN("Loading default settings!");
 			_basicConfig._createConfig(_defaultConfig);
 			_config = _defaultConfig;
 		}
@@ -124,12 +124,12 @@ bool BasicConfig::_loadUserConfig(JsonObject &userConfig) {
 }
 bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 	if (!LittleFS.exists(filename)) {
-		Serial.println(filename + " not found!");
+		BASICCONFIG_PRINTLN(filename + " not found!");
 		return false;
 	}
 	File configFile = LittleFS.open(filename, "r");
 	if (!configFile) {
-		Serial.println("Failed to read " + filename + "!");
+		BASICCONFIG_PRINTLN("Failed to read " + filename + "!");
 		configFile.close();
 		return false;
 	}
@@ -139,7 +139,7 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 	DeserializationError error = deserializeJson(doc, configFile);
 	configFile.close();
 	if (error) {
-		Serial.println("Failed to parse " + filename + "!");
+		BASICCONFIG_PRINTLN("Failed to parse " + filename + "!");
 		LittleFS.rename(filename, "corrupted_" + filename);
 		return false;
 	}
@@ -191,11 +191,11 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 		mismatch |= !_loadUserConfig(userSettings);
 	}
 	if (mismatch) {
-		Serial.println("Configuration in " + filename + " mismatch!");
+		BASICCONFIG_PRINTLN("Configuration in " + filename + " mismatch!");
 		LittleFS.rename(filename, "mismatched_" + filename);
 		return false;
 	}
-	Serial.println(filename + " laded!");
+	BASICCONFIG_PRINTLN(filename + " laded!");
 	if (!LittleFS.exists("backup-config.json")) {
 		_createConfig(config, "backup-config.json");
 	} else {
@@ -258,13 +258,13 @@ size_t BasicConfig::_createConfig(ConfigData &config, String filename, bool save
 	if (save) {
 		File configFile = LittleFS.open(filename, "w");
 		if (!configFile) {
-			Serial.println("Failed to write " + filename + "!");
+			BASICCONFIG_PRINTLN("Failed to write " + filename + "!");
 			configFile.close();
 			return false;
 		}
 		serializeJsonPretty(doc, configFile);
 		configFile.close();
-		Serial.println(filename + " saved!");
+		BASICCONFIG_PRINTLN(filename + " saved!");
 	}
 	return measureJsonPretty(doc);
 }

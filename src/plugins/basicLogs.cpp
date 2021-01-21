@@ -1,8 +1,10 @@
 #include "basicLogs.hpp"
 
 
-BasicLogs::BasicLogs()
-    : _pendingLogs("") {
+String BasicLogs::_pendingLogs = "";
+const char *BasicLogs::_logLevelStr[] = {"error", "warning", "info", "log", "debug", "unknown"};
+
+BasicLogs::BasicLogs() {
 }
 
 BasicLogs::~BasicLogs() {
@@ -10,7 +12,7 @@ BasicLogs::~BasicLogs() {
 
 void BasicLogs::saveLog(time_t time, uint8_t logLevel, String message) {
 	constrain(logLevel, 0, 5);
-	_pendingLogs += BasicTime::dateTimeString(time) + ", " + logLevelStr[logLevel] + ", " + message + '\n';
+	_pendingLogs += BasicTime::dateTimeString(time) + ", " + _logLevelStr[logLevel] + ", " + message + '\n';
 }
 
 void BasicLogs::handle() {

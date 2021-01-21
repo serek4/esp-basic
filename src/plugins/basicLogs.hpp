@@ -25,13 +25,12 @@ typedef enum {
 
 class BasicLogs {
   private:
-	String _pendingLogs;
+	static String _pendingLogs;
+	static const char *_logLevelStr[];
 
   public:
-	const char *logLevelStr[6] = {"error", "warning", "info", "log", "debug", "unknown"};
-
-	void handle();
-	void saveLog(time_t time, uint8_t logLevel, String message);
+	static void handle();
+	static void saveLog(time_t time, uint8_t logLevel, String message);
 
 	BasicLogs();
 	~BasicLogs();

@@ -8,7 +8,7 @@ BasicServerHttp::BasicServerHttp()
 
 void BasicServerHttp::setup() {
 	if (!(_basicSetup._fsStarted)) {
-		Serial.println("mount 2");
+		BASICFS_PRINTLN("mount 2");
 		_basicSetup._fsStarted = _basicFS.setup();
 	}
 	if (_basicSetup._fsStarted) {

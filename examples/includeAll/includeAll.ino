@@ -7,6 +7,7 @@ struct UserConfig {
 	int testInt = USER_INT;
 } myConfig;
 
+long loopDelay = -50000;
 
 void setup() {
 	Serial.begin(115200);
@@ -19,6 +20,7 @@ void setup() {
 	WIFI.onGotIP(handleWiFiGotIP);
 	WIFI.onDisconnected(handleWiFiDisconnected);
 	WIFI.waitForWiFi();
+	NTPclient.waitForNTP();
 	MQTT.onConnect(handleMQTTconnect);
 	MQTT.onMessage(handleIncMQTTmsg);
 	MQTT.onDisconnect(handleMQTTdisconnect);
@@ -27,6 +29,12 @@ void setup() {
 
 void loop() {
 	ArduinoOTA.handle();
+	NTPclient.handle();
+	if (millis() - loopDelay >= 60000) {
+		logger.saveLog(now(), ll_debug, NTPclient.dateTimeString(now()));
+		loopDelay = millis();
+	}
+	logger.handle();
 	delay(10);
 }
 

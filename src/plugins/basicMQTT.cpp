@@ -48,8 +48,15 @@ void BasicMQTT::publish(const char *topic, float payload, signed char width, uns
 uint16_t BasicMQTT::subscribe(const char *topic, uint8_t qos) {
 	return _clientMQTT.subscribe(topic, qos);
 }
+bool BasicMQTT::connected() {
+	_clientMQTT.connected();
+}
+
 void BasicMQTT::_onConnect() {
-	Serial.println((String) "MQTT connected!\n " + _clientMQTT.getClientId() + "@" + _config.mqtt.broker);
+	BASICMQTT_PRINTLN((String) "MQTT connected!\n " + _clientMQTT.getClientId() + "@" + _config.mqtt.broker);
+	if (BasicSetup::_inclLogger) {
+		BasicLogs::saveLog(now(), ll_debug, (String) "MQTT connected [" + _clientMQTT.getClientId() + "@" + _config.mqtt.broker + "]");
+	}
 	uint16_t subStatus = _clientMQTT.subscribe(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), 2);
 	uint16_t subCommands = _clientMQTT.subscribe(((String) "ESP/" + _clientMQTT.getClientId() + "/commands").c_str(), 2);
 	_clientMQTT.publish(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), 2, true, (uint8_t *)"on", strlen("on"), false);
@@ -64,8 +71,14 @@ void BasicMQTT::_onMessage(const char *_topic, const char *_payload) {
 	for (const auto &handler : _onMessageHandler) handler(_topic, _payload);
 }
 void BasicMQTT::_onDisconnect(int8_t reason) {
-	Serial.println("MQTT disconnected: [" + String(reason, 10) + "]!");
-	_mqttReconnectTimer.once(10, []() { _clientMQTT.connect(); });
+	BASICMQTT_PRINTLN("MQTT disconnected: [" + String(reason, 10) + "]!");
+	if (BasicSetup::_inclLogger) {
+		BasicLogs::saveLog(
+		    now(),
+		    ll_debug,
+		    "MQTT disconnected [" + String(_MQTTerror[(reason < 0) ? 14 : reason]) + (reason < 0 ? "(" + String(reason, 10) + ")]" : "]"));
+	}
+	_mqttReconnectTimer.once(_config.mqtt.keepalive * 1.1, []() { _clientMQTT.connect(); });
 	for (const auto &handler : _onDisconnectHandler) handler(reason);
 }
 void BasicMQTT::setup() {
@@ -90,9 +103,9 @@ void BasicMQTT::setup() {
 }
 void BasicMQTT::waitForMQTT(int waitTime) {
 	u_long startWaitingAt = millis();
-	Serial.print("Connecting MQTT");
+	BASICMQTT_PRINT("Connecting MQTT");
 	while (!_clientMQTT.connected()) {
-		Serial.print(".");
+		BASICMQTT_PRINT(".");
 		if (BasicSetup::_useLed) {
 			digitalWrite(LED_BUILTIN, LOW);
 			delay(100);
@@ -102,7 +115,7 @@ void BasicMQTT::waitForMQTT(int waitTime) {
 			delay(250);
 		}
 		if (millis() - startWaitingAt > waitTime * 1000) {
-			Serial.println("Can't connect to MQTT!");
+			BASICMQTT_PRINTLN("Can't connect to MQTT!");
 			break;
 		}
 	}

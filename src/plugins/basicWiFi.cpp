@@ -19,10 +19,16 @@ void BasicWiFi::onDisconnected(const WiFiUserHandlers::onWiFiDisconnectHandler &
 }
 void BasicWiFi::_onConnected(const WiFiEventStationModeConnected &evt) {
 	BASICWIFI_PRINTLN("WiFi connected!\n SSID: " + WiFi.SSID());
+	if (BasicSetup::_inclLogger) {
+		BasicLogs::saveLog(now(), ll_debug, "WiFi connected to: " + WiFi.SSID() + " [" + WiFi.BSSIDstr() + "]");
+	}
 	for (const auto &handler : _onConnectHandler) handler(evt);
 }
 void BasicWiFi::_onGotIP(const WiFiEventStationModeGotIP &evt) {
 	BASICWIFI_PRINTLN(" IP:   " + WiFi.localIP().toString());
+	if (BasicSetup::_inclLogger) {
+		BasicLogs::saveLog(now(), ll_debug, "got IP [" + (WiFi.localIP()).toString() + "]");
+	}
 	if (_basicSetup._inclOTA) {
 		ArduinoOTA.begin();
 		BASICOTA_PRINTLN("OTA started!");
@@ -41,6 +47,9 @@ void BasicWiFi::_onGotIP(const WiFiEventStationModeGotIP &evt) {
 void BasicWiFi::_onDisconnected(const WiFiEventStationModeDisconnected &evt) {
 	WiFi.disconnect(true);
 	BASICWIFI_PRINTLN("WiFi disconnected, reconnecting!");
+	if (BasicSetup::_inclLogger) {
+		BasicLogs::saveLog(now(), ll_debug, "WiFi disconnected [" + String(_wifiStatus[WiFi.status()]) + "]");
+	}
 	if (_basicSetup._inclOTA) {
 	}
 	if (_basicSetup._inclMQTT) {

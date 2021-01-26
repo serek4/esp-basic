@@ -58,6 +58,9 @@ void BasicConfig::setup() {
 	if (!_basicConfig._loadConfig(_config)) {
 		if (!_basicConfig._loadConfig(_config, "backup-config.json")) {
 			BASICCONFIG_PRINTLN("Loading default settings!");
+			if (BasicSetup::_inclLogger) {
+				BasicLogs::saveLog(now(), ll_error, "loaded default settings!");
+			}
 			_basicConfig._createConfig(_defaultConfig);
 			_config = _defaultConfig;
 		}
@@ -140,6 +143,9 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 	configFile.close();
 	if (error) {
 		BASICCONFIG_PRINTLN("Failed to parse " + filename + "!");
+		if (BasicSetup::_inclLogger) {
+			BasicLogs::saveLog(now(), ll_warning, filename + " corrupted");
+		}
 		LittleFS.rename(filename, "corrupted_" + filename);
 		return false;
 	}
@@ -192,21 +198,36 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 	}
 	if (mismatch) {
 		BASICCONFIG_PRINTLN("Configuration in " + filename + " mismatch!");
+		if (BasicSetup::_inclLogger) {
+			BasicLogs::saveLog(now(), ll_warning, "config mismatch in " + filename);
+		}
 		LittleFS.rename(filename, "mismatched_" + filename);
 		return false;
 	}
 	BASICCONFIG_PRINTLN(filename + " laded!");
+	if (BasicSetup::_inclLogger) {
+		BasicLogs::saveLog(now(), ll_log, filename + " laded");
+	}
 	if (!LittleFS.exists("backup-config.json")) {
 		_createConfig(config, "backup-config.json");
+		if (BasicSetup::_inclLogger) {
+			BasicLogs::saveLog(now(), ll_log, "config backup file saved");
+		}
 	} else {
 		if (filename == "backup-config.json") {
 			_createConfig(config, "config.json");
+			if (BasicSetup::_inclLogger) {
+				BasicLogs::saveLog(now(), ll_warning, "config restored from backup file");
+			}
 		} else {
 			File backup = LittleFS.open("backup-config.json", "r");
 			size_t backupfileSize = backup.size();
 			backup.close();
 			if (configfileSize != backupfileSize) {
 				_createConfig(config, "backup-config.json");
+				if (BasicSetup::_inclLogger) {
+					BasicLogs::saveLog(now(), ll_log, "config backup file updated");
+				}
 			}
 		}
 	}

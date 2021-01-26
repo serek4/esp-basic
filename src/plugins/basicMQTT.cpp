@@ -54,6 +54,9 @@ bool BasicMQTT::connected() {
 
 void BasicMQTT::_onConnect() {
 	BASICMQTT_PRINTLN((String) "MQTT connected!\n " + _clientMQTT.getClientId() + "@" + _config.mqtt.broker);
+	if (BasicSetup::_inclLogger) {
+		BasicLogs::saveLog(now(), ll_debug, (String) "MQTT connected [" + _clientMQTT.getClientId() + "@" + _config.mqtt.broker + "]");
+	}
 	uint16_t subStatus = _clientMQTT.subscribe(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), 2);
 	uint16_t subCommands = _clientMQTT.subscribe(((String) "ESP/" + _clientMQTT.getClientId() + "/commands").c_str(), 2);
 	_clientMQTT.publish(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), 2, true, (uint8_t *)"on", strlen("on"), false);
@@ -69,6 +72,12 @@ void BasicMQTT::_onMessage(const char *_topic, const char *_payload) {
 }
 void BasicMQTT::_onDisconnect(int8_t reason) {
 	BASICMQTT_PRINTLN("MQTT disconnected: [" + String(reason, 10) + "]!");
+	if (BasicSetup::_inclLogger) {
+		BasicLogs::saveLog(
+		    now(),
+		    ll_debug,
+		    "MQTT disconnected [" + String(_MQTTerror[(reason < 0) ? 14 : reason]) + (reason < 0 ? "(" + String(reason, 10) + ")]" : "]"));
+	}
 	_mqttReconnectTimer.once(_config.mqtt.keepalive * 1.1, []() { _clientMQTT.connect(); });
 	for (const auto &handler : _onDisconnectHandler) handler(reason);
 }

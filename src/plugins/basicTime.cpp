@@ -97,23 +97,28 @@ bool BasicTime::_sendNTPpacket(IPAddress &address) {    // send an NTP request t
 	}
 }
 void BasicTime::_NTPsyncInterval(const char *message) {
-	BASICTIME_PRINT(message);
+	String logMessage = message;
 	switch (timeStatus()) {
 		case timeNotSet:
 			setSyncInterval(NTPnoSyncInterval);    // set very short sync interval if time was never synced
-			BASICTIME_PRINTLN((String)(NTPnoSyncInterval / SECS_PER_MIN) + "m");
+			logMessage += (String)(NTPnoSyncInterval / SECS_PER_MIN) + "m";
 			break;
 		case timeNeedsSync:
 			setSyncInterval(NTPReSyncInterval);    // set short sync interval if time was set at least once
-			BASICTIME_PRINTLN((String)(NTPReSyncInterval / SECS_PER_HOUR) + "h");
+			logMessage += (String)(NTPReSyncInterval / SECS_PER_HOUR) + "h";
 			break;
 		case timeSet:
 			setSyncInterval(NTPSyncInterval);    // set long sync interval on successful sync
-			BASICTIME_PRINTLN((String)(NTPSyncInterval / SECS_PER_HOUR) + "h");
+			logMessage += (String)(NTPSyncInterval / SECS_PER_HOUR) + "h";
 			break;
 
 		default:
 			break;
+	}
+	BASICTIME_PRINT(logMessage);
+    logMessage.replace("\n",". ");
+	if (BasicSetup::_inclLogger) {
+		BasicLogs::saveLog(now(), ll_log, logMessage);
 	}
 }
 //converting timestamp to human readable date string (RRRR-MM-DD)

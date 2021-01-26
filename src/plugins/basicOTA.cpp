@@ -20,12 +20,19 @@ void BasicOTA::setup() {
 	});
 	ArduinoOTA.onEnd([]() {
 		BASICOTA_PRINTLN("\nEnd");
+		if (BasicSetup::_inclLogger) {
+			BasicLogs::saveLog(now(), ll_log, "firmware update");
+			BasicLogs::handle();
+		}
 	});
 	ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
 		BASICOTA_PRINTF("Progress: %u%%\r", (progress / (total / 100)));
 	});
 	ArduinoOTA.onError([](ota_error_t error) {
 		BASICOTA_PRINTF("Error[%u]: ", error);
+		if (BasicSetup::_inclLogger) {
+			BasicLogs::saveLog(now(), ll_log, "firmware update failed " + String(error, 10));
+		}
 		if (error == OTA_AUTH_ERROR) {
 			BASICOTA_PRINTLN("Auth Failed");
 		} else if (error == OTA_BEGIN_ERROR) {

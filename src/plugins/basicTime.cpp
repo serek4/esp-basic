@@ -115,8 +115,8 @@ void BasicTime::_NTPsyncInterval(const char *message) {
 		default:
 			break;
 	}
-	BASICTIME_PRINT(logMessage);
-    logMessage.replace("\n",". ");
+	BASICTIME_PRINTLN(logMessage);
+	logMessage.replace("\n", ". ");
 	if (BasicSetup::_inclLogger) {
 		BasicLogs::saveLog(now(), ll_log, logMessage);
 	}

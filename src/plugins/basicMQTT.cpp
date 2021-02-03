@@ -59,15 +59,15 @@ void BasicMQTT::_onConnect() {
 		BasicLogs::saveLog(now(), ll_debug, (String) "MQTT connected [" + _clientMQTT.getClientId() + "@" + _config.mqtt.broker + "]");
 	}
 	_connected = true;
-	_clientMQTT.subscribe(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), 2);
-	_clientMQTT.subscribe(((String) "ESP/" + _clientMQTT.getClientId() + "/commands").c_str(), 2);
-	_clientMQTT.publish(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), (uint8_t *)"on", strlen("on"), 2, true);
+	_clientMQTT.publish(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), "on", strlen("on"), 0, true);
+	_clientMQTT.subscribe(((String) "ESP/" + _clientMQTT.getClientId() + "/commands").c_str(), 0);
+	_clientMQTT.subscribe(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), 0);
 	for (const auto &handler : _onConnectHandler) handler();
 }
 void BasicMQTT::_onMessage(const char *_topic, const char *_payload) {
 	if (strcmp(_topic, _config.mqtt.will_topic) == 0) {
 		if (strcmp(_payload, _config.mqtt.will_msg) == 0) {
-			_clientMQTT.publish(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), "on", strlen("on"), 2, true);
+			_clientMQTT.publish(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), "on", strlen("on"), 0, true);
 		}
 	}
 	for (const auto &handler : _onMessageHandler) handler(_topic, _payload);

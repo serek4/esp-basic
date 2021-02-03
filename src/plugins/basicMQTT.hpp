@@ -38,17 +38,17 @@ class BasicMQTT {
 	void publish(const char *topic, u_long payload, uint8_t qos = 0, bool retain = false);
 	void publish(const char *topic, float payload, uint8_t qos = 0, bool retain = false) { publish(topic, payload, 3, 2, qos, retain); };
 	void publish(const char *topic, float payload, signed char width, unsigned char prec, uint8_t qos = 0, bool retain = false);
-	uint16_t subscribe(const char *topic, uint8_t qos = 0);
+	void subscribe(const char *topic, uint8_t qos = 0);
 	bool connected();
 
 	BasicMQTT();
 
   private:
-	const char *_MQTTerror[15] = {"TCP_DISCONNECTED", "MQTT_SERVER_UNAVAILABLE", "UNRECOVERABLE_CONNECT_FAIL",
-	                              "TLS_BAD_FINGERPRINT", "TCP_TIMEOUT", "SUBSCRIBE_FAIL",
-	                              "INBOUND_QOS_FAIL", "OUTBOUND_QOS_FAIL", "INBOUND_QOS_ACK_FAIL", "OUTBOUND_QOS_ACK_FAIL",
-	                              "INBOUND_PUB_TOO_BIG", "OUTBOUND_PUB_TOO_BIG", "BOGUS_PACKET",
-	                              "BOGUS_ACK", "TCP_ERROR"};
+	bool _connected;
+	const char *_MQTTerror[13] = {"TCP_DISCONNECTED", "MQTT_SERVER_UNAVAILABLE", "UNRECOVERABLE_CONNECT_FAIL",
+	                              "TLS_BAD_FINGERPRINT", "SUBSCRIBE_FAIL", "INBOUND_QOS_ACK_FAIL",
+	                              "OUTBOUND_QOS_ACK_FAIL", "INBOUND_PUB_TOO_BIG", "OUTBOUND_PUB_TOO_BIG", "BOGUS_PACKET",
+	                              "X_INVALID_LENGTH", "NO_SERVER_DETAILS", "TCP_ERROR"};
 	std::vector<MQTTuserHandlers::onMQTTconnectHandler> _onConnectHandler;
 	std::vector<MQTTuserHandlers::onMQTTmesageHandler> _onMessageHandler;
 	std::vector<MQTTuserHandlers::onMQTTdisconnectHandler> _onDisconnectHandler;

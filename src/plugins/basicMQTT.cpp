@@ -5,7 +5,8 @@ PangolinMQTT _clientMQTT;
 Ticker _mqttReconnectTimer;
 
 BasicMQTT::BasicMQTT()
-    : _inclMQTT(true) {
+    : _inclMQTT(true)
+    , _connected(false) {
 }
 
 void BasicMQTT::onConnect(const MQTTuserHandlers::onMQTTconnectHandler &handler) {
@@ -18,38 +19,38 @@ void BasicMQTT::onDisconnect(const MQTTuserHandlers::onMQTTdisconnectHandler &ha
 	_onDisconnectHandler.push_back(handler);
 }
 void BasicMQTT::publish(const char *topic, const char *payload, uint8_t qos, bool retain) {
-	_clientMQTT.publish(topic, qos, retain, (uint8_t *)payload, (size_t)strlen(payload), false);
+	_clientMQTT.publish(topic, payload, strlen(payload), qos, retain);
 }
 void BasicMQTT::publish(const char *topic, int payload, uint8_t qos, bool retain) {
 	char numberBuffer[12];
 	itoa(payload, numberBuffer, 10);
-	_clientMQTT.publish(topic, qos, retain, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer), false);
+	_clientMQTT.publish(topic, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer), qos, retain);
 }
 void BasicMQTT::publish(const char *topic, uint16_t payload, uint8_t qos, bool retain) {
 	char numberBuffer[12];
 	utoa(payload, numberBuffer, 10);
-	_clientMQTT.publish(topic, qos, retain, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer), false);
+	_clientMQTT.publish(topic, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer), qos, retain);
 }
 void BasicMQTT::publish(const char *topic, long payload, uint8_t qos, bool retain) {
 	char numberBuffer[12];
 	ltoa(payload, numberBuffer, 10);
-	_clientMQTT.publish(topic, qos, retain, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer), false);
+	_clientMQTT.publish(topic, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer), qos, retain);
 }
 void BasicMQTT::publish(const char *topic, u_long payload, uint8_t qos, bool retain) {
 	char numberBuffer[12];
 	ultoa(payload, numberBuffer, 10);
-	_clientMQTT.publish(topic, qos, retain, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer), false);
+	_clientMQTT.publish(topic, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer), qos, retain);
 }
 void BasicMQTT::publish(const char *topic, float payload, signed char width, unsigned char prec, uint8_t qos, bool retain) {
 	char numberBuffer[12];
 	dtostrf(payload, width, prec, numberBuffer);
-	_clientMQTT.publish(topic, qos, retain, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer), false);
+	_clientMQTT.publish(topic, (uint8_t *)numberBuffer, (size_t)strlen(numberBuffer), qos, retain);
 }
-uint16_t BasicMQTT::subscribe(const char *topic, uint8_t qos) {
+void BasicMQTT::subscribe(const char *topic, uint8_t qos) {
 	return _clientMQTT.subscribe(topic, qos);
 }
 bool BasicMQTT::connected() {
-	_clientMQTT.connected();
+	return _connected;
 }
 
 void BasicMQTT::_onConnect() {
@@ -57,15 +58,16 @@ void BasicMQTT::_onConnect() {
 	if (BasicSetup::_inclLogger) {
 		BasicLogs::saveLog(now(), ll_debug, (String) "MQTT connected [" + _clientMQTT.getClientId() + "@" + _config.mqtt.broker + "]");
 	}
-	uint16_t subStatus = _clientMQTT.subscribe(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), 2);
-	uint16_t subCommands = _clientMQTT.subscribe(((String) "ESP/" + _clientMQTT.getClientId() + "/commands").c_str(), 2);
-	_clientMQTT.publish(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), 2, true, (uint8_t *)"on", strlen("on"), false);
+	_connected = true;
+	_clientMQTT.subscribe(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), 2);
+	_clientMQTT.subscribe(((String) "ESP/" + _clientMQTT.getClientId() + "/commands").c_str(), 2);
+	_clientMQTT.publish(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), (uint8_t *)"on", strlen("on"), 2, true);
 	for (const auto &handler : _onConnectHandler) handler();
 }
 void BasicMQTT::_onMessage(const char *_topic, const char *_payload) {
 	if (strcmp(_topic, _config.mqtt.will_topic) == 0) {
 		if (strcmp(_payload, _config.mqtt.will_msg) == 0) {
-			_clientMQTT.publish(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), 2, true, (uint8_t *)"on", strlen("on"), false);
+			_clientMQTT.publish(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), "on", strlen("on"), 2, true);
 		}
 	}
 	for (const auto &handler : _onMessageHandler) handler(_topic, _payload);
@@ -76,9 +78,10 @@ void BasicMQTT::_onDisconnect(int8_t reason) {
 		BasicLogs::saveLog(
 		    now(),
 		    ll_debug,
-		    "MQTT disconnected [" + String(_MQTTerror[(reason < 0) ? 14 : reason]) + (reason < 0 ? "(" + String(reason, 10) + ")]" : "]"));
+		    "MQTT disconnected [" + String(_MQTTerror[(reason < 0) ? 12 : reason]) + (reason < 0 ? "(" + String(reason, 10) + ")]" : "]"));
 	}
-	_mqttReconnectTimer.once(_config.mqtt.keepalive * 1.1, []() { _clientMQTT.connect(); });
+	_connected = false;
+	_mqttReconnectTimer.once(_config.mqtt.keepalive * PANGO_POLL_RATE, []() { _clientMQTT.connect(); });
 	for (const auto &handler : _onDisconnectHandler) handler(reason);
 }
 void BasicMQTT::setup() {
@@ -91,11 +94,11 @@ void BasicMQTT::setup() {
 	_clientMQTT.onConnect([&](bool sessionPresent) {
 		_onConnect();
 	});
-	_clientMQTT.onMessage([&](const char *topic, uint8_t *payload, PANGO_PROPS_t properties, size_t len, size_t index, size_t total) {
-		char fixedPayload[len + 1];
-		fixedPayload[len] = '\0';
-		strncpy(fixedPayload, PANGO::payloadToCstring(payload, len), len);
-		_onMessage(topic, fixedPayload);
+	_clientMQTT.onMessage([&](const char *topic, const uint8_t *payload, size_t len, uint8_t qos, bool retain, bool dup) {
+		char *buf;
+		_clientMQTT.xPayload(payload, len, buf);
+		_onMessage(topic, buf);
+		free(buf);    // DO NOT FORGET TO DO THIS!!!
 	});
 	_clientMQTT.onDisconnect([&](int8_t reason) {
 		_onDisconnect(reason);
@@ -104,7 +107,7 @@ void BasicMQTT::setup() {
 void BasicMQTT::waitForMQTT(int waitTime) {
 	u_long startWaitingAt = millis();
 	BASICMQTT_PRINT("Connecting MQTT");
-	while (!_clientMQTT.connected()) {
+	while (!_connected) {
 		BASICMQTT_PRINT(".");
 		if (BasicSetup::_useLed) {
 			digitalWrite(LED_BUILTIN, LOW);

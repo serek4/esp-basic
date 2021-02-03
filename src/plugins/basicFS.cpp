@@ -7,10 +7,10 @@ BasicFS::BasicFS()
 
 bool BasicFS::setup() {
 	while (!LittleFS.begin()) {
-		Serial.println("LittleFS mount failed!");
+		BASICFS_PRINTLN("LittleFS mount failed!");
 		return false;
 	}
-	Serial.println("LittleFS mounted!");
+	BASICFS_PRINTLN("LittleFS mounted!");
 	return true;
 }
 

@@ -38,6 +38,12 @@ void ImportSetup::MQTTsettings(const char *broker_address, int broker_port, cons
 	strcpy(_defaultConfig.mqtt.user, user);
 	strcpy(_defaultConfig.mqtt.pass, pass);
 }
+void ImportSetup::timeSettings(const char *NTP_server_address, int NTP_server_port, int timezone, bool summertime) {
+	strcpy(_defaultConfig.time.NTP_server_address, NTP_server_address);
+	_defaultConfig.time.NTP_server_port = NTP_server_port;
+	_defaultConfig.time.timezone = timezone;
+	_defaultConfig.time.summertime = summertime;
+}
 
 
 BasicConfig::BasicConfig()
@@ -46,12 +52,15 @@ BasicConfig::BasicConfig()
 
 void BasicConfig::setup() {
 	if (!(_basicSetup._fsStarted)) {
-		Serial.println("mount 1");
+		BASICFS_PRINTLN("mount 1");
 		_basicSetup._fsStarted = _basicFS.setup();
 	}
 	if (!_basicConfig._loadConfig(_config)) {
 		if (!_basicConfig._loadConfig(_config, "backup-config.json")) {
-			Serial.println("Loading default settings!");
+			BASICCONFIG_PRINTLN("Loading default settings!");
+			if (BasicSetup::_inclLogger) {
+				BasicLogs::saveLog(now(), ll_error, "loaded default settings!");
+			}
 			_basicConfig._createConfig(_defaultConfig);
 			_config = _defaultConfig;
 		}
@@ -118,22 +127,25 @@ bool BasicConfig::_loadUserConfig(JsonObject &userConfig) {
 }
 bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 	if (!LittleFS.exists(filename)) {
-		Serial.println(filename + " not found!");
+		BASICCONFIG_PRINTLN(filename + " not found!");
 		return false;
 	}
 	File configFile = LittleFS.open(filename, "r");
 	if (!configFile) {
-		Serial.println("Failed to read " + filename + "!");
+		BASICCONFIG_PRINTLN("Failed to read " + filename + "!");
 		configFile.close();
 		return false;
 	}
 	size_t configfileSize = configFile.size();
-	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + 2 * JSON_OBJECT_SIZE(9) + 380 + _userConfigSize;
+	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(5) + 2 * JSON_OBJECT_SIZE(8) + 450 + _userConfigSize;
 	DynamicJsonDocument doc(capacity);
 	DeserializationError error = deserializeJson(doc, configFile);
 	configFile.close();
 	if (error) {
-		Serial.println("Failed to parse " + filename + "!");
+		BASICCONFIG_PRINTLN("Failed to parse " + filename + "!");
+		if (BasicSetup::_inclLogger) {
+			BasicLogs::saveLog(now(), ll_warning, filename + " corrupted");
+		}
 		LittleFS.rename(filename, "corrupted_" + filename);
 		return false;
 	}
@@ -169,34 +181,60 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 	}
 	if (!checkJsonVariant(config.http.user, doc["HTTP"]["user"])) mismatch |= true;    // "admin"
 	if (!checkJsonVariant(config.http.pass, doc["HTTP"]["pass"])) mismatch |= true;    // "admin"
+	if (BasicSetup::_inclTime) {
+		JsonObject time = doc["time"];
+		if (!time.isNull()) {
+			if (!checkJsonVariant(config.time.NTP_server_address, time["NTP_server_address"])) mismatch |= true;    // "router.lan"
+			if (!checkJsonVariant(config.time.NTP_server_port, time["NTP_server_port"])) mismatch |= true;          // 2390
+			if (!checkJsonVariant(config.time.timezone, time["timezone"])) mismatch |= true;                        // 1
+			if (!checkJsonVariant(config.time.summertime, time["summertime"])) mismatch |= true;                    // false
+		} else {
+			mismatch |= true;
+		}
+	}
 	if (_userConfigSize != 0) {
 		JsonObject userSettings = doc["userSettings"];
 		mismatch |= !_loadUserConfig(userSettings);
 	}
 	if (mismatch) {
-		Serial.println("Configuration in " + filename + " mismatch!");
+		BASICCONFIG_PRINTLN("Configuration in " + filename + " mismatch!");
+		if (BasicSetup::_inclLogger) {
+			BasicLogs::saveLog(now(), ll_warning, "config mismatch in " + filename);
+		}
 		LittleFS.rename(filename, "mismatched_" + filename);
 		return false;
 	}
-	Serial.println(filename + " laded!");
+	BASICCONFIG_PRINTLN(filename + " laded!");
+	if (BasicSetup::_inclLogger) {
+		BasicLogs::saveLog(now(), ll_log, filename + " laded");
+	}
 	if (!LittleFS.exists("backup-config.json")) {
 		_createConfig(config, "backup-config.json");
+		if (BasicSetup::_inclLogger) {
+			BasicLogs::saveLog(now(), ll_log, "config backup file saved");
+		}
 	} else {
 		if (filename == "backup-config.json") {
 			_createConfig(config, "config.json");
+			if (BasicSetup::_inclLogger) {
+				BasicLogs::saveLog(now(), ll_warning, "config restored from backup file");
+			}
 		} else {
 			File backup = LittleFS.open("backup-config.json", "r");
 			size_t backupfileSize = backup.size();
 			backup.close();
 			if (configfileSize != backupfileSize) {
 				_createConfig(config, "backup-config.json");
+				if (BasicSetup::_inclLogger) {
+					BasicLogs::saveLog(now(), ll_log, "config backup file updated");
+				}
 			}
 		}
 	}
 	return true;
 }
 size_t BasicConfig::_createConfig(ConfigData &config, String filename, bool save) {
-	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + 2 * JSON_OBJECT_SIZE(9) + 380 + _userConfigSize;
+	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(5) + 2 * JSON_OBJECT_SIZE(8) + 450 + _userConfigSize;
 	DynamicJsonDocument doc(capacity);
 
 	JsonObject WiFi = doc.createNestedObject("WiFi");
@@ -222,9 +260,17 @@ size_t BasicConfig::_createConfig(ConfigData &config, String filename, bool save
 	MQTT["will_msg"] = config.mqtt.will_msg;
 	MQTT["user"] = config.mqtt.user;
 	MQTT["pass"] = config.mqtt.pass;
+
 	JsonObject HTTP = doc.createNestedObject("HTTP");
 	HTTP["user"] = config.http.user;
 	HTTP["pass"] = config.http.pass;
+	if (BasicSetup::_inclTime) {
+		JsonObject time = doc.createNestedObject("time");
+		time["NTP_server_address"] = config.time.NTP_server_address;
+		time["NTP_server_port"] = config.time.NTP_server_port;
+		time["timezone"] = config.time.timezone;
+		time["summertime"] = config.time.summertime;
+	}
 	if (_userConfigSize != 0) {
 		JsonObject userSettings = doc.createNestedObject("userSettings");
 		_saveUserConfig(userSettings);
@@ -233,13 +279,13 @@ size_t BasicConfig::_createConfig(ConfigData &config, String filename, bool save
 	if (save) {
 		File configFile = LittleFS.open(filename, "w");
 		if (!configFile) {
-			Serial.println("Failed to write " + filename + "!");
+			BASICCONFIG_PRINTLN("Failed to write " + filename + "!");
 			configFile.close();
 			return false;
 		}
 		serializeJsonPretty(doc, configFile);
 		configFile.close();
-		Serial.println(filename + " saved!");
+		BASICCONFIG_PRINTLN(filename + " saved!");
 	}
 	return measureJsonPretty(doc);
 }

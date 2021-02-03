@@ -16,26 +16,33 @@ void BasicOTA::setup() {
 			type = "filesystem";
 		}
 		// NOTE: if updating FS this would be the place to unmount FS using FS.end()
-		Serial.println("Start updating " + type);
+		BASICOTA_PRINTLN("Start updating " + type);
 	});
 	ArduinoOTA.onEnd([]() {
-		Serial.println("\nEnd");
+		BASICOTA_PRINTLN("\nEnd");
+		if (BasicSetup::_inclLogger) {
+			BasicLogs::saveLog(now(), ll_log, "firmware update");
+			BasicLogs::handle();
+		}
 	});
 	ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-		Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+		BASICOTA_PRINTF("Progress: %u%%\r", (progress / (total / 100)));
 	});
 	ArduinoOTA.onError([](ota_error_t error) {
-		Serial.printf("Error[%u]: ", error);
+		BASICOTA_PRINTF("Error[%u]: ", error);
+		if (BasicSetup::_inclLogger) {
+			BasicLogs::saveLog(now(), ll_log, "firmware update failed " + String(error, 10));
+		}
 		if (error == OTA_AUTH_ERROR) {
-			Serial.println("Auth Failed");
+			BASICOTA_PRINTLN("Auth Failed");
 		} else if (error == OTA_BEGIN_ERROR) {
-			Serial.println("Begin Failed");
+			BASICOTA_PRINTLN("Begin Failed");
 		} else if (error == OTA_CONNECT_ERROR) {
-			Serial.println("Connect Failed");
+			BASICOTA_PRINTLN("Connect Failed");
 		} else if (error == OTA_RECEIVE_ERROR) {
-			Serial.println("Receive Failed");
+			BASICOTA_PRINTLN("Receive Failed");
 		} else if (error == OTA_END_ERROR) {
-			Serial.println("End Failed");
+			BASICOTA_PRINTLN("End Failed");
 		}
 	});
 }

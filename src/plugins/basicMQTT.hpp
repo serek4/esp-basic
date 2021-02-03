@@ -6,6 +6,16 @@
 #include <functional>
 #include <vector>
 
+// clang-format off
+// Setup debug printing macros.
+#ifdef BASIC_MQTT_DEBUG
+#define BASICMQTT_PRINT(...) { DEBUG_PRINTER.print(__VA_ARGS__); }
+#define BASICMQTT_PRINTLN(...) { DEBUG_PRINTER.println(__VA_ARGS__); }
+#else
+#define BASICMQTT_PRINT(...) {}
+#define BASICMQTT_PRINTLN(...) {}
+#endif
+// clang-format on
 
 namespace MQTTuserHandlers {
 typedef std::function<void()> onMQTTconnectHandler;
@@ -34,6 +44,11 @@ class BasicMQTT {
 	BasicMQTT();
 
   private:
+	const char *_MQTTerror[15] = {"TCP_DISCONNECTED", "MQTT_SERVER_UNAVAILABLE", "UNRECOVERABLE_CONNECT_FAIL",
+	                              "TLS_BAD_FINGERPRINT", "TCP_TIMEOUT", "SUBSCRIBE_FAIL",
+	                              "INBOUND_QOS_FAIL", "OUTBOUND_QOS_FAIL", "INBOUND_QOS_ACK_FAIL", "OUTBOUND_QOS_ACK_FAIL",
+	                              "INBOUND_PUB_TOO_BIG", "OUTBOUND_PUB_TOO_BIG", "BOGUS_PACKET",
+	                              "BOGUS_ACK", "TCP_ERROR"};
 	std::vector<MQTTuserHandlers::onMQTTconnectHandler> _onConnectHandler;
 	std::vector<MQTTuserHandlers::onMQTTmesageHandler> _onMessageHandler;
 	std::vector<MQTTuserHandlers::onMQTTdisconnectHandler> _onDisconnectHandler;

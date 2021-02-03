@@ -2,6 +2,10 @@
 #define SECRETS_H_
 
 #define USE_BUILDIN_LED true
+
+#define TIME_PLUGIN true
+#define LOGGER_PLUGIN true
+
 #define STATIC_IP false
 #define MQTT_SET_LASTWILL true
 #define MQTT_USE_CREDENTIALS true
@@ -35,6 +39,13 @@
 // web file editor
 #define HTTP_USER "admin"
 #define HTTP_PASS "admin"
+// ntp client settings
+#if TIME_PLUGIN
+#define NTP_SERVER_ADDRESS "0.pool.ntp.org"
+#define NTP_SERVER_PORT 2390
+#define TIMEZONE 1    // Central European Time (Europe/Warsaw)
+#define SUMMERTIME false
+#endif
 // user custom settings
 #define USER_STR "teststr"
 #define USER_INT 15

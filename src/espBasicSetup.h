@@ -7,6 +7,14 @@
 
 
 bool BasicSetup::_useLed = USE_BUILDIN_LED;
+bool BasicSetup::_inclTime = TIME_PLUGIN;
+bool BasicSetup::_inclLogger = LOGGER_PLUGIN;
+#if TIME_PLUGIN
+BasicTime NTPclient;
+#endif
+#if LOGGER_PLUGIN
+BasicLogs logger;
+#endif
 ConfigData &config = _config;                // only for cleaner sketch code
 BasicWiFi &WIFI = _basicWiFi;                // only for cleaner sketch code
 BasicMQTT &MQTT = _basicMQTT;                // only for cleaner sketch code
@@ -24,10 +32,16 @@ class EspBasicSetup {
 		_import.OTAsettings(OTA_HOST);
 		_import.MQTTsettings(MQTT_BROKER, MQTT_BROKER_PORT, MQTT_CLIENTID, MQTT_KEEPALIVE, MQTT_WILL_TOPIC, MQTT_WILL_MSG, MQTT_USER, MQTT_PASS);
 		_import.ServerHttpSettings(HTTP_USER, HTTP_PASS);
+#if TIME_PLUGIN
+		_import.timeSettings(NTP_SERVER_ADDRESS, NTP_SERVER_PORT, TIMEZONE, SUMMERTIME);
+#endif
 		_import.~ImportSetup();
 	};
 	BasicConfig &config;
 	void begin() {
+#if TIME_PLUGIN
+		NTPclient.setup();
+#endif
 		_basicSetup.begin();
 	}
 

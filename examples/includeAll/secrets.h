@@ -3,12 +3,11 @@
 
 #define USE_BUILDIN_LED true
 
+#define MQTT_PLUGIN true
 #define TIME_PLUGIN true
 #define LOGGER_PLUGIN true
 
 #define STATIC_IP false
-#define MQTT_SET_LASTWILL true
-#define MQTT_USE_CREDENTIALS true
 
 // wifi settings
 #define WIFI_SSID "your-wifi-ssid"
@@ -24,6 +23,9 @@
 // OTA settings
 #define OTA_HOST "esp8266-wemos"    // optional
 // MQTT settings
+#if MQTT_PLUGIN
+#define MQTT_SET_LASTWILL true
+#define MQTT_USE_CREDENTIALS true
 #define MQTT_BROKER "broker-hostname"
 #define MQTT_BROKER_PORT 1883
 #define MQTT_CLIENTID "wemos"
@@ -35,6 +37,7 @@
 #if MQTT_USE_CREDENTIALS
 #define MQTT_USER "mqtt-user"        // optional
 #define MQTT_PASS "mqtt-password"    // optional
+#endif
 #endif
 // web file editor
 #define HTTP_USER "admin"

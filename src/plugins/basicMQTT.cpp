@@ -5,8 +5,7 @@ PangolinMQTT _clientMQTT;
 Ticker _mqttReconnectTimer;
 
 BasicMQTT::BasicMQTT()
-    : _inclMQTT(true)
-    , _connected(false) {
+    : _connected(false) {
 }
 
 void BasicMQTT::onConnect(const MQTTuserHandlers::onMQTTconnectHandler &handler) {
@@ -123,5 +122,3 @@ void BasicMQTT::waitForMQTT(int waitTime) {
 		}
 	}
 }
-
-BasicMQTT _basicMQTT;

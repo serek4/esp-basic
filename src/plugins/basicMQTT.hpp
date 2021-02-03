@@ -55,11 +55,7 @@ class BasicMQTT {
 	void _onConnect();
 	void _onMessage(const char *_topic, const char *_payload);
 	void _onDisconnect(int8_t reason);
-	bool _inclMQTT;
-
-	friend class BasicSetup;
 };
 
-extern BasicMQTT _basicMQTT;
 extern PangolinMQTT _clientMQTT;
 extern Ticker _mqttReconnectTimer;

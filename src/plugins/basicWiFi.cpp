@@ -37,7 +37,7 @@ void BasicWiFi::_onGotIP(const WiFiEventStationModeGotIP &evt) {
 		_serverHttp.begin();
 		BASICSERVERHTTP_PRINTLN("http server started!");
 	}
-	if (_basicSetup._inclMQTT) {
+	if (BasicSetup::_inclMQTT) {
 		_mqttReconnectTimer.once(1, []() {
 			_clientMQTT.connect();
 		});
@@ -52,7 +52,7 @@ void BasicWiFi::_onDisconnected(const WiFiEventStationModeDisconnected &evt) {
 	}
 	if (_basicSetup._inclOTA) {
 	}
-	if (_basicSetup._inclMQTT) {
+	if (BasicSetup::_inclMQTT) {
 		_mqttReconnectTimer.detach();
 	}
 	if (_basicSetup._inclServerHttp) {

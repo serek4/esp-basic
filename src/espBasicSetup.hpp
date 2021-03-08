@@ -34,8 +34,7 @@ class BasicSetup {
 	BasicSetup();
 
   private:
-	bool _fsStarted;
-	bool _inclFS;
+	static bool _inclFS;
 	bool _inclServerHttp;
 	static bool _inclMQTT;
 	bool _inclWiFi;
@@ -46,6 +45,7 @@ class BasicSetup {
 	bool _staticIP;
 	static bool _useLed;
 
+	friend class EspBasicSetup;
 	friend class ImportSetup;
 	friend class BasicFS;
 	friend class BasicConfig;

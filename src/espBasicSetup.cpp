@@ -2,9 +2,7 @@
 
 
 BasicSetup::BasicSetup()
-    : _fsStarted(false)
-    , _inclFS(_basicFS._inclFS)
-    , _inclConfig(_basicConfig._inclConfig)
+    : _inclConfig(_basicConfig._inclConfig)
     , _inclWiFi(_basicWiFi._inclWiFi)
     , _inclOTA(_basicOTA._inclOTA)
     , _inclServerHttp(_basicServerHttp._inclServerHttp) {

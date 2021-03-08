@@ -7,10 +7,16 @@
 
 
 bool BasicSetup::_useLed = USE_BUILDIN_LED;
+
+bool BasicSetup::_inclFS = FS_PLUGIN;
 bool BasicSetup::_inclMQTT = MQTT_PLUGIN;
 bool BasicSetup::_inclTime = TIME_PLUGIN;
 bool BasicSetup::_inclLogger = LOGGER_PLUGIN;
 
+#if FS_PLUGIN
+BasicFS basicFS;
+bool BasicFS::_fsStarted = false;
+#endif
 #if MQTT_PLUGIN
 BasicMQTT MQTT;
 #endif
@@ -46,6 +52,11 @@ class EspBasicSetup {
 	BasicConfig &config;
 	void begin() {
 		_basicSetup.begin();
+#if FS_PLUGIN
+    if (!(BasicFS::_fsStarted)) {
+		BasicFS::_fsStarted = BasicFS::setup();
+    }
+#endif
 #if MQTT_PLUGIN
 		MQTT.setup();
 #endif

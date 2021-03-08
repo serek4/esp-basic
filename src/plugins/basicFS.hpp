@@ -16,14 +16,15 @@
 
 class BasicFS {
   public:
-	bool setup();
+	static bool setup();
 
 	BasicFS();
+	~BasicFS();
 
   private:
-	bool _inclFS;
+	static bool _fsStarted;
 
-    friend class BasicSetup;
+	friend class BasicConfig;
+	friend class BasicServerHttp;
+	friend class EspBasicSetup;
 };
-
-extern BasicFS _basicFS;

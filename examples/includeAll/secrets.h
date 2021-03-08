@@ -3,6 +3,7 @@
 
 #define USE_BUILDIN_LED true
 
+#define FS_PLUGIN true
 #define MQTT_PLUGIN true
 #define TIME_PLUGIN true
 #define LOGGER_PLUGIN true

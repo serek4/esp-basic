@@ -1,8 +1,9 @@
 #include "basicFS.hpp"
 
 
-BasicFS::BasicFS()
-    : _inclFS(true) {
+BasicFS::BasicFS() {
+}
+BasicFS::~BasicFS() {
 }
 
 bool BasicFS::setup() {
@@ -13,5 +14,3 @@ bool BasicFS::setup() {
 	BASICFS_PRINTLN("LittleFS mounted!");
 	return true;
 }
-
-BasicFS _basicFS;

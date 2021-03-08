@@ -51,9 +51,9 @@ BasicConfig::BasicConfig()
 }
 
 void BasicConfig::setup() {
-	if (!(_basicSetup._fsStarted)) {
+	if (!(BasicFS::_fsStarted)) {
 		BASICFS_PRINTLN("mount 1");
-		_basicSetup._fsStarted = _basicFS.setup();
+		BasicFS::_fsStarted = BasicFS::setup();
 	}
 	if (!_basicConfig._loadConfig(_config)) {
 		if (!_basicConfig._loadConfig(_config, "backup-config.json")) {

@@ -7,11 +7,11 @@ BasicServerHttp::BasicServerHttp()
 }
 
 void BasicServerHttp::setup() {
-	if (!(_basicSetup._fsStarted)) {
+	if (!(BasicFS::_fsStarted)) {
 		BASICFS_PRINTLN("mount 2");
-		_basicSetup._fsStarted = _basicFS.setup();
+		BasicFS::_fsStarted = BasicFS::setup();
 	}
-	if (_basicSetup._fsStarted) {
+	if (BasicFS::_fsStarted) {
 		_serverHttp.addHandler(new SPIFFSEditor(_config.http.user, _config.http.pass, LittleFS));
 		_serverHttp.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
 			request->redirect("/edit");

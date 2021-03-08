@@ -58,17 +58,17 @@ void BasicWiFi::_onDisconnected(const WiFiEventStationModeDisconnected &evt) {
 	if (_basicSetup._inclServerHttp) {
 	}
 	_wifiReconnectTimer.once(5, [&]() {
-		WiFi.begin(_config.wifi.ssid, _config.wifi.pass);
+		WiFi.begin(BasicConfig::configFile.wifi.ssid, BasicConfig::configFile.wifi.pass);
 	});
 	for (const auto &handler : _onDisconnectHandler) handler(evt);
 }
 void BasicWiFi::setup(bool staticIP) {
 	if (staticIP) {
-		WiFi.config(_config.wifi.IP, _config.wifi.gateway, _config.wifi.subnet, _config.wifi.dns1, _config.wifi.dns2);
+		WiFi.config(BasicConfig::configFile.wifi.IP, BasicConfig::configFile.wifi.gateway, BasicConfig::configFile.wifi.subnet, BasicConfig::configFile.wifi.dns1, BasicConfig::configFile.wifi.dns2);
 	}
-	WiFi.mode((WiFiMode_t)_config.wifi.mode);
+	WiFi.mode((WiFiMode_t)BasicConfig::configFile.wifi.mode);
 	WiFi.persistent(false);
-	WiFi.begin(_config.wifi.ssid, _config.wifi.pass);
+	WiFi.begin(BasicConfig::configFile.wifi.ssid, BasicConfig::configFile.wifi.pass);
 	_WiFiConnectedHandler = WiFi.onStationModeConnected([&](const WiFiEventStationModeConnected &evt) {
 		_onConnected(evt);
 	});

@@ -1,7 +1,6 @@
 #include "basicConfig.hpp"
 
 
-ConfigData _config;
 ConfigData _defaultConfig;
 
 void ImportSetup::WIFIsettings(const char *ssid, const char *pass, int mode, const char *IP, const char *subnet, const char *gateway, const char *dns1, const char *dns2) {
@@ -46,8 +45,9 @@ void ImportSetup::timeSettings(const char *NTP_server_address, int NTP_server_po
 }
 
 
-BasicConfig::BasicConfig()
-    : _inclConfig(true) {
+BasicConfig::BasicConfig() {
+}
+BasicConfig::~BasicConfig() {
 }
 
 void BasicConfig::setup() {
@@ -55,14 +55,14 @@ void BasicConfig::setup() {
 		BASICFS_PRINTLN("mount 1");
 		BasicFS::_fsStarted = BasicFS::setup();
 	}
-	if (!_basicConfig._loadConfig(_config)) {
-		if (!_basicConfig._loadConfig(_config, "backup-config.json")) {
+	if (!_loadConfig(configFile)) {
+		if (!_loadConfig(configFile, "backup-config.json")) {
 			BASICCONFIG_PRINTLN("Loading default settings!");
 			if (BasicSetup::_inclLogger) {
 				BasicLogs::saveLog(now(), ll_error, "loaded default settings!");
 			}
-			_basicConfig._createConfig(_defaultConfig);
-			_config = _defaultConfig;
+			_createConfig(_defaultConfig);
+			configFile = _defaultConfig;
 		}
 	}
 	_defaultConfig.~ConfigData();

@@ -53,14 +53,14 @@ struct ConfigData {
 	struct Time {
 		char NTP_server_address[32];
 		int NTP_server_port;
-        int timezone;
+		int timezone;
 		bool summertime;
 	};
-    WiFi wifi;
+	WiFi wifi;
 	OTA ota;
 	MQTT mqtt;
 	HTTP http;
-    Time time;
+	Time time;
 };
 
 class ImportSetup {
@@ -93,8 +93,10 @@ class BasicConfig {
 	bool checkJsonVariant(IPAddress &saveTo, JsonVariant IPstring);
 	bool checkJsonVariant(int &saveTo, JsonVariant number);
 	bool checkJsonVariant(float &saveTo, JsonVariant number);
+	static ConfigData configFile;
 
 	BasicConfig();
+	~BasicConfig();
 
   private:
 	std::vector<configUserHandlers::saveConfigHandler> _saveConfigHandler;
@@ -104,10 +106,4 @@ class BasicConfig {
 	bool _loadUserConfig(JsonObject &userConfig);
 	size_t _createConfig(ConfigData &config, String filename = "config.json", bool save = true);
 	bool _loadConfig(ConfigData &config, String filename = "config.json");
-	bool _inclConfig;
-
-	friend class BasicSetup;
 };
-
-extern BasicConfig _basicConfig;
-extern ConfigData _config;

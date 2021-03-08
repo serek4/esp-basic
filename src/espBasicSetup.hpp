@@ -38,7 +38,7 @@ class BasicSetup {
 	bool _inclServerHttp;
 	static bool _inclMQTT;
 	bool _inclWiFi;
-	bool _inclConfig;
+	static bool _inclConfig;
 	bool _inclOTA;
 	static bool _inclTime;
 	static bool _inclLogger;

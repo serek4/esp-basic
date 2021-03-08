@@ -12,7 +12,7 @@ void BasicServerHttp::setup() {
 		BasicFS::_fsStarted = BasicFS::setup();
 	}
 	if (BasicFS::_fsStarted) {
-		_serverHttp.addHandler(new SPIFFSEditor(_config.http.user, _config.http.pass, LittleFS));
+		_serverHttp.addHandler(new SPIFFSEditor(BasicConfig::configFile.http.user, BasicConfig::configFile.http.pass, LittleFS));
 		_serverHttp.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
 			request->redirect("/edit");
 		});

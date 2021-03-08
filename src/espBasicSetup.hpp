@@ -37,7 +37,7 @@ class BasicSetup {
 	bool _fsStarted;
 	bool _inclFS;
 	bool _inclServerHttp;
-	bool _inclMQTT;
+	static bool _inclMQTT;
 	bool _inclWiFi;
 	bool _inclConfig;
 	bool _inclOTA;

@@ -2,8 +2,9 @@
 
 AsyncWebServer _serverHttp(80);
 
-BasicServerHttp::BasicServerHttp()
-    : _inclServerHttp(true) {
+BasicServerHttp::BasicServerHttp() {
+}
+BasicServerHttp::~BasicServerHttp() {
 }
 
 void BasicServerHttp::setup() {
@@ -34,5 +35,3 @@ void BasicServerHttp::setup() {
 		});
 	}
 }
-
-BasicServerHttp _basicServerHttp;

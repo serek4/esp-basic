@@ -5,6 +5,7 @@
 
 #define FS_PLUGIN true
 #define CONFIG_PLUGIN true
+#define SERVERHTTP_PLUGIN true
 #define OTA_PLUGIN true
 #define MQTT_PLUGIN true
 #define TIME_PLUGIN true
@@ -45,8 +46,10 @@
 #endif
 #endif
 // web file editor
+#if SERVERHTTP_PLUGIN
 #define HTTP_USER "admin"
 #define HTTP_PASS "admin"
+#endif
 // ntp client settings
 #if TIME_PLUGIN
 #define NTP_SERVER_ADDRESS "0.pool.ntp.org"

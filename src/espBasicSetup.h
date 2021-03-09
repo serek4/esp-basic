@@ -10,6 +10,7 @@ bool BasicSetup::_useLed = USE_BUILDIN_LED;
 
 bool BasicSetup::_inclFS = FS_PLUGIN;
 bool BasicSetup::_inclConfig = CONFIG_PLUGIN;
+bool BasicSetup::_inclServerHttp = SERVERHTTP_PLUGIN;
 bool BasicSetup::_inclOTA = OTA_PLUGIN;
 bool BasicSetup::_inclMQTT = MQTT_PLUGIN;
 bool BasicSetup::_inclTime = TIME_PLUGIN;
@@ -24,6 +25,10 @@ BasicConfig basicConfig;
 ConfigData BasicConfig::configFile;
 ConfigData &config = BasicConfig::configFile;    // only for cleaner sketch code
 #endif
+#if SERVERHTTP_PLUGIN
+BasicServerHttp basicServerHttp;
+AsyncWebServer &httpServer = _serverHttp;    // reference to original Web server
+#endif
 #if OTA_PLUGIN
 BasicOTA basicOTA;
 #endif
@@ -36,8 +41,7 @@ BasicTime NTPclient;
 #if LOGGER_PLUGIN
 BasicLogs logger;
 #endif
-BasicWiFi &WIFI = _basicWiFi;                // only for cleaner sketch code
-AsyncWebServer &httpServer = _serverHttp;    // only for cleaner sketch code
+BasicWiFi &WIFI = _basicWiFi;    // only for cleaner sketch code
 
 class EspBasicSetup {
   public:
@@ -54,7 +58,9 @@ class EspBasicSetup {
 #if MQTT_PLUGIN
 		_import.MQTTsettings(MQTT_BROKER, MQTT_BROKER_PORT, MQTT_CLIENTID, MQTT_KEEPALIVE, MQTT_WILL_TOPIC, MQTT_WILL_MSG, MQTT_USER, MQTT_PASS);
 #endif
+#if SERVERHTTP_PLUGIN
 		_import.ServerHttpSettings(HTTP_USER, HTTP_PASS);
+#endif
 #if TIME_PLUGIN
 		_import.timeSettings(NTP_SERVER_ADDRESS, NTP_SERVER_PORT, TIMEZONE, SUMMERTIME);
 #endif
@@ -69,6 +75,9 @@ class EspBasicSetup {
 #endif
 #if CONFIG_PLUGIN
 		basicConfig.setup();
+#endif
+#if SERVERHTTP_PLUGIN
+		basicServerHttp.setup();
 #endif
 #if OTA_PLUGIN
 		basicOTA.setup();

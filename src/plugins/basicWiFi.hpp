@@ -32,8 +32,10 @@ class BasicWiFi {
 	void onDisconnected(const WiFiUserHandlers::onWiFiDisconnectHandler &handler);
 
 	BasicWiFi();
+	~BasicWiFi();
 
   private:
+	static bool _staticIP;
 	const char *_wifiStatus[7] = {"IDLE_STATUS", "NO_SSID_AVAIL", "SCAN_COMPLETED", "CONNECTED", "CONNECT_FAILED", "CONNECTION_LOST", "DISCONNECTED"};
 	std::vector<WiFiUserHandlers::onWiFiConnectHandler> _onConnectHandler;
 	std::vector<WiFiUserHandlers::onWiFiGotIPhandler> _onGotIPhandler;
@@ -42,9 +44,8 @@ class BasicWiFi {
 	void _onConnected(const WiFiEventStationModeConnected &evt);
 	void _onGotIP(const WiFiEventStationModeGotIP &evt);
 	void _onDisconnected(const WiFiEventStationModeDisconnected &evt);
-	bool _inclWiFi;
 
-	friend class BasicSetup;
+	friend class ImportSetup;
+	friend class BasicConfig;
+	friend class EspBasicSetup;
 };
-
-extern BasicWiFi _basicWiFi;

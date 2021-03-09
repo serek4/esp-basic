@@ -4,8 +4,9 @@
 WiFiEventHandler _WiFiConnectedHandler, _WiFiGotIpHandler, _WiFiDisconnectedHandler;
 Ticker _wifiReconnectTimer;
 
-BasicWiFi::BasicWiFi()
-    : _inclWiFi(true) {
+BasicWiFi::BasicWiFi() {
+}
+BasicWiFi::~BasicWiFi() {
 }
 
 void BasicWiFi::onConnected(const WiFiUserHandlers::onWiFiConnectHandler &handler) {
@@ -114,5 +115,3 @@ void BasicWiFi::_checkConnection() {
 	}
 	BASICWIFI_PRINTLN(" OK!");
 }
-
-BasicWiFi _basicWiFi;

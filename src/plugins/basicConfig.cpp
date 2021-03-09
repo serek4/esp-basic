@@ -7,7 +7,6 @@ void ImportSetup::WIFIsettings(const char *ssid, const char *pass, int mode, con
 	strcpy(_defaultConfig.wifi.ssid, ssid);
 	strcpy(_defaultConfig.wifi.pass, pass);
 	_defaultConfig.wifi.mode = mode;
-	_basicSetup._staticIP = true;
 	(_defaultConfig.wifi.IP).fromString(IP);
 	(_defaultConfig.wifi.subnet).fromString(subnet);
 	(_defaultConfig.wifi.gateway).fromString(gateway);
@@ -18,7 +17,6 @@ void ImportSetup::WIFIsettings(const char *ssid, const char *pass, int mode) {
 	strcpy(_defaultConfig.wifi.ssid, ssid);
 	strcpy(_defaultConfig.wifi.pass, pass);
 	_defaultConfig.wifi.mode = mode;
-	_basicSetup._staticIP = false;
 }
 void ImportSetup::OTAsettings(const char *hostname) {
 	strcpy(_defaultConfig.ota.hostname, hostname);
@@ -155,7 +153,7 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 		if (!checkJsonVariant(config.wifi.ssid, WiFi["ssid"])) mismatch |= true;    // "your-wifi-ssid"
 		if (!checkJsonVariant(config.wifi.pass, WiFi["pass"])) mismatch |= true;    // "your-wifi-password"
 		if (!checkJsonVariant(config.wifi.mode, WiFi["mode"])) mismatch |= true;    // "1"
-		if (_basicSetup._staticIP) {
+		if (BasicWiFi::_staticIP) {
 			if (!checkJsonVariant(config.wifi.IP, WiFi["IP"])) mismatch |= true;              // "192.168.0.150"
 			if (!checkJsonVariant(config.wifi.subnet, WiFi["subnet"])) mismatch |= true;      // "255.255.255.0"
 			if (!checkJsonVariant(config.wifi.gateway, WiFi["gateway"])) mismatch |= true;    // "192.168.0.1"
@@ -241,7 +239,7 @@ size_t BasicConfig::_createConfig(ConfigData &config, String filename, bool save
 	WiFi["ssid"] = config.wifi.ssid;
 	WiFi["pass"] = config.wifi.pass;
 	WiFi["mode"] = config.wifi.mode;
-	if (_basicSetup._staticIP) {
+	if (BasicWiFi::_staticIP) {
 		WiFi["IP"] = (config.wifi.IP).toString();
 		WiFi["subnet"] = (config.wifi.subnet).toString();
 		WiFi["gateway"] = (config.wifi.gateway).toString();

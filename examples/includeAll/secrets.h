@@ -5,6 +5,7 @@
 
 #define FS_PLUGIN true
 #define CONFIG_PLUGIN true
+#define OTA_PLUGIN true
 #define MQTT_PLUGIN true
 #define TIME_PLUGIN true
 #define LOGGER_PLUGIN true
@@ -23,7 +24,9 @@
 #define WIFI_DNS2 "1.1.1.1"            // optional
 #endif
 // OTA settings
+#if OTA_PLUGIN
 #define OTA_HOST "esp8266-wemos"    // optional
+#endif
 // MQTT settings
 #if MQTT_PLUGIN
 #define MQTT_SET_LASTWILL true

@@ -21,11 +21,5 @@ class BasicOTA {
 	void setup();
 
 	BasicOTA();
-
-  private:
-	bool _inclOTA;
-
-	friend class BasicSetup;
+	~BasicOTA();
 };
-
-extern BasicOTA _basicOTA;

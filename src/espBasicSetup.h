@@ -10,6 +10,7 @@ bool BasicSetup::_useLed = USE_BUILDIN_LED;
 
 bool BasicSetup::_inclFS = FS_PLUGIN;
 bool BasicSetup::_inclConfig = CONFIG_PLUGIN;
+bool BasicSetup::_inclOTA = OTA_PLUGIN;
 bool BasicSetup::_inclMQTT = MQTT_PLUGIN;
 bool BasicSetup::_inclTime = TIME_PLUGIN;
 bool BasicSetup::_inclLogger = LOGGER_PLUGIN;
@@ -22,6 +23,9 @@ bool BasicFS::_fsStarted = false;
 BasicConfig basicConfig;
 ConfigData BasicConfig::configFile;
 ConfigData &config = BasicConfig::configFile;    // only for cleaner sketch code
+#endif
+#if OTA_PLUGIN
+BasicOTA basicOTA;
 #endif
 #if MQTT_PLUGIN
 BasicMQTT MQTT;
@@ -44,7 +48,9 @@ class EspBasicSetup {
 #else
 		_import.WIFIsettings(WIFI_SSID, WIFI_PASS, WIFI_MODE);
 #endif
+#if OTA_PLUGIN
 		_import.OTAsettings(OTA_HOST);
+#endif
 #if MQTT_PLUGIN
 		_import.MQTTsettings(MQTT_BROKER, MQTT_BROKER_PORT, MQTT_CLIENTID, MQTT_KEEPALIVE, MQTT_WILL_TOPIC, MQTT_WILL_MSG, MQTT_USER, MQTT_PASS);
 #endif
@@ -63,6 +69,9 @@ class EspBasicSetup {
 #endif
 #if CONFIG_PLUGIN
 		basicConfig.setup();
+#endif
+#if OTA_PLUGIN
+		basicOTA.setup();
 #endif
 		_basicSetup.begin();
 #if MQTT_PLUGIN

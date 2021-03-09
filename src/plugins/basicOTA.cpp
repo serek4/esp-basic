@@ -1,8 +1,9 @@
 #include "basicOTA.hpp"
 
 
-BasicOTA::BasicOTA()
-    : _inclOTA(true) {
+BasicOTA::BasicOTA() {
+}
+BasicOTA::~BasicOTA() {
 }
 
 void BasicOTA::setup() {
@@ -46,5 +47,3 @@ void BasicOTA::setup() {
 		}
 	});
 }
-
-BasicOTA _basicOTA;

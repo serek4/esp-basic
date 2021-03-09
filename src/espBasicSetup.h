@@ -8,6 +8,7 @@
 
 bool BasicSetup::_useLed = USE_BUILDIN_LED;
 
+bool BasicSetup::_inclWiFi = WIFI_PLUGIN;
 bool BasicSetup::_inclFS = FS_PLUGIN;
 bool BasicSetup::_inclConfig = CONFIG_PLUGIN;
 bool BasicSetup::_inclServerHttp = SERVERHTTP_PLUGIN;
@@ -16,6 +17,10 @@ bool BasicSetup::_inclMQTT = MQTT_PLUGIN;
 bool BasicSetup::_inclTime = TIME_PLUGIN;
 bool BasicSetup::_inclLogger = LOGGER_PLUGIN;
 
+#if WIFI_PLUGIN
+BasicWiFi WIFI;
+bool BasicWiFi::_staticIP = STATIC_IP;
+#endif
 #if FS_PLUGIN
 BasicFS basicFS;
 bool BasicFS::_fsStarted = false;
@@ -41,16 +46,17 @@ BasicTime NTPclient;
 #if LOGGER_PLUGIN
 BasicLogs logger;
 #endif
-BasicWiFi &WIFI = _basicWiFi;    // only for cleaner sketch code
 
 class EspBasicSetup {
   public:
 	EspBasicSetup()
 	    : config(basicConfig) {
+#if WIFI_PLUGIN
 #if STATIC_IP
 		_import.WIFIsettings(WIFI_SSID, WIFI_PASS, WIFI_MODE, WIFI_IP, WIFI_SUBNET, WIFI_GATEWAY, WIFI_DNS1, WIFI_DNS2);
 #else
 		_import.WIFIsettings(WIFI_SSID, WIFI_PASS, WIFI_MODE);
+#endif
 #endif
 #if OTA_PLUGIN
 		_import.OTAsettings(OTA_HOST);
@@ -82,7 +88,9 @@ class EspBasicSetup {
 #if OTA_PLUGIN
 		basicOTA.setup();
 #endif
-		_basicSetup.begin();
+#if WIFI_PLUGIN
+		WIFI.setup(BasicWiFi::_staticIP);
+#endif
 #if MQTT_PLUGIN
 		MQTT.setup();
 #endif

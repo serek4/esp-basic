@@ -37,12 +37,11 @@ class BasicSetup {
 	static bool _inclFS;
 	static bool _inclServerHttp;
 	static bool _inclMQTT;
-	bool _inclWiFi;
+	static bool _inclWiFi;
 	static bool _inclConfig;
 	static bool _inclOTA;
 	static bool _inclTime;
 	static bool _inclLogger;
-	bool _staticIP;
 	static bool _useLed;
 
 	friend class EspBasicSetup;

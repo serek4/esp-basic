@@ -3,6 +3,7 @@
 
 #define USE_BUILDIN_LED true
 
+#define WIFI_PLUGIN true
 #define FS_PLUGIN true
 #define CONFIG_PLUGIN true
 #define SERVERHTTP_PLUGIN true
@@ -11,8 +12,8 @@
 #define TIME_PLUGIN true
 #define LOGGER_PLUGIN true
 
+#if WIFI_PLUGIN
 #define STATIC_IP false
-
 // wifi settings
 #define WIFI_SSID "your-wifi-ssid"
 #define WIFI_PASS "your-wifi-password"
@@ -23,6 +24,7 @@
 #define WIFI_GATEWAY "192.168.0.1"     // optional
 #define WIFI_DNS1 "192.168.0.1"        // optional
 #define WIFI_DNS2 "1.1.1.1"            // optional
+#endif
 #endif
 // OTA settings
 #if OTA_PLUGIN

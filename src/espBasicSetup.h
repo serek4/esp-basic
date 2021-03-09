@@ -9,6 +9,7 @@
 bool BasicSetup::_useLed = USE_BUILDIN_LED;
 
 bool BasicSetup::_inclFS = FS_PLUGIN;
+bool BasicSetup::_inclConfig = CONFIG_PLUGIN;
 bool BasicSetup::_inclMQTT = MQTT_PLUGIN;
 bool BasicSetup::_inclTime = TIME_PLUGIN;
 bool BasicSetup::_inclLogger = LOGGER_PLUGIN;
@@ -16,6 +17,11 @@ bool BasicSetup::_inclLogger = LOGGER_PLUGIN;
 #if FS_PLUGIN
 BasicFS basicFS;
 bool BasicFS::_fsStarted = false;
+#endif
+#if CONFIG_PLUGIN
+BasicConfig basicConfig;
+ConfigData BasicConfig::configFile;
+ConfigData &config = BasicConfig::configFile;    // only for cleaner sketch code
 #endif
 #if MQTT_PLUGIN
 BasicMQTT MQTT;
@@ -26,14 +32,13 @@ BasicTime NTPclient;
 #if LOGGER_PLUGIN
 BasicLogs logger;
 #endif
-ConfigData &config = _config;                // only for cleaner sketch code
 BasicWiFi &WIFI = _basicWiFi;                // only for cleaner sketch code
 AsyncWebServer &httpServer = _serverHttp;    // only for cleaner sketch code
 
 class EspBasicSetup {
   public:
 	EspBasicSetup()
-	    : config(_basicConfig) {
+	    : config(basicConfig) {
 #if STATIC_IP
 		_import.WIFIsettings(WIFI_SSID, WIFI_PASS, WIFI_MODE, WIFI_IP, WIFI_SUBNET, WIFI_GATEWAY, WIFI_DNS1, WIFI_DNS2);
 #else
@@ -51,12 +56,15 @@ class EspBasicSetup {
 	};
 	BasicConfig &config;
 	void begin() {
-		_basicSetup.begin();
 #if FS_PLUGIN
-    if (!(BasicFS::_fsStarted)) {
-		BasicFS::_fsStarted = BasicFS::setup();
-    }
+		if (!(BasicFS::_fsStarted)) {
+			BasicFS::_fsStarted = BasicFS::setup();
+		}
 #endif
+#if CONFIG_PLUGIN
+		basicConfig.setup();
+#endif
+		_basicSetup.begin();
 #if MQTT_PLUGIN
 		MQTT.setup();
 #endif

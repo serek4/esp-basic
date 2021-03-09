@@ -53,9 +53,9 @@ bool BasicMQTT::connected() {
 }
 
 void BasicMQTT::_onConnect() {
-	BASICMQTT_PRINTLN((String) "MQTT connected!\n " + _clientMQTT.getClientId() + "@" + _config.mqtt.broker);
+	BASICMQTT_PRINTLN((String) "MQTT connected!\n " + _clientMQTT.getClientId() + "@" + BasicConfig::configFile.mqtt.broker);
 	if (BasicSetup::_inclLogger) {
-		BasicLogs::saveLog(now(), ll_debug, (String) "MQTT connected [" + _clientMQTT.getClientId() + "@" + _config.mqtt.broker + "]");
+		BasicLogs::saveLog(now(), ll_debug, (String) "MQTT connected [" + _clientMQTT.getClientId() + "@" + BasicConfig::configFile.mqtt.broker + "]");
 	}
 	_connected = true;
 	_clientMQTT.publish(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), "on", strlen("on"), 0, true);
@@ -64,8 +64,8 @@ void BasicMQTT::_onConnect() {
 	for (const auto &handler : _onConnectHandler) handler();
 }
 void BasicMQTT::_onMessage(const char *_topic, const char *_payload) {
-	if (strcmp(_topic, _config.mqtt.will_topic) == 0) {
-		if (strcmp(_payload, _config.mqtt.will_msg) == 0) {
+	if (strcmp(_topic, BasicConfig::configFile.mqtt.will_topic) == 0) {
+		if (strcmp(_payload, BasicConfig::configFile.mqtt.will_msg) == 0) {
 			_clientMQTT.publish(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), "on", strlen("on"), 0, true);
 		}
 	}
@@ -80,16 +80,16 @@ void BasicMQTT::_onDisconnect(int8_t reason) {
 		    "MQTT disconnected [" + String(_MQTTerror[(reason < 0) ? 12 : reason]) + (reason < 0 ? "(" + String(reason, 10) + ")]" : "]"));
 	}
 	_connected = false;
-	_mqttReconnectTimer.once(_config.mqtt.keepalive * PANGO_POLL_RATE, []() { _clientMQTT.connect(); });
+	_mqttReconnectTimer.once(BasicConfig::configFile.mqtt.keepalive * PANGO_POLL_RATE, []() { _clientMQTT.connect(); });
 	for (const auto &handler : _onDisconnectHandler) handler(reason);
 }
 void BasicMQTT::setup() {
-	//TODO sprintf(_config.mqtt.client_ID, "esp8266-%06x", ESP.getChipId());
-	_clientMQTT.setClientId(_config.mqtt.client_ID);
-	_clientMQTT.setKeepAlive(_config.mqtt.keepalive);
-	_clientMQTT.setWill(_config.mqtt.will_topic, 2, true, _config.mqtt.will_msg);
-	_clientMQTT.setCredentials(_config.mqtt.user, _config.mqtt.pass);
-	_clientMQTT.setServer(_config.mqtt.broker, _config.mqtt.broker_port);
+	//TODO sprintf(BasicConfig::configFile.mqtt.client_ID, "esp8266-%06x", ESP.getChipId());
+	_clientMQTT.setClientId(BasicConfig::configFile.mqtt.client_ID);
+	_clientMQTT.setKeepAlive(BasicConfig::configFile.mqtt.keepalive);
+	_clientMQTT.setWill(BasicConfig::configFile.mqtt.will_topic, 2, true, BasicConfig::configFile.mqtt.will_msg);
+	_clientMQTT.setCredentials(BasicConfig::configFile.mqtt.user, BasicConfig::configFile.mqtt.pass);
+	_clientMQTT.setServer(BasicConfig::configFile.mqtt.broker, BasicConfig::configFile.mqtt.broker_port);
 	_clientMQTT.onConnect([&](bool sessionPresent) {
 		_onConnect();
 	});

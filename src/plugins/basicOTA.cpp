@@ -6,8 +6,8 @@ BasicOTA::BasicOTA()
 }
 
 void BasicOTA::setup() {
-	// TODO sprintf(_config.ota.hostname, "esp8266-%06x", ESP.getChipId());
-	ArduinoOTA.setHostname(_config.ota.hostname);
+	// TODO sprintf(BasicConfig::configFile.ota.hostname, "esp8266-%06x", ESP.getChipId());
+	ArduinoOTA.setHostname(BasicConfig::configFile.ota.hostname);
 	ArduinoOTA.onStart([]() {
 		String type;
 		if (ArduinoOTA.getCommand() == U_FLASH) {

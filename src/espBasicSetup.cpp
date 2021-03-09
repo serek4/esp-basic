@@ -2,8 +2,7 @@
 
 
 BasicSetup::BasicSetup()
-    : _inclConfig(_basicConfig._inclConfig)
-    , _inclWiFi(_basicWiFi._inclWiFi)
+    : _inclWiFi(_basicWiFi._inclWiFi)
     , _inclOTA(_basicOTA._inclOTA)
     , _inclServerHttp(_basicServerHttp._inclServerHttp) {
 	if (_useLed) {
@@ -11,7 +10,6 @@ BasicSetup::BasicSetup()
 	}
 }
 void BasicSetup::begin() {
-	_basicConfig.setup();
 	_basicOTA.setup();
 	_basicServerHttp.setup();
 	_basicWiFi.setup(_basicSetup._staticIP);

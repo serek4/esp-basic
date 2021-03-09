@@ -21,12 +21,7 @@ class BasicServerHttp {
 	void setup();
 
 	BasicServerHttp();
-
-  private:
-	bool _inclServerHttp;
-
-	friend class BasicSetup;
+	~BasicServerHttp();
 };
 
-extern BasicServerHttp _basicServerHttp;
 extern AsyncWebServer _serverHttp;

@@ -3,19 +3,12 @@
 
 ConfigData _defaultConfig;
 
-void ImportSetup::timeSettings(const char *NTP_server_address, int NTP_server_port, int timezone, bool summertime) {
-	strcpy(_defaultConfig.time.NTP_server_address, NTP_server_address);
-	_defaultConfig.time.NTP_server_port = NTP_server_port;
-	_defaultConfig.time.timezone = timezone;
-	_defaultConfig.time.summertime = summertime;
-}
-
-
 BasicConfig::BasicConfig() {
 	getWiFiConfig(_defaultConfig.wifi);
 	getOTAConfig(_defaultConfig.ota);
 	getServerHttpConfig(_defaultConfig.http);
 	getMQTTConfig(_defaultConfig.mqtt);
+	getTimeConfig(_defaultConfig.time);
 }
 BasicConfig::~BasicConfig() {
 }
@@ -74,6 +67,19 @@ void BasicConfig::setMQTTConfig(ConfigData::MQTT &MQTTconfig) {
 	strcpy(BasicMQTT::_user, MQTTconfig.user);
 	strcpy(BasicMQTT::_pass, MQTTconfig.pass);
 }
+void BasicConfig::getTimeConfig(ConfigData::Time &TimeConfig) {
+	strcpy(TimeConfig.NTP_server_address, BasicTime::_NTP_server_address);
+	TimeConfig.NTP_server_port = BasicTime::_NTP_server_port;
+	TimeConfig.timezone = BasicTime::_timezone;
+	TimeConfig.summertime = BasicTime::_summertime;
+}
+void BasicConfig::setTimeConfig(ConfigData::Time &TimeConfig) {
+	strcpy(BasicTime::_NTP_server_address, TimeConfig.NTP_server_address);
+	BasicTime::_NTP_server_port = TimeConfig.NTP_server_port;
+	BasicTime::_timezone = TimeConfig.timezone;
+	BasicTime::_summertime = TimeConfig.summertime;
+}
+
 void BasicConfig::setup() {
 	if (!(BasicFS::_fsStarted)) {
 		BASICFS_PRINTLN("mount 1");
@@ -94,6 +100,7 @@ void BasicConfig::setup() {
 	setOTAConfig(configFile.ota);
 	setServerHttpConfig(configFile.http);
 	setMQTTConfig(configFile.mqtt);
+	setTimeConfig(configFile.time);
 }
 void BasicConfig::saveConfig(ConfigData &config) {
 	_createConfig(config);

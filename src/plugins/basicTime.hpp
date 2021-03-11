@@ -27,11 +27,18 @@ class BasicTime {
 	static String timeString(time_t timeStamp);
 	static String dateTimeString(time_t timeStamp);
 
-	BasicTime();
+	BasicTime(const char *NTP_server_address, int NTP_server_port, int timezone, bool summertime);
+	~BasicTime();
 
   private:
+	static char _NTP_server_address[32];
+	static int _NTP_server_port;
+	static int _timezone;
+	static bool _summertime;
 	static time_t _requestNtpTime();
 	static void _NTPrequestCallback(AsyncUDPPacket &packet);
 	static bool _sendNTPpacket(IPAddress &address);
 	static void _NTPsyncInterval(const char *message);
+
+	friend class BasicConfig;
 };

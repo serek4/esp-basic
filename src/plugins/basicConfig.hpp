@@ -63,13 +63,6 @@ struct ConfigData {
 	Time time;
 };
 
-class ImportSetup {
-  public:
-	void timeSettings(const char *NTP_server_address, int NTP_server_port, int timezone, bool summertime);
-
-  private:
-};
-
 namespace configUserHandlers {
 typedef std::function<void(JsonObject &userConfig)> saveConfigHandler;
 typedef std::function<bool(JsonObject &userConfig)> loadConfigHandler;
@@ -86,6 +79,8 @@ class BasicConfig {
 	void setServerHttpConfig(ConfigData::HTTP &HTTPconfig);
 	void getMQTTConfig(ConfigData::MQTT &MQTTconfig);
 	void setMQTTConfig(ConfigData::MQTT &MQTTconfig);
+	void getTimeConfig(ConfigData::Time &TimeConfig);
+	void setTimeConfig(ConfigData::Time &TimeConfig);
 	void saveConfig(ConfigData &config);
 	void loadConfig(ConfigData &config);
 	void SetUserConfigSize(size_t size);

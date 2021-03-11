@@ -2,6 +2,10 @@
 
 AsyncUDP NTPudp;
 
+char BasicTime::_NTP_server_address[32];
+int BasicTime::_NTP_server_port;
+int BasicTime::_timezone;
+bool BasicTime::_summertime;
 bool _waitingForNTP = false;
 u_long _requestSendedAt;
 bool _gotNTPserverIP = false;
@@ -10,7 +14,13 @@ time_t NTPSyncInterval = 12 * SECS_PER_HOUR;     // timeSet sync interval
 time_t NTPReSyncInterval = 1 * SECS_PER_HOUR;    // timeNeedsSync sync interval
 time_t NTPnoSyncInterval = 5 * SECS_PER_MIN;     // timeNotSet sync interval
 
-BasicTime::BasicTime() {
+BasicTime::BasicTime(const char *NTP_server_address, int NTP_server_port, int timezone, bool summertime) {
+	strcpy(_NTP_server_address, NTP_server_address);
+	_NTP_server_port = NTP_server_port;
+	_timezone = timezone;
+	_summertime = summertime;
+}
+BasicTime::~BasicTime() {
 }
 
 void BasicTime::setup() {
@@ -62,7 +72,7 @@ void BasicTime::_NTPrequestCallback(AsyncUDPPacket &packet) {    // response pac
 // sync time response checker
 void BasicTime::handle() {
 	if (!_gotNTPserverIP && WiFi.isConnected()) {    // waiting for WiFi connection to get NTP server IP
-		_gotNTPserverIP = WiFi.hostByName(BasicConfig::configFile.time.NTP_server_address, _timeServerIP);
+		_gotNTPserverIP = WiFi.hostByName(_NTP_server_address, _timeServerIP);
 		if (timeStatus() != timeSet) {
 			_requestNtpTime();
 		}
@@ -125,8 +135,8 @@ void BasicTime::_NTPsyncInterval(const char *message) {
 String BasicTime::dateString(time_t timestamp) {
 	String date = "timeNotSet";
 	if (timeStatus() != timeNotSet) {
-		timestamp += BasicConfig::configFile.time.timezone * SECS_PER_HOUR;             // time zone +1h
-		if (BasicConfig::configFile.time.summertime) timestamp += 1 * SECS_PER_HOUR;    // summer time +1h
+		timestamp += _timezone * SECS_PER_HOUR;             // time zone +1h
+		if (_summertime) timestamp += 1 * SECS_PER_HOUR;    // summer time +1h
 		date = (String)(year(timestamp));
 		date += '-';
 		if (month(timestamp) < 10) date += '0';
@@ -141,8 +151,8 @@ String BasicTime::dateString(time_t timestamp) {
 String BasicTime::timeString(time_t timestamp) {
 	String time = "";
 	if (timeStatus() != timeNotSet) {
-		timestamp += BasicConfig::configFile.time.timezone * SECS_PER_HOUR;             // time zone +1h
-		if (BasicConfig::configFile.time.summertime) timestamp += 1 * SECS_PER_HOUR;    // summer time +1h
+		timestamp += _timezone * SECS_PER_HOUR;             // time zone +1h
+		if (_summertime) timestamp += 1 * SECS_PER_HOUR;    // summer time +1h
 	}
 	if (hour(timestamp) < 10) time += '0';
 	time += (String)hour(timestamp);

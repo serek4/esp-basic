@@ -52,7 +52,7 @@ BasicOTA basicOTA(OTA_HOSTNAME);
 BasicMQTT MQTT(MQTT_BROKER, MQTT_BROKER_PORT, MQTT_CLIENTID, MQTT_KEEPALIVE, MQTT_WILL_TOPIC, MQTT_WILL_MSG, MQTT_USER, MQTT_PASS);
 #endif
 #if TIME_PLUGIN
-BasicTime NTPclient;
+BasicTime NTPclient(NTP_SERVER_ADDRESS, NTP_SERVER_PORT, TIMEZONE, SUMMERTIME);
 #endif
 #if LOGGER_PLUGIN
 BasicLogs logger;
@@ -61,12 +61,7 @@ BasicLogs logger;
 class EspBasicSetup {
   public:
 	EspBasicSetup()
-	    : config(basicConfig) {
-#if TIME_PLUGIN
-		_import.timeSettings(NTP_SERVER_ADDRESS, NTP_SERVER_PORT, TIMEZONE, SUMMERTIME);
-#endif
-		_import.~ImportSetup();
-	};
+	    : config(basicConfig){};
 	BasicConfig &config;
 	void begin() {
 #if FS_PLUGIN    // mount filesystem first
@@ -89,13 +84,10 @@ class EspBasicSetup {
 #if WIFI_PLUGIN    // after config file
 		WIFI.setup(BasicWiFi::_staticIP);
 #endif
-#if TIME_PLUGIN    // config file and after WiFi
+#if TIME_PLUGIN    // after config file and after WiFi
 		NTPclient.setup();
 #endif
 	}
-
-  private:
-	ImportSetup _import;
 };
 
 #endif

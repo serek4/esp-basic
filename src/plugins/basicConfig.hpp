@@ -65,8 +65,6 @@ struct ConfigData {
 
 class ImportSetup {
   public:
-	void WIFIsettings(const char *ssid, const char *pass, int mode, const char *IP, const char *subnet, const char *gateway, const char *dns1, const char *dns2);
-	void WIFIsettings(const char *ssid, const char *pass, int mode);
 	void OTAsettings(const char *hostname);
 	void MQTTsettings(const char *broker_address, int broker_port, const char *clientID, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass);
 	void ServerHttpSettings(const char *user, const char *pass);
@@ -83,6 +81,8 @@ typedef std::function<bool(JsonObject &userConfig)> loadConfigHandler;
 class BasicConfig {
   public:
 	void setup();
+	void getWiFiConfig(ConfigData::WiFi &WiFiConfig);
+	void setWiFiConfig(ConfigData::WiFi &WiFiConfig);
 	void saveConfig(ConfigData &config);
 	void loadConfig(ConfigData &config);
 	void SetUserConfigSize(size_t size);

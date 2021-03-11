@@ -3,21 +3,6 @@
 
 ConfigData _defaultConfig;
 
-void ImportSetup::WIFIsettings(const char *ssid, const char *pass, int mode, const char *IP, const char *subnet, const char *gateway, const char *dns1, const char *dns2) {
-	strcpy(_defaultConfig.wifi.ssid, ssid);
-	strcpy(_defaultConfig.wifi.pass, pass);
-	_defaultConfig.wifi.mode = mode;
-	(_defaultConfig.wifi.IP).fromString(IP);
-	(_defaultConfig.wifi.subnet).fromString(subnet);
-	(_defaultConfig.wifi.gateway).fromString(gateway);
-	(_defaultConfig.wifi.dns1).fromString(dns1);
-	(_defaultConfig.wifi.dns2).fromString(dns2);
-}
-void ImportSetup::WIFIsettings(const char *ssid, const char *pass, int mode) {
-	strcpy(_defaultConfig.wifi.ssid, ssid);
-	strcpy(_defaultConfig.wifi.pass, pass);
-	_defaultConfig.wifi.mode = mode;
-}
 void ImportSetup::OTAsettings(const char *hostname) {
 	strcpy(_defaultConfig.ota.hostname, hostname);
 }
@@ -44,10 +29,31 @@ void ImportSetup::timeSettings(const char *NTP_server_address, int NTP_server_po
 
 
 BasicConfig::BasicConfig() {
+	getWiFiConfig(_defaultConfig.wifi);
 }
 BasicConfig::~BasicConfig() {
 }
 
+void BasicConfig::getWiFiConfig(ConfigData::WiFi &WiFiConfig) {
+	strcpy(WiFiConfig.ssid, BasicWiFi::_ssid);
+	strcpy(WiFiConfig.pass, BasicWiFi::_pass);
+	WiFiConfig.mode = static_cast<int>(BasicWiFi::_mode);
+	WiFiConfig.IP = BasicWiFi::_IP;
+	WiFiConfig.subnet = BasicWiFi::_subnet;
+	WiFiConfig.gateway = BasicWiFi::_gateway;
+	WiFiConfig.dns1 = BasicWiFi::_dns1;
+	WiFiConfig.dns2 = BasicWiFi::_dns2;
+}
+void BasicConfig::setWiFiConfig(ConfigData::WiFi &WiFiConfig) {
+	strcpy(BasicWiFi::_ssid, WiFiConfig.ssid);
+	strcpy(BasicWiFi::_pass, WiFiConfig.pass);
+	BasicWiFi::_mode = static_cast<WiFiMode_t>(WiFiConfig.mode);
+	BasicWiFi::_IP = WiFiConfig.IP;
+	BasicWiFi::_subnet = WiFiConfig.subnet;
+	BasicWiFi::_gateway = WiFiConfig.gateway;
+	BasicWiFi::_dns1 = WiFiConfig.dns1;
+	BasicWiFi::_dns2 = WiFiConfig.dns2;
+}
 void BasicConfig::setup() {
 	if (!(BasicFS::_fsStarted)) {
 		BASICFS_PRINTLN("mount 1");
@@ -64,6 +70,7 @@ void BasicConfig::setup() {
 		}
 	}
 	_defaultConfig.~ConfigData();
+	setWiFiConfig(configFile.wifi);
 }
 void BasicConfig::saveConfig(ConfigData &config) {
 	_createConfig(config);

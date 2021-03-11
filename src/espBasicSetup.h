@@ -34,7 +34,11 @@ ConfigData BasicConfig::configFile;
 ConfigData &config = BasicConfig::configFile;    // only for cleaner sketch code
 #endif
 #if SERVERHTTP_PLUGIN
+#if defined HTTP_USER && defined HTTP_PASS
+BasicServerHttp basicServerHttp(HTTP_USER, HTTP_PASS);
+#else
 BasicServerHttp basicServerHttp;
+#endif
 AsyncWebServer &httpServer = _serverHttp;    // reference to original Web server
 #endif
 #if OTA_PLUGIN
@@ -60,9 +64,6 @@ class EspBasicSetup {
 	    : config(basicConfig) {
 #if MQTT_PLUGIN
 		_import.MQTTsettings(MQTT_BROKER, MQTT_BROKER_PORT, MQTT_CLIENTID, MQTT_KEEPALIVE, MQTT_WILL_TOPIC, MQTT_WILL_MSG, MQTT_USER, MQTT_PASS);
-#endif
-#if SERVERHTTP_PLUGIN
-		_import.ServerHttpSettings(HTTP_USER, HTTP_PASS);
 #endif
 #if TIME_PLUGIN
 		_import.timeSettings(NTP_SERVER_ADDRESS, NTP_SERVER_PORT, TIMEZONE, SUMMERTIME);

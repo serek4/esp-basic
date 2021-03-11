@@ -3,10 +3,6 @@
 
 ConfigData _defaultConfig;
 
-void ImportSetup::ServerHttpSettings(const char *user, const char *pass) {
-	strcpy(_defaultConfig.http.user, user);
-	strcpy(_defaultConfig.http.pass, pass);
-}
 void ImportSetup::MQTTsettings(const char *broker_address, int broker_port, const char *clientID, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass) {
 	strcpy(_defaultConfig.mqtt.broker, broker_address);
 	_defaultConfig.mqtt.broker_port = broker_port;
@@ -28,6 +24,7 @@ void ImportSetup::timeSettings(const char *NTP_server_address, int NTP_server_po
 BasicConfig::BasicConfig() {
 	getWiFiConfig(_defaultConfig.wifi);
 	getOTAConfig(_defaultConfig.ota);
+	getServerHttpConfig(_defaultConfig.http);
 }
 BasicConfig::~BasicConfig() {
 }
@@ -58,6 +55,14 @@ void BasicConfig::getOTAConfig(ConfigData::OTA &OTAconfig) {
 void BasicConfig::setOTAConfig(ConfigData::OTA &OTAconfig) {
 	strcpy(BasicOTA::_hostname, OTAconfig.hostname);
 }
+void BasicConfig::getServerHttpConfig(ConfigData::HTTP &HTTPconfig) {
+	strcpy(HTTPconfig.user, BasicServerHttp::_user);
+	strcpy(HTTPconfig.pass, BasicServerHttp::_pass);
+}
+void BasicConfig::setServerHttpConfig(ConfigData::HTTP &HTTPconfig) {
+	strcpy(BasicServerHttp::_user, HTTPconfig.user);
+	strcpy(BasicServerHttp::_pass, HTTPconfig.pass);
+}
 void BasicConfig::setup() {
 	if (!(BasicFS::_fsStarted)) {
 		BASICFS_PRINTLN("mount 1");
@@ -76,6 +81,7 @@ void BasicConfig::setup() {
 	_defaultConfig.~ConfigData();
 	setWiFiConfig(configFile.wifi);
 	setOTAConfig(configFile.ota);
+	setServerHttpConfig(configFile.http);
 }
 void BasicConfig::saveConfig(ConfigData &config) {
 	_createConfig(config);

@@ -3,9 +3,6 @@
 
 ConfigData _defaultConfig;
 
-void ImportSetup::OTAsettings(const char *hostname) {
-	strcpy(_defaultConfig.ota.hostname, hostname);
-}
 void ImportSetup::ServerHttpSettings(const char *user, const char *pass) {
 	strcpy(_defaultConfig.http.user, user);
 	strcpy(_defaultConfig.http.pass, pass);
@@ -30,6 +27,7 @@ void ImportSetup::timeSettings(const char *NTP_server_address, int NTP_server_po
 
 BasicConfig::BasicConfig() {
 	getWiFiConfig(_defaultConfig.wifi);
+	getOTAConfig(_defaultConfig.ota);
 }
 BasicConfig::~BasicConfig() {
 }
@@ -54,6 +52,12 @@ void BasicConfig::setWiFiConfig(ConfigData::WiFi &WiFiConfig) {
 	BasicWiFi::_dns1 = WiFiConfig.dns1;
 	BasicWiFi::_dns2 = WiFiConfig.dns2;
 }
+void BasicConfig::getOTAConfig(ConfigData::OTA &OTAconfig) {
+	strcpy(OTAconfig.hostname, BasicOTA::_hostname);
+}
+void BasicConfig::setOTAConfig(ConfigData::OTA &OTAconfig) {
+	strcpy(BasicOTA::_hostname, OTAconfig.hostname);
+}
 void BasicConfig::setup() {
 	if (!(BasicFS::_fsStarted)) {
 		BASICFS_PRINTLN("mount 1");
@@ -71,6 +75,7 @@ void BasicConfig::setup() {
 	}
 	_defaultConfig.~ConfigData();
 	setWiFiConfig(configFile.wifi);
+	setOTAConfig(configFile.ota);
 }
 void BasicConfig::saveConfig(ConfigData &config) {
 	_createConfig(config);

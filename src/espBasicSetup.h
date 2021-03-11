@@ -38,7 +38,11 @@ BasicServerHttp basicServerHttp;
 AsyncWebServer &httpServer = _serverHttp;    // reference to original Web server
 #endif
 #if OTA_PLUGIN
+#ifndef OTA_HOSTNAME
 BasicOTA basicOTA;
+#else
+BasicOTA basicOTA(OTA_HOSTNAME);
+#endif
 #endif
 #if MQTT_PLUGIN
 BasicMQTT MQTT;
@@ -54,9 +58,6 @@ class EspBasicSetup {
   public:
 	EspBasicSetup()
 	    : config(basicConfig) {
-#if OTA_PLUGIN
-		_import.OTAsettings(OTA_HOST);
-#endif
 #if MQTT_PLUGIN
 		_import.MQTTsettings(MQTT_BROKER, MQTT_BROKER_PORT, MQTT_CLIENTID, MQTT_KEEPALIVE, MQTT_WILL_TOPIC, MQTT_WILL_MSG, MQTT_USER, MQTT_PASS);
 #endif

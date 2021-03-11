@@ -3,16 +3,6 @@
 
 ConfigData _defaultConfig;
 
-void ImportSetup::MQTTsettings(const char *broker_address, int broker_port, const char *clientID, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass) {
-	strcpy(_defaultConfig.mqtt.broker, broker_address);
-	_defaultConfig.mqtt.broker_port = broker_port;
-	strcpy(_defaultConfig.mqtt.client_ID, clientID);
-	_defaultConfig.mqtt.keepalive = keepAlive;
-	strcpy(_defaultConfig.mqtt.will_topic, willTopic);
-	strcpy(_defaultConfig.mqtt.will_msg, willMsg);
-	strcpy(_defaultConfig.mqtt.user, user);
-	strcpy(_defaultConfig.mqtt.pass, pass);
-}
 void ImportSetup::timeSettings(const char *NTP_server_address, int NTP_server_port, int timezone, bool summertime) {
 	strcpy(_defaultConfig.time.NTP_server_address, NTP_server_address);
 	_defaultConfig.time.NTP_server_port = NTP_server_port;
@@ -25,6 +15,7 @@ BasicConfig::BasicConfig() {
 	getWiFiConfig(_defaultConfig.wifi);
 	getOTAConfig(_defaultConfig.ota);
 	getServerHttpConfig(_defaultConfig.http);
+	getMQTTConfig(_defaultConfig.mqtt);
 }
 BasicConfig::~BasicConfig() {
 }
@@ -63,6 +54,26 @@ void BasicConfig::setServerHttpConfig(ConfigData::HTTP &HTTPconfig) {
 	strcpy(BasicServerHttp::_user, HTTPconfig.user);
 	strcpy(BasicServerHttp::_pass, HTTPconfig.pass);
 }
+void BasicConfig::getMQTTConfig(ConfigData::MQTT &MQTTconfig) {
+	strcpy(MQTTconfig.broker, BasicMQTT::_broker_address);
+	MQTTconfig.broker_port = BasicMQTT::_broker_port;
+	strcpy(MQTTconfig.client_ID, BasicMQTT::_client_ID);
+	MQTTconfig.keepalive = BasicMQTT::_keepalive;
+	strcpy(MQTTconfig.will_topic, BasicMQTT::_will_topic);
+	strcpy(MQTTconfig.will_msg, BasicMQTT::_will_msg);
+	strcpy(MQTTconfig.user, BasicMQTT::_user);
+	strcpy(MQTTconfig.pass, BasicMQTT::_pass);
+}
+void BasicConfig::setMQTTConfig(ConfigData::MQTT &MQTTconfig) {
+	strcpy(BasicMQTT::_broker_address, MQTTconfig.broker);
+	BasicMQTT::_broker_port = MQTTconfig.broker_port;
+	strcpy(BasicMQTT::_client_ID, MQTTconfig.client_ID);
+	BasicMQTT::_keepalive = MQTTconfig.keepalive;
+	strcpy(BasicMQTT::_will_topic, MQTTconfig.will_topic);
+	strcpy(BasicMQTT::_will_msg, MQTTconfig.will_msg);
+	strcpy(BasicMQTT::_user, MQTTconfig.user);
+	strcpy(BasicMQTT::_pass, MQTTconfig.pass);
+}
 void BasicConfig::setup() {
 	if (!(BasicFS::_fsStarted)) {
 		BASICFS_PRINTLN("mount 1");
@@ -82,6 +93,7 @@ void BasicConfig::setup() {
 	setWiFiConfig(configFile.wifi);
 	setOTAConfig(configFile.ota);
 	setServerHttpConfig(configFile.http);
+	setMQTTConfig(configFile.mqtt);
 }
 void BasicConfig::saveConfig(ConfigData &config) {
 	_createConfig(config);

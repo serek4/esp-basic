@@ -65,7 +65,6 @@ struct ConfigData {
 
 class ImportSetup {
   public:
-	void MQTTsettings(const char *broker_address, int broker_port, const char *clientID, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass);
 	void timeSettings(const char *NTP_server_address, int NTP_server_port, int timezone, bool summertime);
 
   private:
@@ -85,6 +84,8 @@ class BasicConfig {
 	void setOTAConfig(ConfigData::OTA &OTAconfig);
 	void getServerHttpConfig(ConfigData::HTTP &HTTPconfig);
 	void setServerHttpConfig(ConfigData::HTTP &HTTPconfig);
+	void getMQTTConfig(ConfigData::MQTT &MQTTconfig);
+	void setMQTTConfig(ConfigData::MQTT &MQTTconfig);
 	void saveConfig(ConfigData &config);
 	void loadConfig(ConfigData &config);
 	void SetUserConfigSize(size_t size);

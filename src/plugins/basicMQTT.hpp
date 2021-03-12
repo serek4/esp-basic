@@ -26,7 +26,7 @@ typedef std::function<void(int8_t reason)> onMQTTdisconnectHandler;
 class BasicMQTT {
   public:
 	void setup();
-	void waitForMQTT(int waitTime = 10);
+	bool waitForMQTT(int waitTime = 10);
 	void onConnect(const MQTTuserHandlers::onMQTTconnectHandler &handler);
 	void onMessage(const MQTTuserHandlers::onMQTTmesageHandler &handler);
 	void onDisconnect(const MQTTuserHandlers::onMQTTdisconnectHandler &handler);
@@ -41,9 +41,19 @@ class BasicMQTT {
 	void subscribe(const char *topic, uint8_t qos = 0);
 	bool connected();
 
-	BasicMQTT();
+	BasicMQTT(const char *broker_address);
+	BasicMQTT(const char *broker_address, int broker_port, const char *clientID, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass);
+	~BasicMQTT();
 
   private:
+	static char _broker_address[32];
+	static int _broker_port;
+	static char _client_ID[32];
+	static int _keepalive;
+	static char _will_topic[64];    // optional
+	static char _will_msg[16];      // optional
+	static char _user[16];          // optional
+	static char _pass[16];          // optional
 	bool _connected;
 	const char *_MQTTerror[13] = {"TCP_DISCONNECTED", "MQTT_SERVER_UNAVAILABLE", "UNRECOVERABLE_CONNECT_FAIL",
 	                              "TLS_BAD_FINGERPRINT", "SUBSCRIBE_FAIL", "INBOUND_QOS_ACK_FAIL",
@@ -55,6 +65,8 @@ class BasicMQTT {
 	void _onConnect();
 	void _onMessage(const char *_topic, const char *_payload);
 	void _onDisconnect(int8_t reason);
+
+	friend class BasicConfig;
 };
 
 extern PangolinMQTT _clientMQTT;

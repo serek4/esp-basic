@@ -4,8 +4,35 @@
 PangolinMQTT _clientMQTT;
 Ticker _mqttReconnectTimer;
 
-BasicMQTT::BasicMQTT()
+char BasicMQTT::_broker_address[32];
+int BasicMQTT::_broker_port;
+char BasicMQTT::_client_ID[32];
+int BasicMQTT::_keepalive;
+char BasicMQTT::_will_topic[64];    // optional
+char BasicMQTT::_will_msg[16];      // optional
+char BasicMQTT::_user[16];          // optional
+char BasicMQTT::_pass[16];          // optional
+
+BasicMQTT::BasicMQTT(const char *broker_address)
     : _connected(false) {
+	strcpy(_broker_address, broker_address);
+	_broker_port = 1883;
+	sprintf(_client_ID, "esp8266-%06x", ESP.getChipId());
+	_keepalive = 15;
+	//TODO default will and credentials
+}
+BasicMQTT::BasicMQTT(const char *broker_address, int broker_port, const char *clientID, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass)
+    : _connected(false) {
+	strcpy(_broker_address, broker_address);
+	_broker_port = broker_port;
+	strcpy(_client_ID, clientID);
+	_keepalive = keepAlive;
+	strcpy(_will_topic, willTopic);
+	strcpy(_will_msg, willMsg);
+	strcpy(_user, user);
+	strcpy(_pass, pass);
+}
+BasicMQTT::~BasicMQTT() {
 }
 
 void BasicMQTT::onConnect(const MQTTuserHandlers::onMQTTconnectHandler &handler) {
@@ -53,9 +80,9 @@ bool BasicMQTT::connected() {
 }
 
 void BasicMQTT::_onConnect() {
-	BASICMQTT_PRINTLN((String) "MQTT connected!\n " + _clientMQTT.getClientId() + "@" + BasicConfig::configFile.mqtt.broker);
+	BASICMQTT_PRINTLN((String) "MQTT connected!\n " + _clientMQTT.getClientId() + "@" + _broker_address);
 	if (BasicSetup::_inclLogger) {
-		BasicLogs::saveLog(now(), ll_debug, (String) "MQTT connected [" + _clientMQTT.getClientId() + "@" + BasicConfig::configFile.mqtt.broker + "]");
+		BasicLogs::saveLog(now(), ll_debug, (String) "MQTT connected [" + _clientMQTT.getClientId() + "@" + _broker_address + "]");
 	}
 	_connected = true;
 	_clientMQTT.publish(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), "on", strlen("on"), 0, true);
@@ -64,8 +91,8 @@ void BasicMQTT::_onConnect() {
 	for (const auto &handler : _onConnectHandler) handler();
 }
 void BasicMQTT::_onMessage(const char *_topic, const char *_payload) {
-	if (strcmp(_topic, BasicConfig::configFile.mqtt.will_topic) == 0) {
-		if (strcmp(_payload, BasicConfig::configFile.mqtt.will_msg) == 0) {
+	if (strcmp(_topic, _will_topic) == 0) {
+		if (strcmp(_payload, _will_msg) == 0) {
 			_clientMQTT.publish(((String) "ESP/" + _clientMQTT.getClientId() + "/status").c_str(), "on", strlen("on"), 0, true);
 		}
 	}
@@ -80,16 +107,15 @@ void BasicMQTT::_onDisconnect(int8_t reason) {
 		    "MQTT disconnected [" + String(_MQTTerror[(reason < 0) ? 12 : reason]) + (reason < 0 ? "(" + String(reason, 10) + ")]" : "]"));
 	}
 	_connected = false;
-	_mqttReconnectTimer.once(BasicConfig::configFile.mqtt.keepalive * PANGO_POLL_RATE, []() { _clientMQTT.connect(); });
+	_mqttReconnectTimer.once(_keepalive * PANGO_POLL_RATE, []() { _clientMQTT.connect(); });
 	for (const auto &handler : _onDisconnectHandler) handler(reason);
 }
 void BasicMQTT::setup() {
-	//TODO sprintf(BasicConfig::configFile.mqtt.client_ID, "esp8266-%06x", ESP.getChipId());
-	_clientMQTT.setClientId(BasicConfig::configFile.mqtt.client_ID);
-	_clientMQTT.setKeepAlive(BasicConfig::configFile.mqtt.keepalive);
-	_clientMQTT.setWill(BasicConfig::configFile.mqtt.will_topic, 2, true, BasicConfig::configFile.mqtt.will_msg);
-	_clientMQTT.setCredentials(BasicConfig::configFile.mqtt.user, BasicConfig::configFile.mqtt.pass);
-	_clientMQTT.setServer(BasicConfig::configFile.mqtt.broker, BasicConfig::configFile.mqtt.broker_port);
+	_clientMQTT.setClientId(_client_ID);
+	_clientMQTT.setKeepAlive(_keepalive);
+	_clientMQTT.setWill(_will_topic, 2, true, _will_msg);
+	_clientMQTT.setCredentials(_user, _pass);
+	_clientMQTT.setServer(_broker_address, _broker_port);
 	_clientMQTT.onConnect([&](bool sessionPresent) {
 		_onConnect();
 	});
@@ -103,7 +129,7 @@ void BasicMQTT::setup() {
 		_onDisconnect(reason);
 	});
 }
-void BasicMQTT::waitForMQTT(int waitTime) {
+bool BasicMQTT::waitForMQTT(int waitTime) {
 	u_long startWaitingAt = millis();
 	BASICMQTT_PRINT("Connecting MQTT");
 	while (!_connected) {
@@ -118,7 +144,9 @@ void BasicMQTT::waitForMQTT(int waitTime) {
 		}
 		if (millis() - startWaitingAt > waitTime * 1000) {
 			BASICMQTT_PRINTLN("Can't connect to MQTT!");
+			return false;
 			break;
 		}
 	}
+	return true;
 }

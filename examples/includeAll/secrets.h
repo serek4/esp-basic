@@ -28,7 +28,7 @@
 #endif
 // OTA settings
 #if OTA_PLUGIN
-#define OTA_HOST "esp8266-wemos"    // optional
+#define OTA_HOSTNAME "esp8266-wemos"    // optional
 #endif
 // MQTT settings
 #if MQTT_PLUGIN

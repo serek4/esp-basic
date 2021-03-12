@@ -31,11 +31,20 @@ class BasicWiFi {
 	void onGotIP(const WiFiUserHandlers::onWiFiGotIPhandler &handler);
 	void onDisconnected(const WiFiUserHandlers::onWiFiDisconnectHandler &handler);
 
-	BasicWiFi();
+	BasicWiFi(const char *ssid, const char *pass, int mode);
+	BasicWiFi(const char *ssid, const char *pass, int mode, const char *IP, const char *subnet, const char *gateway, const char *dns1, const char *dns2);
 	~BasicWiFi();
 
   private:
+	static char _ssid[32];
+	static char _pass[64];
+	static WiFiMode_t _mode;
 	static bool _staticIP;
+	static IPAddress _IP;         // optional
+	static IPAddress _subnet;     // optional
+	static IPAddress _gateway;    // optional
+	static IPAddress _dns1;       // optional
+	static IPAddress _dns2;       // optional
 	const char *_wifiStatus[7] = {"IDLE_STATUS", "NO_SSID_AVAIL", "SCAN_COMPLETED", "CONNECTED", "CONNECT_FAILED", "CONNECTION_LOST", "DISCONNECTED"};
 	std::vector<WiFiUserHandlers::onWiFiConnectHandler> _onConnectHandler;
 	std::vector<WiFiUserHandlers::onWiFiGotIPhandler> _onGotIPhandler;
@@ -45,7 +54,6 @@ class BasicWiFi {
 	void _onGotIP(const WiFiEventStationModeGotIP &evt);
 	void _onDisconnected(const WiFiEventStationModeDisconnected &evt);
 
-	friend class ImportSetup;
 	friend class BasicConfig;
 	friend class EspBasicSetup;
 };

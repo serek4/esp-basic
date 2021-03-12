@@ -1,13 +1,18 @@
 #include "basicOTA.hpp"
 
+char BasicOTA::_hostname[32];
 
-BasicOTA::BasicOTA()
-    : _inclOTA(true) {
+BasicOTA::BasicOTA(const char *hostname) {
+	strcpy(_hostname, hostname);
+}
+BasicOTA::BasicOTA() {
+	sprintf(_hostname, "esp8266-%06x", ESP.getChipId());
+}
+BasicOTA::~BasicOTA() {
 }
 
 void BasicOTA::setup() {
-	// TODO sprintf(BasicConfig::configFile.ota.hostname, "esp8266-%06x", ESP.getChipId());
-	ArduinoOTA.setHostname(BasicConfig::configFile.ota.hostname);
+	ArduinoOTA.setHostname(_hostname);
 	ArduinoOTA.onStart([]() {
 		String type;
 		if (ArduinoOTA.getCommand() == U_FLASH) {
@@ -46,5 +51,3 @@ void BasicOTA::setup() {
 		}
 	});
 }
-
-BasicOTA _basicOTA;

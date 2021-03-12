@@ -21,11 +21,11 @@ class BasicOTA {
 	void setup();
 
 	BasicOTA();
+	BasicOTA(const char *hostname);
+	~BasicOTA();
 
   private:
-	bool _inclOTA;
+	static char _hostname[32];
 
-	friend class BasicSetup;
+	friend class BasicConfig;
 };
-
-extern BasicOTA _basicOTA;

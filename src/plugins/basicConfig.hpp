@@ -63,18 +63,6 @@ struct ConfigData {
 	Time time;
 };
 
-class ImportSetup {
-  public:
-	void WIFIsettings(const char *ssid, const char *pass, int mode, const char *IP, const char *subnet, const char *gateway, const char *dns1, const char *dns2);
-	void WIFIsettings(const char *ssid, const char *pass, int mode);
-	void OTAsettings(const char *hostname);
-	void MQTTsettings(const char *broker_address, int broker_port, const char *clientID, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass);
-	void ServerHttpSettings(const char *user, const char *pass);
-	void timeSettings(const char *NTP_server_address, int NTP_server_port, int timezone, bool summertime);
-
-  private:
-};
-
 namespace configUserHandlers {
 typedef std::function<void(JsonObject &userConfig)> saveConfigHandler;
 typedef std::function<bool(JsonObject &userConfig)> loadConfigHandler;
@@ -83,6 +71,16 @@ typedef std::function<bool(JsonObject &userConfig)> loadConfigHandler;
 class BasicConfig {
   public:
 	void setup();
+	void getWiFiConfig(ConfigData::WiFi &WiFiConfig);
+	void setWiFiConfig(ConfigData::WiFi &WiFiConfig);
+	void getOTAConfig(ConfigData::OTA &OTAconfig);
+	void setOTAConfig(ConfigData::OTA &OTAconfig);
+	void getServerHttpConfig(ConfigData::HTTP &HTTPconfig);
+	void setServerHttpConfig(ConfigData::HTTP &HTTPconfig);
+	void getMQTTConfig(ConfigData::MQTT &MQTTconfig);
+	void setMQTTConfig(ConfigData::MQTT &MQTTconfig);
+	void getTimeConfig(ConfigData::Time &TimeConfig);
+	void setTimeConfig(ConfigData::Time &TimeConfig);
 	void saveConfig(ConfigData &config);
 	void loadConfig(ConfigData &config);
 	void SetUserConfigSize(size_t size);

@@ -2,8 +2,18 @@
 
 AsyncWebServer _serverHttp(80);
 
-BasicServerHttp::BasicServerHttp()
-    : _inclServerHttp(true) {
+char BasicServerHttp::_user[16];
+char BasicServerHttp::_pass[16];
+
+BasicServerHttp::BasicServerHttp() {
+	strcpy(_user, "admin");
+	strcpy(_pass, "admin");
+}
+BasicServerHttp::BasicServerHttp(const char *user, const char *pass) {
+	strcpy(_user, user);
+	strcpy(_pass, pass);
+}
+BasicServerHttp::~BasicServerHttp() {
 }
 
 void BasicServerHttp::setup() {
@@ -12,7 +22,7 @@ void BasicServerHttp::setup() {
 		BasicFS::_fsStarted = BasicFS::setup();
 	}
 	if (BasicFS::_fsStarted) {
-		_serverHttp.addHandler(new SPIFFSEditor(BasicConfig::configFile.http.user, BasicConfig::configFile.http.pass, LittleFS));
+		_serverHttp.addHandler(new SPIFFSEditor(_user, _pass, LittleFS));
 		_serverHttp.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
 			request->redirect("/edit");
 		});
@@ -34,5 +44,3 @@ void BasicServerHttp::setup() {
 		});
 	}
 }
-
-BasicServerHttp _basicServerHttp;

@@ -16,5 +16,6 @@ class BasicFS {
 
 	friend class BasicConfig;
 	friend class BasicServerHttp;
+	friend class BasicLogs;
 	friend class EspBasicSetup;
 };

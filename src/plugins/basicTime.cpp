@@ -6,13 +6,13 @@ char BasicTime::_NTP_server_address[32];
 int BasicTime::_NTP_server_port;
 int BasicTime::_timezone;
 bool BasicTime::_summertime;
-bool _waitingForNTP = false;
-u_long _requestSendedAt;
-bool _gotNTPserverIP = false;
-IPAddress _timeServerIP;                         // NTP server address
-time_t NTPSyncInterval = 12 * SECS_PER_HOUR;     // timeSet sync interval
-time_t NTPReSyncInterval = 1 * SECS_PER_HOUR;    // timeNeedsSync sync interval
-time_t NTPnoSyncInterval = 5 * SECS_PER_MIN;     // timeNotSet sync interval
+bool BasicTime::_waitingForNTP = false;
+u_long BasicTime::_requestSendedAt;
+bool BasicTime::_gotNTPserverIP = false;
+IPAddress BasicTime::_timeServerIP;                          // NTP server address
+time_t BasicTime::_NTPSyncInterval = 12 * SECS_PER_HOUR;     // timeSet sync interval
+time_t BasicTime::_NTPReSyncInterval = 1 * SECS_PER_HOUR;    // timeNeedsSync sync interval
+time_t BasicTime::_NTPnoSyncInterval = 5 * SECS_PER_MIN;     // timeNotSet sync interval
 
 BasicTime::BasicTime(const char *NTP_server_address, int NTP_server_port, int timezone, bool summertime) {
 	strcpy(_NTP_server_address, NTP_server_address);
@@ -24,10 +24,10 @@ BasicTime::~BasicTime() {
 }
 
 void BasicTime::setup() {
-	setSyncInterval(NTPReSyncInterval);
+	setSyncInterval(_NTPReSyncInterval);
 	setSyncProvider(_requestNtpTime);
 }
-void BasicTime::waitForNTP(int waitTime) {
+bool BasicTime::waitForNTP(int waitTime) {
 	u_long startWaitingAt = millis();
 	BASICTIME_PRINT("Waiting for NTP connection");
 	while (timeStatus() != timeSet) {
@@ -43,9 +43,11 @@ void BasicTime::waitForNTP(int waitTime) {
 		}
 		if (millis() - startWaitingAt > waitTime * 1000) {
 			BASICTIME_PRINTLN("Can't connect to NTP server!");
+			return false;
 			break;
 		}
 	}
+	return true;
 }
 //request time from NTP server
 time_t BasicTime::_requestNtpTime() {
@@ -97,7 +99,7 @@ bool BasicTime::_sendNTPpacket(IPAddress &address) {    // send an NTP request t
 		packetBuffer[14] = 49;
 		packetBuffer[15] = 52;
 		NTPudp.write(packetBuffer, NTP_PACKET_SIZE);
-		setSyncInterval(NTPReSyncInterval);    // set short sync interval when waiting for server response
+		setSyncInterval(_NTPReSyncInterval);    // set short sync interval when waiting for server response
 		_requestSendedAt = millis();
 		_waitingForNTP = true;
 		return true;
@@ -110,16 +112,16 @@ void BasicTime::_NTPsyncInterval(const char *message) {
 	String logMessage = message;
 	switch (timeStatus()) {
 		case timeNotSet:
-			setSyncInterval(NTPnoSyncInterval);    // set very short sync interval if time was never synced
-			logMessage += (String)(NTPnoSyncInterval / SECS_PER_MIN) + "m";
+			setSyncInterval(_NTPnoSyncInterval);    // set very short sync interval if time was never synced
+			logMessage += (String)(_NTPnoSyncInterval / SECS_PER_MIN) + "m";
 			break;
 		case timeNeedsSync:
-			setSyncInterval(NTPReSyncInterval);    // set short sync interval if time was set at least once
-			logMessage += (String)(NTPReSyncInterval / SECS_PER_HOUR) + "h";
+			setSyncInterval(_NTPReSyncInterval);    // set short sync interval if time was set at least once
+			logMessage += (String)(_NTPReSyncInterval / SECS_PER_HOUR) + "h";
 			break;
 		case timeSet:
-			setSyncInterval(NTPSyncInterval);    // set long sync interval on successful sync
-			logMessage += (String)(NTPSyncInterval / SECS_PER_HOUR) + "h";
+			setSyncInterval(_NTPSyncInterval);    // set long sync interval on successful sync
+			logMessage += (String)(_NTPSyncInterval / SECS_PER_HOUR) + "h";
 			break;
 
 		default:

@@ -21,7 +21,7 @@
 class BasicTime {
   public:
 	void setup();
-	void waitForNTP(int waitTime = 10);
+	bool waitForNTP(int waitTime = 10);
 	void handle();
 	static String dateString(time_t timeStamp);
 	static String timeString(time_t timeStamp);
@@ -35,6 +35,13 @@ class BasicTime {
 	static int _NTP_server_port;
 	static int _timezone;
 	static bool _summertime;
+	static bool _waitingForNTP;
+	static u_long _requestSendedAt;
+	static bool _gotNTPserverIP;
+	static IPAddress _timeServerIP;      // NTP server address
+	static time_t _NTPSyncInterval;      // timeSet sync interval
+	static time_t _NTPReSyncInterval;    // timeNeedsSync sync interval
+	static time_t _NTPnoSyncInterval;    // timeNotSet sync interval
 	static time_t _requestNtpTime();
 	static void _NTPrequestCallback(AsyncUDPPacket &packet);
 	static bool _sendNTPpacket(IPAddress &address);

@@ -71,16 +71,6 @@ typedef std::function<bool(JsonObject &userConfig)> loadConfigHandler;
 class BasicConfig {
   public:
 	void setup();
-	void getWiFiConfig(ConfigData::WiFi &WiFiConfig);
-	void setWiFiConfig(ConfigData::WiFi &WiFiConfig);
-	void getOTAConfig(ConfigData::OTA &OTAconfig);
-	void setOTAConfig(ConfigData::OTA &OTAconfig);
-	void getServerHttpConfig(ConfigData::HTTP &HTTPconfig);
-	void setServerHttpConfig(ConfigData::HTTP &HTTPconfig);
-	void getMQTTConfig(ConfigData::MQTT &MQTTconfig);
-	void setMQTTConfig(ConfigData::MQTT &MQTTconfig);
-	void getTimeConfig(ConfigData::Time &TimeConfig);
-	void setTimeConfig(ConfigData::Time &TimeConfig);
 	void saveConfig(ConfigData &config);
 	void loadConfig(ConfigData &config);
 	void SetUserConfigSize(size_t size);
@@ -102,6 +92,18 @@ class BasicConfig {
 	size_t _userConfigSize = 0;
 	void _saveUserConfig(JsonObject &userConfig);
 	bool _loadUserConfig(JsonObject &userConfig);
+	void _getWiFiConfig(ConfigData::WiFi &WiFiConfig);
+	void _setWiFiConfig(ConfigData::WiFi &WiFiConfig);
+	void _getOTAConfig(ConfigData::OTA &OTAconfig);
+	void _setOTAConfig(ConfigData::OTA &OTAconfig);
+	void _getServerHttpConfig(ConfigData::HTTP &HTTPconfig);
+	void _setServerHttpConfig(ConfigData::HTTP &HTTPconfig);
+	void _getMQTTConfig(ConfigData::MQTT &MQTTconfig);
+	void _setMQTTConfig(ConfigData::MQTT &MQTTconfig);
+	void _getTimeConfig(ConfigData::Time &TimeConfig);
+	void _setTimeConfig(ConfigData::Time &TimeConfig);
+	void _setPluginsConfigs(ConfigData &config);
+	void _getPluginsConfigs(ConfigData &config);
 	size_t _createConfig(ConfigData &config, String filename = "config.json", bool save = true);
 	bool _loadConfig(ConfigData &config, String filename = "config.json");
 };

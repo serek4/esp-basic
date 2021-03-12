@@ -4,16 +4,12 @@
 ConfigData _defaultConfig;
 
 BasicConfig::BasicConfig() {
-	getWiFiConfig(_defaultConfig.wifi);
-	getOTAConfig(_defaultConfig.ota);
-	getServerHttpConfig(_defaultConfig.http);
-	getMQTTConfig(_defaultConfig.mqtt);
-	getTimeConfig(_defaultConfig.time);
+	_getPluginsConfigs(_defaultConfig);
 }
 BasicConfig::~BasicConfig() {
 }
 
-void BasicConfig::getWiFiConfig(ConfigData::WiFi &WiFiConfig) {
+void BasicConfig::_getWiFiConfig(ConfigData::WiFi &WiFiConfig) {
 	strcpy(WiFiConfig.ssid, BasicWiFi::_ssid);
 	strcpy(WiFiConfig.pass, BasicWiFi::_pass);
 	WiFiConfig.mode = static_cast<int>(BasicWiFi::_mode);
@@ -23,7 +19,7 @@ void BasicConfig::getWiFiConfig(ConfigData::WiFi &WiFiConfig) {
 	WiFiConfig.dns1 = BasicWiFi::_dns1;
 	WiFiConfig.dns2 = BasicWiFi::_dns2;
 }
-void BasicConfig::setWiFiConfig(ConfigData::WiFi &WiFiConfig) {
+void BasicConfig::_setWiFiConfig(ConfigData::WiFi &WiFiConfig) {
 	strcpy(BasicWiFi::_ssid, WiFiConfig.ssid);
 	strcpy(BasicWiFi::_pass, WiFiConfig.pass);
 	BasicWiFi::_mode = static_cast<WiFiMode_t>(WiFiConfig.mode);
@@ -33,21 +29,21 @@ void BasicConfig::setWiFiConfig(ConfigData::WiFi &WiFiConfig) {
 	BasicWiFi::_dns1 = WiFiConfig.dns1;
 	BasicWiFi::_dns2 = WiFiConfig.dns2;
 }
-void BasicConfig::getOTAConfig(ConfigData::OTA &OTAconfig) {
+void BasicConfig::_getOTAConfig(ConfigData::OTA &OTAconfig) {
 	strcpy(OTAconfig.hostname, BasicOTA::_hostname);
 }
-void BasicConfig::setOTAConfig(ConfigData::OTA &OTAconfig) {
+void BasicConfig::_setOTAConfig(ConfigData::OTA &OTAconfig) {
 	strcpy(BasicOTA::_hostname, OTAconfig.hostname);
 }
-void BasicConfig::getServerHttpConfig(ConfigData::HTTP &HTTPconfig) {
+void BasicConfig::_getServerHttpConfig(ConfigData::HTTP &HTTPconfig) {
 	strcpy(HTTPconfig.user, BasicServerHttp::_user);
 	strcpy(HTTPconfig.pass, BasicServerHttp::_pass);
 }
-void BasicConfig::setServerHttpConfig(ConfigData::HTTP &HTTPconfig) {
+void BasicConfig::_setServerHttpConfig(ConfigData::HTTP &HTTPconfig) {
 	strcpy(BasicServerHttp::_user, HTTPconfig.user);
 	strcpy(BasicServerHttp::_pass, HTTPconfig.pass);
 }
-void BasicConfig::getMQTTConfig(ConfigData::MQTT &MQTTconfig) {
+void BasicConfig::_getMQTTConfig(ConfigData::MQTT &MQTTconfig) {
 	strcpy(MQTTconfig.broker, BasicMQTT::_broker_address);
 	MQTTconfig.broker_port = BasicMQTT::_broker_port;
 	strcpy(MQTTconfig.client_ID, BasicMQTT::_client_ID);
@@ -57,7 +53,7 @@ void BasicConfig::getMQTTConfig(ConfigData::MQTT &MQTTconfig) {
 	strcpy(MQTTconfig.user, BasicMQTT::_user);
 	strcpy(MQTTconfig.pass, BasicMQTT::_pass);
 }
-void BasicConfig::setMQTTConfig(ConfigData::MQTT &MQTTconfig) {
+void BasicConfig::_setMQTTConfig(ConfigData::MQTT &MQTTconfig) {
 	strcpy(BasicMQTT::_broker_address, MQTTconfig.broker);
 	BasicMQTT::_broker_port = MQTTconfig.broker_port;
 	strcpy(BasicMQTT::_client_ID, MQTTconfig.client_ID);
@@ -67,19 +63,32 @@ void BasicConfig::setMQTTConfig(ConfigData::MQTT &MQTTconfig) {
 	strcpy(BasicMQTT::_user, MQTTconfig.user);
 	strcpy(BasicMQTT::_pass, MQTTconfig.pass);
 }
-void BasicConfig::getTimeConfig(ConfigData::Time &TimeConfig) {
+void BasicConfig::_getTimeConfig(ConfigData::Time &TimeConfig) {
 	strcpy(TimeConfig.NTP_server_address, BasicTime::_NTP_server_address);
 	TimeConfig.NTP_server_port = BasicTime::_NTP_server_port;
 	TimeConfig.timezone = BasicTime::_timezone;
 	TimeConfig.summertime = BasicTime::_summertime;
 }
-void BasicConfig::setTimeConfig(ConfigData::Time &TimeConfig) {
+void BasicConfig::_setTimeConfig(ConfigData::Time &TimeConfig) {
 	strcpy(BasicTime::_NTP_server_address, TimeConfig.NTP_server_address);
 	BasicTime::_NTP_server_port = TimeConfig.NTP_server_port;
 	BasicTime::_timezone = TimeConfig.timezone;
 	BasicTime::_summertime = TimeConfig.summertime;
 }
-
+void BasicConfig::_getPluginsConfigs(ConfigData &config) {
+	_getWiFiConfig(config.wifi);
+	_getOTAConfig(config.ota);
+	_getServerHttpConfig(config.http);
+	_getMQTTConfig(config.mqtt);
+	_getTimeConfig(config.time);
+}
+void BasicConfig::_setPluginsConfigs(ConfigData &config) {
+	_setWiFiConfig(config.wifi);
+	_setOTAConfig(config.ota);
+	_setServerHttpConfig(config.http);
+	_setMQTTConfig(config.mqtt);
+	_setTimeConfig(config.time);
+}
 void BasicConfig::setup() {
 	if (!(BasicFS::_fsStarted)) {
 		BASICFS_PRINTLN("mount 1");
@@ -96,17 +105,15 @@ void BasicConfig::setup() {
 		}
 	}
 	_defaultConfig.~ConfigData();
-	setWiFiConfig(configFile.wifi);
-	setOTAConfig(configFile.ota);
-	setServerHttpConfig(configFile.http);
-	setMQTTConfig(configFile.mqtt);
-	setTimeConfig(configFile.time);
+	_setPluginsConfigs(configFile);
 }
 void BasicConfig::saveConfig(ConfigData &config) {
 	_createConfig(config);
+	_setPluginsConfigs(config);
 }
 void BasicConfig::loadConfig(ConfigData &config) {
 	_loadConfig(config);
+	_setPluginsConfigs(config);
 }
 bool BasicConfig::checkJsonVariant(bool &saveTo, JsonVariant bit) {
 	if (bit.is<bool>()) {
@@ -324,5 +331,3 @@ size_t BasicConfig::_createConfig(ConfigData &config, String filename, bool save
 	}
 	return measureJsonPretty(doc);
 }
-
-BasicConfig _basicConfig;

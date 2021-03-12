@@ -94,13 +94,13 @@ void BasicConfig::setup() {
 		BASICFS_PRINTLN("mount 1");
 		BasicFS::_fsStarted = BasicFS::setup();
 	}
-	if (!_loadConfig(configFile)) {
-		if (!_loadConfig(configFile, "backup-config.json")) {
+	if (!_readConfigFile(configFile)) {
+		if (!_readConfigFile(configFile, "backup-config.json")) {
 			BASICCONFIG_PRINTLN("Loading default settings!");
 			if (BasicSetup::_inclLogger) {
 				BasicLogs::saveLog(now(), ll_error, "loaded default settings!");
 			}
-			_createConfig(_defaultConfig);
+			_writeConfigFile(_defaultConfig);
 			configFile = _defaultConfig;
 		}
 	}
@@ -108,11 +108,11 @@ void BasicConfig::setup() {
 	_setPluginsConfigs(configFile);
 }
 void BasicConfig::saveConfig(ConfigData &config) {
-	_createConfig(config);
+	_writeConfigFile(config);
 	_setPluginsConfigs(config);
 }
 void BasicConfig::loadConfig(ConfigData &config) {
-	_loadConfig(config);
+	_readConfigFile(config);
 	_setPluginsConfigs(config);
 }
 bool BasicConfig::checkJsonVariant(bool &saveTo, JsonVariant bit) {
@@ -167,7 +167,7 @@ bool BasicConfig::_loadUserConfig(JsonObject &userConfig) {
 	for (const auto &handler : _loadConfigHandler) test = handler(userConfig);
 	return test;
 }
-bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
+bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 	if (!LittleFS.exists(filename)) {
 		BASICCONFIG_PRINTLN(filename + " not found!");
 		return false;
@@ -178,7 +178,8 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 		configFile.close();
 		return false;
 	}
-	size_t configfileSize = configFile.size();
+	String configfileSha = sha1(configFile.readString());    // get config.json sha1
+	configFile.seek(0, SeekSet);                             // return to file begining
 	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(5) + 2 * JSON_OBJECT_SIZE(8) + 450 + _userConfigSize;
 	DynamicJsonDocument doc(capacity);
 	DeserializationError error = deserializeJson(doc, configFile);
@@ -251,22 +252,26 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 		BasicLogs::saveLog(now(), ll_log, filename + " laded");
 	}
 	if (!LittleFS.exists("backup-config.json")) {
-		_createConfig(config, "backup-config.json");
+		_writeConfigFile(config, "backup-config.json");
 		if (BasicSetup::_inclLogger) {
 			BasicLogs::saveLog(now(), ll_log, "config backup file saved");
 		}
 	} else {
 		if (filename == "backup-config.json") {
-			_createConfig(config, "config.json");
+			_writeConfigFile(config, "config.json");
 			if (BasicSetup::_inclLogger) {
 				BasicLogs::saveLog(now(), ll_warning, "config restored from backup file");
 			}
 		} else {
 			File backup = LittleFS.open("backup-config.json", "r");
-			size_t backupfileSize = backup.size();
+			String backupfileSha = sha1(backup.readString());
+			BASICCONFIG_PRINT("config sha1: ");
+			BASICCONFIG_PRINTLN(configfileSha);
+			BASICCONFIG_PRINT("backup sha1: ");
+			BASICCONFIG_PRINTLN(backupfileSha);
 			backup.close();
-			if (configfileSize != backupfileSize) {
-				_createConfig(config, "backup-config.json");
+			if (configfileSha != backupfileSha) {
+				_writeConfigFile(config, "backup-config.json");
 				if (BasicSetup::_inclLogger) {
 					BasicLogs::saveLog(now(), ll_log, "config backup file updated");
 				}
@@ -275,7 +280,7 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 	}
 	return true;
 }
-size_t BasicConfig::_createConfig(ConfigData &config, String filename, bool save) {
+bool BasicConfig::_writeConfigFile(ConfigData &config, String filename, bool save) {
 	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(5) + 2 * JSON_OBJECT_SIZE(8) + 450 + _userConfigSize;
 	DynamicJsonDocument doc(capacity);
 
@@ -319,6 +324,7 @@ size_t BasicConfig::_createConfig(ConfigData &config, String filename, bool save
 	}
 
 	if (save) {
+		bool fileExist = LittleFS.exists(filename);
 		File configFile = LittleFS.open(filename, "w");
 		if (!configFile) {
 			BASICCONFIG_PRINTLN("Failed to write " + filename + "!");
@@ -327,7 +333,7 @@ size_t BasicConfig::_createConfig(ConfigData &config, String filename, bool save
 		}
 		serializeJsonPretty(doc, configFile);
 		configFile.close();
-		BASICCONFIG_PRINTLN(filename + " saved!");
+		BASICCONFIG_PRINTLN(filename + (fileExist ? " updated!" : " saved!"));
 	}
-	return measureJsonPretty(doc);
+	return true;
 }

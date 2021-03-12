@@ -104,6 +104,6 @@ class BasicConfig {
 	void _setTimeConfig(ConfigData::Time &TimeConfig);
 	void _setPluginsConfigs(ConfigData &config);
 	void _getPluginsConfigs(ConfigData &config);
-	size_t _createConfig(ConfigData &config, String filename = "config.json", bool save = true);
-	bool _loadConfig(ConfigData &config, String filename = "config.json");
+	bool _writeConfigFile(ConfigData &config, String filename = "config.json", bool save = true);
+	bool _readConfigFile(ConfigData &config, String filename = "config.json");
 };

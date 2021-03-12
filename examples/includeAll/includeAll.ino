@@ -22,9 +22,10 @@ void setup() {
 	WIFI.onGotIP(handleWiFiGotIP);
 	WIFI.onDisconnected(handleWiFiDisconnected);
 	mySetup.begin();
-	WIFI.waitForWiFi();
-	NTPclient.waitForNTP();
-	MQTT.waitForMQTT();
+	if (WIFI.waitForWiFi() == wifi_connected) {
+		NTPclient.waitForNTP();
+		MQTT.waitForMQTT();
+	}
 }
 
 void loop() {

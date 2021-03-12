@@ -105,7 +105,7 @@ void BasicWiFi::setup(bool staticIP) {
 		_onDisconnected(evt);
 	});
 }
-void BasicWiFi::waitForWiFi(int waitTime) {
+uint8_t BasicWiFi::waitForWiFi(int waitTime) {
 	BASICWIFI_PRINT("Waiting for WiFi connection");
 	u_long startWaitingAt = millis();
 	while (WiFi.status() != WL_CONNECTED) {
@@ -120,12 +120,12 @@ void BasicWiFi::waitForWiFi(int waitTime) {
 		}
 		if (millis() - startWaitingAt > waitTime * 1000) {
 			BASICWIFI_PRINTLN("Can't connect to WiFi!");
-			return;
+            return wifi_fail;
 		}
 	}
-	_checkConnection();
+	return _checkConnection();
 }
-void BasicWiFi::_checkConnection() {
+uint8_t BasicWiFi::_checkConnection() {
 	IPAddress buffer;
 	BASICWIFI_PRINT("checking DNS server");
 	int retry = 0;
@@ -135,8 +135,9 @@ void BasicWiFi::_checkConnection() {
 		retry++;
 		if (retry > 3) {
 			BASICWIFI_PRINTLN("DNS does not work!");
-			return;
+			return dns_fail;
 		}
 	}
 	BASICWIFI_PRINTLN(" OK!");
+    return wifi_connected;
 }

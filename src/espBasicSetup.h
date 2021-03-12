@@ -28,11 +28,6 @@ BasicWiFi WIFI(WIFI_SSID, WIFI_PASS, WIFI_MODE);
 BasicFS basicFS;
 bool BasicFS::_fsStarted = false;
 #endif
-#if CONFIG_PLUGIN
-BasicConfig basicConfig;
-ConfigData BasicConfig::configFile;
-ConfigData &config = BasicConfig::configFile;    // only for cleaner sketch code
-#endif
 #if SERVERHTTP_PLUGIN
 #if defined HTTP_USER && defined HTTP_PASS
 BasicServerHttp basicServerHttp(HTTP_USER, HTTP_PASS);
@@ -56,6 +51,11 @@ BasicTime NTPclient(NTP_SERVER_ADDRESS, NTP_SERVER_PORT, TIMEZONE, SUMMERTIME);
 #endif
 #if LOGGER_PLUGIN
 BasicLogs logger;
+#endif
+#if CONFIG_PLUGIN
+BasicConfig basicConfig;
+ConfigData BasicConfig::configFile;
+ConfigData &config = BasicConfig::configFile;    // only for cleaner sketch code
 #endif
 
 class EspBasicSetup {

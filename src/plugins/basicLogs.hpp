@@ -2,16 +2,6 @@
 
 #include "../espBasicSetup.hpp"
 
-// clang-format off
-// Setup debug printing macros.
-#ifdef BASIC_LOGS_DEBUG
-#define BASICLOGS_PRINT(...) { DEBUG_PRINTER.print(__VA_ARGS__); }
-#define BASICLOGS_PRINTLN(...) { DEBUG_PRINTER.println(__VA_ARGS__); }
-#else
-#define BASICLOGS_PRINT(...) {}
-#define BASICLOGS_PRINTLN(...) {}
-#endif
-// clang-format on
 
 typedef enum {
 	ll_error,

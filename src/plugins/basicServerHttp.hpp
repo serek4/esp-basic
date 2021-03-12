@@ -21,12 +21,14 @@ class BasicServerHttp {
 	void setup();
 
 	BasicServerHttp();
+	BasicServerHttp(const char *user, const char *pass);
+	~BasicServerHttp();
 
   private:
-	bool _inclServerHttp;
+	static char _user[16];
+	static char _pass[16];
 
-	friend class BasicSetup;
+	friend class BasicConfig;
 };
 
-extern BasicServerHttp _basicServerHttp;
 extern AsyncWebServer _serverHttp;

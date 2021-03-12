@@ -1,77 +1,119 @@
 #include "basicConfig.hpp"
 
 
-ConfigData _config;
 ConfigData _defaultConfig;
 
-void ImportSetup::WIFIsettings(const char *ssid, const char *pass, int mode, const char *IP, const char *subnet, const char *gateway, const char *dns1, const char *dns2) {
-	strcpy(_defaultConfig.wifi.ssid, ssid);
-	strcpy(_defaultConfig.wifi.pass, pass);
-	_defaultConfig.wifi.mode = mode;
-	_basicSetup._staticIP = true;
-	(_defaultConfig.wifi.IP).fromString(IP);
-	(_defaultConfig.wifi.subnet).fromString(subnet);
-	(_defaultConfig.wifi.gateway).fromString(gateway);
-	(_defaultConfig.wifi.dns1).fromString(dns1);
-	(_defaultConfig.wifi.dns2).fromString(dns2);
+BasicConfig::BasicConfig() {
+	_getPluginsConfigs(_defaultConfig);
 }
-void ImportSetup::WIFIsettings(const char *ssid, const char *pass, int mode) {
-	strcpy(_defaultConfig.wifi.ssid, ssid);
-	strcpy(_defaultConfig.wifi.pass, pass);
-	_defaultConfig.wifi.mode = mode;
-	_basicSetup._staticIP = false;
-}
-void ImportSetup::OTAsettings(const char *hostname) {
-	strcpy(_defaultConfig.ota.hostname, hostname);
-}
-void ImportSetup::ServerHttpSettings(const char *user, const char *pass) {
-	strcpy(_defaultConfig.http.user, user);
-	strcpy(_defaultConfig.http.pass, pass);
-}
-void ImportSetup::MQTTsettings(const char *broker_address, int broker_port, const char *clientID, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass) {
-	strcpy(_defaultConfig.mqtt.broker, broker_address);
-	_defaultConfig.mqtt.broker_port = broker_port;
-	strcpy(_defaultConfig.mqtt.client_ID, clientID);
-	_defaultConfig.mqtt.keepalive = keepAlive;
-	strcpy(_defaultConfig.mqtt.will_topic, willTopic);
-	strcpy(_defaultConfig.mqtt.will_msg, willMsg);
-	strcpy(_defaultConfig.mqtt.user, user);
-	strcpy(_defaultConfig.mqtt.pass, pass);
-}
-void ImportSetup::timeSettings(const char *NTP_server_address, int NTP_server_port, int timezone, bool summertime) {
-	strcpy(_defaultConfig.time.NTP_server_address, NTP_server_address);
-	_defaultConfig.time.NTP_server_port = NTP_server_port;
-	_defaultConfig.time.timezone = timezone;
-	_defaultConfig.time.summertime = summertime;
+BasicConfig::~BasicConfig() {
 }
 
-
-BasicConfig::BasicConfig()
-    : _inclConfig(true) {
+void BasicConfig::_getWiFiConfig(ConfigData::WiFi &WiFiConfig) {
+	strcpy(WiFiConfig.ssid, BasicWiFi::_ssid);
+	strcpy(WiFiConfig.pass, BasicWiFi::_pass);
+	WiFiConfig.mode = static_cast<int>(BasicWiFi::_mode);
+	WiFiConfig.IP = BasicWiFi::_IP;
+	WiFiConfig.subnet = BasicWiFi::_subnet;
+	WiFiConfig.gateway = BasicWiFi::_gateway;
+	WiFiConfig.dns1 = BasicWiFi::_dns1;
+	WiFiConfig.dns2 = BasicWiFi::_dns2;
 }
-
+void BasicConfig::_setWiFiConfig(ConfigData::WiFi &WiFiConfig) {
+	strcpy(BasicWiFi::_ssid, WiFiConfig.ssid);
+	strcpy(BasicWiFi::_pass, WiFiConfig.pass);
+	BasicWiFi::_mode = static_cast<WiFiMode_t>(WiFiConfig.mode);
+	BasicWiFi::_IP = WiFiConfig.IP;
+	BasicWiFi::_subnet = WiFiConfig.subnet;
+	BasicWiFi::_gateway = WiFiConfig.gateway;
+	BasicWiFi::_dns1 = WiFiConfig.dns1;
+	BasicWiFi::_dns2 = WiFiConfig.dns2;
+}
+void BasicConfig::_getOTAConfig(ConfigData::OTA &OTAconfig) {
+	strcpy(OTAconfig.hostname, BasicOTA::_hostname);
+}
+void BasicConfig::_setOTAConfig(ConfigData::OTA &OTAconfig) {
+	strcpy(BasicOTA::_hostname, OTAconfig.hostname);
+}
+void BasicConfig::_getServerHttpConfig(ConfigData::HTTP &HTTPconfig) {
+	strcpy(HTTPconfig.user, BasicServerHttp::_user);
+	strcpy(HTTPconfig.pass, BasicServerHttp::_pass);
+}
+void BasicConfig::_setServerHttpConfig(ConfigData::HTTP &HTTPconfig) {
+	strcpy(BasicServerHttp::_user, HTTPconfig.user);
+	strcpy(BasicServerHttp::_pass, HTTPconfig.pass);
+}
+void BasicConfig::_getMQTTConfig(ConfigData::MQTT &MQTTconfig) {
+	strcpy(MQTTconfig.broker, BasicMQTT::_broker_address);
+	MQTTconfig.broker_port = BasicMQTT::_broker_port;
+	strcpy(MQTTconfig.client_ID, BasicMQTT::_client_ID);
+	MQTTconfig.keepalive = BasicMQTT::_keepalive;
+	strcpy(MQTTconfig.will_topic, BasicMQTT::_will_topic);
+	strcpy(MQTTconfig.will_msg, BasicMQTT::_will_msg);
+	strcpy(MQTTconfig.user, BasicMQTT::_user);
+	strcpy(MQTTconfig.pass, BasicMQTT::_pass);
+}
+void BasicConfig::_setMQTTConfig(ConfigData::MQTT &MQTTconfig) {
+	strcpy(BasicMQTT::_broker_address, MQTTconfig.broker);
+	BasicMQTT::_broker_port = MQTTconfig.broker_port;
+	strcpy(BasicMQTT::_client_ID, MQTTconfig.client_ID);
+	BasicMQTT::_keepalive = MQTTconfig.keepalive;
+	strcpy(BasicMQTT::_will_topic, MQTTconfig.will_topic);
+	strcpy(BasicMQTT::_will_msg, MQTTconfig.will_msg);
+	strcpy(BasicMQTT::_user, MQTTconfig.user);
+	strcpy(BasicMQTT::_pass, MQTTconfig.pass);
+}
+void BasicConfig::_getTimeConfig(ConfigData::Time &TimeConfig) {
+	strcpy(TimeConfig.NTP_server_address, BasicTime::_NTP_server_address);
+	TimeConfig.NTP_server_port = BasicTime::_NTP_server_port;
+	TimeConfig.timezone = BasicTime::_timezone;
+	TimeConfig.summertime = BasicTime::_summertime;
+}
+void BasicConfig::_setTimeConfig(ConfigData::Time &TimeConfig) {
+	strcpy(BasicTime::_NTP_server_address, TimeConfig.NTP_server_address);
+	BasicTime::_NTP_server_port = TimeConfig.NTP_server_port;
+	BasicTime::_timezone = TimeConfig.timezone;
+	BasicTime::_summertime = TimeConfig.summertime;
+}
+void BasicConfig::_getPluginsConfigs(ConfigData &config) {
+	_getWiFiConfig(config.wifi);
+	_getOTAConfig(config.ota);
+	_getServerHttpConfig(config.http);
+	_getMQTTConfig(config.mqtt);
+	_getTimeConfig(config.time);
+}
+void BasicConfig::_setPluginsConfigs(ConfigData &config) {
+	_setWiFiConfig(config.wifi);
+	_setOTAConfig(config.ota);
+	_setServerHttpConfig(config.http);
+	_setMQTTConfig(config.mqtt);
+	_setTimeConfig(config.time);
+}
 void BasicConfig::setup() {
-	if (!(_basicSetup._fsStarted)) {
+	if (!(BasicFS::_fsStarted)) {
 		BASICFS_PRINTLN("mount 1");
-		_basicSetup._fsStarted = _basicFS.setup();
+		BasicFS::_fsStarted = BasicFS::setup();
 	}
-	if (!_basicConfig._loadConfig(_config)) {
-		if (!_basicConfig._loadConfig(_config, "backup-config.json")) {
+	if (!_readConfigFile(configFile)) {
+		if (!_readConfigFile(configFile, "backup-config.json")) {
 			BASICCONFIG_PRINTLN("Loading default settings!");
 			if (BasicSetup::_inclLogger) {
 				BasicLogs::saveLog(now(), ll_error, "loaded default settings!");
 			}
-			_basicConfig._createConfig(_defaultConfig);
-			_config = _defaultConfig;
+			_writeConfigFile(_defaultConfig);
+			configFile = _defaultConfig;
 		}
 	}
 	_defaultConfig.~ConfigData();
+	_setPluginsConfigs(configFile);
 }
 void BasicConfig::saveConfig(ConfigData &config) {
-	_createConfig(config);
+	_writeConfigFile(config);
+	_setPluginsConfigs(config);
 }
 void BasicConfig::loadConfig(ConfigData &config) {
-	_loadConfig(config);
+	_readConfigFile(config);
+	_setPluginsConfigs(config);
 }
 bool BasicConfig::checkJsonVariant(bool &saveTo, JsonVariant bit) {
 	if (bit.is<bool>()) {
@@ -125,7 +167,7 @@ bool BasicConfig::_loadUserConfig(JsonObject &userConfig) {
 	for (const auto &handler : _loadConfigHandler) test = handler(userConfig);
 	return test;
 }
-bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
+bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 	if (!LittleFS.exists(filename)) {
 		BASICCONFIG_PRINTLN(filename + " not found!");
 		return false;
@@ -136,7 +178,8 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 		configFile.close();
 		return false;
 	}
-	size_t configfileSize = configFile.size();
+	String configfileSha = sha1(configFile.readString());    // get config.json sha1
+	configFile.seek(0, SeekSet);                             // return to file begining
 	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(5) + 2 * JSON_OBJECT_SIZE(8) + 450 + _userConfigSize;
 	DynamicJsonDocument doc(capacity);
 	DeserializationError error = deserializeJson(doc, configFile);
@@ -155,7 +198,7 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 		if (!checkJsonVariant(config.wifi.ssid, WiFi["ssid"])) mismatch |= true;    // "your-wifi-ssid"
 		if (!checkJsonVariant(config.wifi.pass, WiFi["pass"])) mismatch |= true;    // "your-wifi-password"
 		if (!checkJsonVariant(config.wifi.mode, WiFi["mode"])) mismatch |= true;    // "1"
-		if (_basicSetup._staticIP) {
+		if (BasicWiFi::_staticIP) {
 			if (!checkJsonVariant(config.wifi.IP, WiFi["IP"])) mismatch |= true;              // "192.168.0.150"
 			if (!checkJsonVariant(config.wifi.subnet, WiFi["subnet"])) mismatch |= true;      // "255.255.255.0"
 			if (!checkJsonVariant(config.wifi.gateway, WiFi["gateway"])) mismatch |= true;    // "192.168.0.1"
@@ -209,22 +252,26 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 		BasicLogs::saveLog(now(), ll_log, filename + " laded");
 	}
 	if (!LittleFS.exists("backup-config.json")) {
-		_createConfig(config, "backup-config.json");
+		_writeConfigFile(config, "backup-config.json");
 		if (BasicSetup::_inclLogger) {
 			BasicLogs::saveLog(now(), ll_log, "config backup file saved");
 		}
 	} else {
 		if (filename == "backup-config.json") {
-			_createConfig(config, "config.json");
+			_writeConfigFile(config, "config.json");
 			if (BasicSetup::_inclLogger) {
 				BasicLogs::saveLog(now(), ll_warning, "config restored from backup file");
 			}
 		} else {
 			File backup = LittleFS.open("backup-config.json", "r");
-			size_t backupfileSize = backup.size();
+			String backupfileSha = sha1(backup.readString());
+			BASICCONFIG_PRINT("config sha1: ");
+			BASICCONFIG_PRINTLN(configfileSha);
+			BASICCONFIG_PRINT("backup sha1: ");
+			BASICCONFIG_PRINTLN(backupfileSha);
 			backup.close();
-			if (configfileSize != backupfileSize) {
-				_createConfig(config, "backup-config.json");
+			if (configfileSha != backupfileSha) {
+				_writeConfigFile(config, "backup-config.json");
 				if (BasicSetup::_inclLogger) {
 					BasicLogs::saveLog(now(), ll_log, "config backup file updated");
 				}
@@ -233,7 +280,7 @@ bool BasicConfig::_loadConfig(ConfigData &config, String filename) {
 	}
 	return true;
 }
-size_t BasicConfig::_createConfig(ConfigData &config, String filename, bool save) {
+bool BasicConfig::_writeConfigFile(ConfigData &config, String filename, bool save) {
 	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(5) + 2 * JSON_OBJECT_SIZE(8) + 450 + _userConfigSize;
 	DynamicJsonDocument doc(capacity);
 
@@ -241,7 +288,7 @@ size_t BasicConfig::_createConfig(ConfigData &config, String filename, bool save
 	WiFi["ssid"] = config.wifi.ssid;
 	WiFi["pass"] = config.wifi.pass;
 	WiFi["mode"] = config.wifi.mode;
-	if (_basicSetup._staticIP) {
+	if (BasicWiFi::_staticIP) {
 		WiFi["IP"] = (config.wifi.IP).toString();
 		WiFi["subnet"] = (config.wifi.subnet).toString();
 		WiFi["gateway"] = (config.wifi.gateway).toString();
@@ -277,6 +324,7 @@ size_t BasicConfig::_createConfig(ConfigData &config, String filename, bool save
 	}
 
 	if (save) {
+		bool fileExist = LittleFS.exists(filename);
 		File configFile = LittleFS.open(filename, "w");
 		if (!configFile) {
 			BASICCONFIG_PRINTLN("Failed to write " + filename + "!");
@@ -285,9 +333,7 @@ size_t BasicConfig::_createConfig(ConfigData &config, String filename, bool save
 		}
 		serializeJsonPretty(doc, configFile);
 		configFile.close();
-		BASICCONFIG_PRINTLN(filename + " saved!");
+		BASICCONFIG_PRINTLN(filename + (fileExist ? " updated!" : " saved!"));
 	}
-	return measureJsonPretty(doc);
+	return true;
 }
-
-BasicConfig _basicConfig;

@@ -4,8 +4,34 @@
 WiFiEventHandler _WiFiConnectedHandler, _WiFiGotIpHandler, _WiFiDisconnectedHandler;
 Ticker _wifiReconnectTimer;
 
-BasicWiFi::BasicWiFi()
-    : _inclWiFi(true) {
+char BasicWiFi::_ssid[32];
+char BasicWiFi::_pass[64];
+WiFiMode_t BasicWiFi::_mode;
+bool BasicWiFi::_staticIP;
+IPAddress BasicWiFi::_IP;         // optional
+IPAddress BasicWiFi::_subnet;     // optional
+IPAddress BasicWiFi::_gateway;    // optional
+IPAddress BasicWiFi::_dns1;       // optional
+IPAddress BasicWiFi::_dns2;       // optional
+
+BasicWiFi::BasicWiFi(const char *ssid, const char *pass, int mode) {
+	strcpy(_ssid, ssid);
+	strcpy(_pass, pass);
+	_mode = static_cast<WiFiMode_t>(mode);
+    _staticIP = false;
+}
+BasicWiFi::BasicWiFi(const char *ssid, const char *pass, int mode, const char *IP, const char *subnet, const char *gateway, const char *dns1, const char *dns2) {
+	strcpy(_ssid, ssid);
+	strcpy(_pass, pass);
+	_mode = static_cast<WiFiMode_t>(mode);
+    _staticIP = true;
+	(_IP).fromString(IP);
+	(_subnet).fromString(subnet);
+	(_gateway).fromString(gateway);
+	(_dns1).fromString(dns1);
+	(_dns2).fromString(dns2);
+}
+BasicWiFi::~BasicWiFi() {
 }
 
 void BasicWiFi::onConnected(const WiFiUserHandlers::onWiFiConnectHandler &handler) {
@@ -58,17 +84,17 @@ void BasicWiFi::_onDisconnected(const WiFiEventStationModeDisconnected &evt) {
 	if (_basicSetup._inclServerHttp) {
 	}
 	_wifiReconnectTimer.once(5, [&]() {
-		WiFi.begin(_config.wifi.ssid, _config.wifi.pass);
+		WiFi.begin(_ssid, _pass);
 	});
 	for (const auto &handler : _onDisconnectHandler) handler(evt);
 }
 void BasicWiFi::setup(bool staticIP) {
 	if (staticIP) {
-		WiFi.config(_config.wifi.IP, _config.wifi.gateway, _config.wifi.subnet, _config.wifi.dns1, _config.wifi.dns2);
+		WiFi.config(_IP, _gateway, _subnet, _dns1, _dns2);
 	}
-	WiFi.mode((WiFiMode_t)_config.wifi.mode);
+	WiFi.mode(_mode);
 	WiFi.persistent(false);
-	WiFi.begin(_config.wifi.ssid, _config.wifi.pass);
+	WiFi.begin(_ssid, _pass);
 	_WiFiConnectedHandler = WiFi.onStationModeConnected([&](const WiFiEventStationModeConnected &evt) {
 		_onConnected(evt);
 	});
@@ -114,5 +140,3 @@ void BasicWiFi::_checkConnection() {
 	}
 	BASICWIFI_PRINTLN(" OK!");
 }
-
-BasicWiFi _basicWiFi;

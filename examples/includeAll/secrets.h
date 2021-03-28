@@ -57,7 +57,6 @@
 #define NTP_SERVER_ADDRESS "0.pool.ntp.org"
 #define NTP_SERVER_PORT 2390
 #define TIMEZONE 1    // Central European Time (Europe/Warsaw)
-#define SUMMERTIME false
 #endif
 // user custom settings
 #define USER_STR "teststr"

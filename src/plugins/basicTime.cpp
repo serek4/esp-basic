@@ -5,7 +5,6 @@ AsyncUDP NTPudp;
 char BasicTime::_NTP_server_address[32];
 int BasicTime::_NTP_server_port;
 int BasicTime::_timezone;
-bool BasicTime::_summertime;
 bool BasicTime::_waitingForNTP = false;
 u_long BasicTime::_requestSendedAt;
 bool BasicTime::_gotNTPserverIP = false;
@@ -14,11 +13,10 @@ time_t BasicTime::_NTPSyncInterval = 12 * SECS_PER_HOUR;     // timeSet sync int
 time_t BasicTime::_NTPReSyncInterval = 1 * SECS_PER_HOUR;    // timeNeedsSync sync interval
 time_t BasicTime::_NTPnoSyncInterval = 5 * SECS_PER_MIN;     // timeNotSet sync interval
 
-BasicTime::BasicTime(const char *NTP_server_address, int NTP_server_port, int timezone, bool summertime) {
+BasicTime::BasicTime(const char *NTP_server_address, int NTP_server_port, int timezone) {
 	strcpy(_NTP_server_address, NTP_server_address);
 	_NTP_server_port = NTP_server_port;
 	_timezone = timezone;
-	_summertime = summertime;
 }
 BasicTime::~BasicTime() {
 }
@@ -137,8 +135,8 @@ void BasicTime::_NTPsyncInterval(const char *message) {
 String BasicTime::dateString(time_t timestamp) {
 	String date = "timeNotSet";
 	if (timeStatus() != timeNotSet) {
-		timestamp += _timezone * SECS_PER_HOUR;             // time zone +1h
-		if (_summertime) timestamp += 1 * SECS_PER_HOUR;    // summer time +1h
+		if (isDST(timestamp)) timestamp += 1 * SECS_PER_HOUR;    // summer time +1h
+		timestamp += _timezone * SECS_PER_HOUR;                  // time zone + 1h
 		date = (String)(year(timestamp));
 		date += '-';
 		if (month(timestamp) < 10) date += '0';
@@ -153,8 +151,8 @@ String BasicTime::dateString(time_t timestamp) {
 String BasicTime::timeString(time_t timestamp) {
 	String time = "";
 	if (timeStatus() != timeNotSet) {
-		timestamp += _timezone * SECS_PER_HOUR;             // time zone +1h
-		if (_summertime) timestamp += 1 * SECS_PER_HOUR;    // summer time +1h
+		if (isDST(timestamp)) timestamp += 1 * SECS_PER_HOUR;    // summer time + 1h
+		timestamp += _timezone * SECS_PER_HOUR;                  // time zone + 1h
 	}
 	if (hour(timestamp) < 10) time += '0';
 	time += (String)hour(timestamp);
@@ -172,4 +170,24 @@ String BasicTime::timeString(time_t timestamp) {
 //converting timestamp to human readable date time string (RRRR-MM-DD hh:mm:ss)[24h]
 String BasicTime::dateTimeString(time_t timestamp) {
 	return dateString(timestamp) + ' ' + timeString(timestamp);
+}
+//European Central Summer Time (CEST) check
+bool BasicTime::isDST(time_t timestamp) {
+	timestamp += _timezone * SECS_PER_HOUR;                   // time zone + 1h
+	if (month(timestamp) >= 10 || month(timestamp) <= 3) {    // winter time/standard time from october to march
+		if (month(timestamp) == 3 || month(timestamp) == 10) {
+			int prevoiusSunday = day(timestamp) - weekday(timestamp);
+			if (prevoiusSunday >= LAST_SUNDAY_OF_THE_MONTH) {
+				if (weekday(timestamp) == 1) {    // last sunday of month
+					if (hour(timestamp) < 2) {    // until 2:00 (2:00->3:00 in march and 3:00->2:00 in october)
+						return month(timestamp) == 3 ? false : true;
+					}
+				}
+				return month(timestamp) == 3 ? true : false;
+			}
+			return month(timestamp) == 3 ? false : false;
+		}
+		return false;
+	}
+	return true;
 }

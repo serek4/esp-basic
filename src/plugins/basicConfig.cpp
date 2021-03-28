@@ -67,13 +67,11 @@ void BasicConfig::_getTimeConfig(ConfigData::Time &TimeConfig) {
 	strcpy(TimeConfig.NTP_server_address, BasicTime::_NTP_server_address);
 	TimeConfig.NTP_server_port = BasicTime::_NTP_server_port;
 	TimeConfig.timezone = BasicTime::_timezone;
-	TimeConfig.summertime = BasicTime::_summertime;
 }
 void BasicConfig::_setTimeConfig(ConfigData::Time &TimeConfig) {
 	strcpy(BasicTime::_NTP_server_address, TimeConfig.NTP_server_address);
 	BasicTime::_NTP_server_port = TimeConfig.NTP_server_port;
 	BasicTime::_timezone = TimeConfig.timezone;
-	BasicTime::_summertime = TimeConfig.summertime;
 }
 void BasicConfig::_getPluginsConfigs(ConfigData &config) {
 	_getWiFiConfig(config.wifi);
@@ -180,7 +178,7 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 	}
 	String configfileSha = sha1(configFile.readString());    // get config.json sha1
 	configFile.seek(0, SeekSet);                             // return to file begining
-	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(5) + 2 * JSON_OBJECT_SIZE(8) + 450 + _userConfigSize;
+	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(5) + 2 * JSON_OBJECT_SIZE(8) + 592 + _userConfigSize;
 	DynamicJsonDocument doc(capacity);
 	DeserializationError error = deserializeJson(doc, configFile);
 	configFile.close();
@@ -230,7 +228,6 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 			if (!checkJsonVariant(config.time.NTP_server_address, time["NTP_server_address"])) mismatch |= true;    // "router.lan"
 			if (!checkJsonVariant(config.time.NTP_server_port, time["NTP_server_port"])) mismatch |= true;          // 2390
 			if (!checkJsonVariant(config.time.timezone, time["timezone"])) mismatch |= true;                        // 1
-			if (!checkJsonVariant(config.time.summertime, time["summertime"])) mismatch |= true;                    // false
 		} else {
 			mismatch |= true;
 		}
@@ -281,7 +278,7 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 	return true;
 }
 bool BasicConfig::_writeConfigFile(ConfigData &config, String filename, bool save) {
-	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(4) + JSON_OBJECT_SIZE(5) + 2 * JSON_OBJECT_SIZE(8) + 450 + _userConfigSize;
+	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(5) + 2 * JSON_OBJECT_SIZE(8) + 592 + _userConfigSize;
 	DynamicJsonDocument doc(capacity);
 
 	JsonObject WiFi = doc.createNestedObject("WiFi");
@@ -316,7 +313,6 @@ bool BasicConfig::_writeConfigFile(ConfigData &config, String filename, bool sav
 		time["NTP_server_address"] = config.time.NTP_server_address;
 		time["NTP_server_port"] = config.time.NTP_server_port;
 		time["timezone"] = config.time.timezone;
-		time["summertime"] = config.time.summertime;
 	}
 	if (_userConfigSize != 0) {
 		JsonObject userSettings = doc.createNestedObject("userSettings");

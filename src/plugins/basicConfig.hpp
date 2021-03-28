@@ -44,7 +44,6 @@ struct ConfigData {
 		char NTP_server_address[32];
 		int NTP_server_port;
 		int timezone;
-		bool summertime;
 	};
 	WiFi wifi;
 	OTA ota;

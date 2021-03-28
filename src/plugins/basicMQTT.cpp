@@ -129,7 +129,7 @@ void BasicMQTT::setup() {
 		_onDisconnect(reason);
 	});
 }
-void BasicMQTT::waitForMQTT(int waitTime) {
+bool BasicMQTT::waitForMQTT(int waitTime) {
 	u_long startWaitingAt = millis();
 	BASICMQTT_PRINT("Connecting MQTT");
 	while (!_connected) {
@@ -144,7 +144,9 @@ void BasicMQTT::waitForMQTT(int waitTime) {
 		}
 		if (millis() - startWaitingAt > waitTime * 1000) {
 			BASICMQTT_PRINTLN("Can't connect to MQTT!");
+			return false;
 			break;
 		}
 	}
+	return true;
 }

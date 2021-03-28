@@ -7,6 +7,10 @@ u_long BasicLogs::_saveLogDelayTimer = 0;
 const char *BasicLogs::_logLevelStr[] = {"error", "warning", "info", "log", "debug", "unknown"};
 
 BasicLogs::BasicLogs() {
+	if (!BasicFS::_fsStarted) {
+		BASICFS_PRINTLN("mount 3");
+		BasicFS::_fsStarted = BasicFS::setup();
+	}
 }
 
 BasicLogs::~BasicLogs() {

@@ -6,16 +6,6 @@
 #include <functional>
 #include <vector>
 
-// clang-format off
-// Setup debug printing macros.
-#ifdef BASIC_MQTT_DEBUG
-#define BASICMQTT_PRINT(...) { DEBUG_PRINTER.print(__VA_ARGS__); }
-#define BASICMQTT_PRINTLN(...) { DEBUG_PRINTER.println(__VA_ARGS__); }
-#else
-#define BASICMQTT_PRINT(...) {}
-#define BASICMQTT_PRINTLN(...) {}
-#endif
-// clang-format on
 
 namespace MQTTuserHandlers {
 typedef std::function<void()> onMQTTconnectHandler;
@@ -26,7 +16,7 @@ typedef std::function<void(int8_t reason)> onMQTTdisconnectHandler;
 class BasicMQTT {
   public:
 	void setup();
-	void waitForMQTT(int waitTime = 10);
+	bool waitForMQTT(int waitTime = 10);
 	void onConnect(const MQTTuserHandlers::onMQTTconnectHandler &handler);
 	void onMessage(const MQTTuserHandlers::onMQTTmesageHandler &handler);
 	void onDisconnect(const MQTTuserHandlers::onMQTTdisconnectHandler &handler);

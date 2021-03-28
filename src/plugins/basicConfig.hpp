@@ -6,16 +6,6 @@
 #include <functional>
 #include <vector>
 
-// clang-format off
-// Setup debug printing macros.
-#ifdef BASIC_CONFIG_DEBUG
-#define BASICCONFIG_PRINT(...) { DEBUG_PRINTER.print(__VA_ARGS__); }
-#define BASICCONFIG_PRINTLN(...) { DEBUG_PRINTER.println(__VA_ARGS__); }
-#else
-#define BASICCONFIG_PRINT(...) {}
-#define BASICCONFIG_PRINTLN(...) {}
-#endif
-// clang-format on
 
 struct ConfigData {
 	// WiFi settings

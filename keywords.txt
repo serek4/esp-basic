@@ -8,6 +8,15 @@
 #######################################
 
 EspBasicSetup  KEYWORD1
+BasicWiFi   KEYWORD1
+BasicTime   KEYWORD1
+BasicServerHttp   KEYWORD1
+BasicOTA   KEYWORD1
+BasicMQTT   KEYWORD1
+BasicLogs   KEYWORD1
+BasicFS   KEYWORD1
+BasicConfig   KEYWORD1
+ConfigData   KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)

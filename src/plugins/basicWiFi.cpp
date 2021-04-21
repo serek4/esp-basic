@@ -4,8 +4,34 @@
 WiFiEventHandler _WiFiConnectedHandler, _WiFiGotIpHandler, _WiFiDisconnectedHandler;
 Ticker _wifiReconnectTimer;
 
-BasicWiFi::BasicWiFi()
-    : _inclWiFi(true) {
+char BasicWiFi::_ssid[32];
+char BasicWiFi::_pass[64];
+WiFiMode_t BasicWiFi::_mode;
+bool BasicWiFi::_staticIP;
+IPAddress BasicWiFi::_IP;         // optional
+IPAddress BasicWiFi::_subnet;     // optional
+IPAddress BasicWiFi::_gateway;    // optional
+IPAddress BasicWiFi::_dns1;       // optional
+IPAddress BasicWiFi::_dns2;       // optional
+
+BasicWiFi::BasicWiFi(const char *ssid, const char *pass, int mode) {
+	strcpy(_ssid, ssid);
+	strcpy(_pass, pass);
+	_mode = static_cast<WiFiMode_t>(mode);
+    _staticIP = false;
+}
+BasicWiFi::BasicWiFi(const char *ssid, const char *pass, int mode, const char *IP, const char *subnet, const char *gateway, const char *dns1, const char *dns2) {
+	strcpy(_ssid, ssid);
+	strcpy(_pass, pass);
+	_mode = static_cast<WiFiMode_t>(mode);
+    _staticIP = true;
+	(_IP).fromString(IP);
+	(_subnet).fromString(subnet);
+	(_gateway).fromString(gateway);
+	(_dns1).fromString(dns1);
+	(_dns2).fromString(dns2);
+}
+BasicWiFi::~BasicWiFi() {
 }
 
 void BasicWiFi::onConnected(const WiFiUserHandlers::onWiFiConnectHandler &handler) {
@@ -37,7 +63,7 @@ void BasicWiFi::_onGotIP(const WiFiEventStationModeGotIP &evt) {
 		_serverHttp.begin();
 		BASICSERVERHTTP_PRINTLN("http server started!");
 	}
-	if (_basicSetup._inclMQTT) {
+	if (BasicSetup::_inclMQTT) {
 		_mqttReconnectTimer.once(1, []() {
 			_clientMQTT.connect();
 		});
@@ -52,23 +78,23 @@ void BasicWiFi::_onDisconnected(const WiFiEventStationModeDisconnected &evt) {
 	}
 	if (_basicSetup._inclOTA) {
 	}
-	if (_basicSetup._inclMQTT) {
+	if (BasicSetup::_inclMQTT) {
 		_mqttReconnectTimer.detach();
 	}
 	if (_basicSetup._inclServerHttp) {
 	}
 	_wifiReconnectTimer.once(5, [&]() {
-		WiFi.begin(_config.wifi.ssid, _config.wifi.pass);
+		WiFi.begin(_ssid, _pass);
 	});
 	for (const auto &handler : _onDisconnectHandler) handler(evt);
 }
 void BasicWiFi::setup(bool staticIP) {
 	if (staticIP) {
-		WiFi.config(_config.wifi.IP, _config.wifi.gateway, _config.wifi.subnet, _config.wifi.dns1, _config.wifi.dns2);
+		WiFi.config(_IP, _gateway, _subnet, _dns1, _dns2);
 	}
-	WiFi.mode((WiFiMode_t)_config.wifi.mode);
+	WiFi.mode(_mode);
 	WiFi.persistent(false);
-	WiFi.begin(_config.wifi.ssid, _config.wifi.pass);
+	WiFi.begin(_ssid, _pass);
 	_WiFiConnectedHandler = WiFi.onStationModeConnected([&](const WiFiEventStationModeConnected &evt) {
 		_onConnected(evt);
 	});
@@ -79,7 +105,7 @@ void BasicWiFi::setup(bool staticIP) {
 		_onDisconnected(evt);
 	});
 }
-void BasicWiFi::waitForWiFi(int waitTime) {
+uint8_t BasicWiFi::waitForWiFi(int waitTime) {
 	BASICWIFI_PRINT("Waiting for WiFi connection");
 	u_long startWaitingAt = millis();
 	while (WiFi.status() != WL_CONNECTED) {
@@ -94,12 +120,12 @@ void BasicWiFi::waitForWiFi(int waitTime) {
 		}
 		if (millis() - startWaitingAt > waitTime * 1000) {
 			BASICWIFI_PRINTLN("Can't connect to WiFi!");
-			return;
+            return wifi_fail;
 		}
 	}
-	_checkConnection();
+	return _checkConnection();
 }
-void BasicWiFi::_checkConnection() {
+uint8_t BasicWiFi::_checkConnection() {
 	IPAddress buffer;
 	BASICWIFI_PRINT("checking DNS server");
 	int retry = 0;
@@ -109,10 +135,9 @@ void BasicWiFi::_checkConnection() {
 		retry++;
 		if (retry > 3) {
 			BASICWIFI_PRINTLN("DNS does not work!");
-			return;
+			return dns_fail;
 		}
 	}
 	BASICWIFI_PRINTLN(" OK!");
+    return wifi_connected;
 }
-
-BasicWiFi _basicWiFi;

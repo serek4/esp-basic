@@ -7,46 +7,87 @@
 
 
 bool BasicSetup::_useLed = USE_BUILDIN_LED;
+
+bool BasicSetup::_inclWiFi = WIFI_PLUGIN;
+bool BasicSetup::_inclFS = FS_PLUGIN;
+bool BasicSetup::_inclConfig = CONFIG_PLUGIN;
+bool BasicSetup::_inclServerHttp = SERVERHTTP_PLUGIN;
+bool BasicSetup::_inclOTA = OTA_PLUGIN;
+bool BasicSetup::_inclMQTT = MQTT_PLUGIN;
 bool BasicSetup::_inclTime = TIME_PLUGIN;
 bool BasicSetup::_inclLogger = LOGGER_PLUGIN;
+
+#if WIFI_PLUGIN
+#if STATIC_IP
+BasicWiFi WIFI(WIFI_SSID, WIFI_PASS, WIFI_MODE, WIFI_IP, WIFI_SUBNET, WIFI_GATEWAY, WIFI_DNS1, WIFI_DNS2);
+#else
+BasicWiFi WIFI(WIFI_SSID, WIFI_PASS, WIFI_MODE);
+#endif
+#endif
+#if FS_PLUGIN
+BasicFS basicFS;
+bool BasicFS::_fsStarted = false;
+#endif
+#if SERVERHTTP_PLUGIN
+#if defined HTTP_USER && defined HTTP_PASS
+BasicServerHttp basicServerHttp(HTTP_USER, HTTP_PASS);
+#else
+BasicServerHttp basicServerHttp;
+#endif
+AsyncWebServer &httpServer = _serverHttp;    // reference to original Web server
+#endif
+#if OTA_PLUGIN
+#ifndef OTA_HOSTNAME
+BasicOTA basicOTA;
+#else
+BasicOTA basicOTA(OTA_HOSTNAME);
+#endif
+#endif
+#if MQTT_PLUGIN
+BasicMQTT MQTT(MQTT_BROKER, MQTT_BROKER_PORT, MQTT_CLIENTID, MQTT_KEEPALIVE, MQTT_WILL_TOPIC, MQTT_WILL_MSG, MQTT_USER, MQTT_PASS);
+#endif
 #if TIME_PLUGIN
-BasicTime NTPclient;
+BasicTime NTPclient(NTP_SERVER_ADDRESS, NTP_SERVER_PORT, TIMEZONE);
 #endif
 #if LOGGER_PLUGIN
 BasicLogs logger;
 #endif
-ConfigData &config = _config;                // only for cleaner sketch code
-BasicWiFi &WIFI = _basicWiFi;                // only for cleaner sketch code
-BasicMQTT &MQTT = _basicMQTT;                // only for cleaner sketch code
-AsyncWebServer &httpServer = _serverHttp;    // only for cleaner sketch code
+#if CONFIG_PLUGIN
+BasicConfig basicConfig;
+ConfigData BasicConfig::configFile;
+ConfigData &config = BasicConfig::configFile;    // only for cleaner sketch code
+#endif
 
 class EspBasicSetup {
   public:
 	EspBasicSetup()
-	    : config(_basicConfig) {
-#if STATIC_IP
-		_import.WIFIsettings(WIFI_SSID, WIFI_PASS, WIFI_MODE, WIFI_IP, WIFI_SUBNET, WIFI_GATEWAY, WIFI_DNS1, WIFI_DNS2);
-#else
-		_import.WIFIsettings(WIFI_SSID, WIFI_PASS, WIFI_MODE);
-#endif
-		_import.OTAsettings(OTA_HOST);
-		_import.MQTTsettings(MQTT_BROKER, MQTT_BROKER_PORT, MQTT_CLIENTID, MQTT_KEEPALIVE, MQTT_WILL_TOPIC, MQTT_WILL_MSG, MQTT_USER, MQTT_PASS);
-		_import.ServerHttpSettings(HTTP_USER, HTTP_PASS);
-#if TIME_PLUGIN
-		_import.timeSettings(NTP_SERVER_ADDRESS, NTP_SERVER_PORT, TIMEZONE, SUMMERTIME);
-#endif
-		_import.~ImportSetup();
-	};
+	    : config(basicConfig){};
 	BasicConfig &config;
 	void begin() {
-#if TIME_PLUGIN
+#if FS_PLUGIN    // mount filesystem first
+		if (!(BasicFS::_fsStarted)) {
+			BasicFS::_fsStarted = BasicFS::setup();
+		}
+#endif
+#if CONFIG_PLUGIN    // after filesystem
+		basicConfig.setup();
+#endif
+#if SERVERHTTP_PLUGIN    // after file system and before WiFi
+		basicServerHttp.setup();
+#endif
+#if OTA_PLUGIN    // after config file and before WiFi
+		basicOTA.setup();
+#endif
+#if MQTT_PLUGIN    // after config file and before WiFi
+		MQTT.setup();
+#endif
+#if WIFI_PLUGIN    // after config file
+		WIFI.setup(BasicWiFi::_staticIP);
+#endif
+#if TIME_PLUGIN    // after config file and after WiFi
 		NTPclient.setup();
 #endif
-		_basicSetup.begin();
 	}
-
-  private:
-	ImportSetup _import;
 };
 
 #endif

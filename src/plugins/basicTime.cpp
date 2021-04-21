@@ -2,22 +2,30 @@
 
 AsyncUDP NTPudp;
 
-bool _waitingForNTP = false;
-u_long _requestSendedAt;
-bool _gotNTPserverIP = false;
-IPAddress _timeServerIP;                         // NTP server address
-time_t NTPSyncInterval = 12 * SECS_PER_HOUR;     // timeSet sync interval
-time_t NTPReSyncInterval = 1 * SECS_PER_HOUR;    // timeNeedsSync sync interval
-time_t NTPnoSyncInterval = 5 * SECS_PER_MIN;     // timeNotSet sync interval
+char BasicTime::_NTP_server_address[32];
+int BasicTime::_NTP_server_port;
+int BasicTime::_timezone;
+bool BasicTime::_waitingForNTP = false;
+u_long BasicTime::_requestSendedAt;
+bool BasicTime::_gotNTPserverIP = false;
+IPAddress BasicTime::_timeServerIP;                          // NTP server address
+time_t BasicTime::_NTPSyncInterval = 12 * SECS_PER_HOUR;     // timeSet sync interval
+time_t BasicTime::_NTPReSyncInterval = 1 * SECS_PER_HOUR;    // timeNeedsSync sync interval
+time_t BasicTime::_NTPnoSyncInterval = 5 * SECS_PER_MIN;     // timeNotSet sync interval
 
-BasicTime::BasicTime() {
+BasicTime::BasicTime(const char *NTP_server_address, int NTP_server_port, int timezone) {
+	strcpy(_NTP_server_address, NTP_server_address);
+	_NTP_server_port = NTP_server_port;
+	_timezone = timezone;
+}
+BasicTime::~BasicTime() {
 }
 
 void BasicTime::setup() {
-	setSyncInterval(NTPReSyncInterval);
+	setSyncInterval(_NTPReSyncInterval);
 	setSyncProvider(_requestNtpTime);
 }
-void BasicTime::waitForNTP(int waitTime) {
+bool BasicTime::waitForNTP(int waitTime) {
 	u_long startWaitingAt = millis();
 	BASICTIME_PRINT("Waiting for NTP connection");
 	while (timeStatus() != timeSet) {
@@ -33,9 +41,11 @@ void BasicTime::waitForNTP(int waitTime) {
 		}
 		if (millis() - startWaitingAt > waitTime * 1000) {
 			BASICTIME_PRINTLN("Can't connect to NTP server!");
+			return false;
 			break;
 		}
 	}
+	return true;
 }
 //request time from NTP server
 time_t BasicTime::_requestNtpTime() {
@@ -62,7 +72,7 @@ void BasicTime::_NTPrequestCallback(AsyncUDPPacket &packet) {    // response pac
 // sync time response checker
 void BasicTime::handle() {
 	if (!_gotNTPserverIP && WiFi.isConnected()) {    // waiting for WiFi connection to get NTP server IP
-		_gotNTPserverIP = WiFi.hostByName(_config.time.NTP_server_address, _timeServerIP);
+		_gotNTPserverIP = WiFi.hostByName(_NTP_server_address, _timeServerIP);
 		if (timeStatus() != timeSet) {
 			_requestNtpTime();
 		}
@@ -87,7 +97,7 @@ bool BasicTime::_sendNTPpacket(IPAddress &address) {    // send an NTP request t
 		packetBuffer[14] = 49;
 		packetBuffer[15] = 52;
 		NTPudp.write(packetBuffer, NTP_PACKET_SIZE);
-		setSyncInterval(NTPReSyncInterval);    // set short sync interval when waiting for server response
+		setSyncInterval(_NTPReSyncInterval);    // set short sync interval when waiting for server response
 		_requestSendedAt = millis();
 		_waitingForNTP = true;
 		return true;
@@ -100,23 +110,23 @@ void BasicTime::_NTPsyncInterval(const char *message) {
 	String logMessage = message;
 	switch (timeStatus()) {
 		case timeNotSet:
-			setSyncInterval(NTPnoSyncInterval);    // set very short sync interval if time was never synced
-			logMessage += (String)(NTPnoSyncInterval / SECS_PER_MIN) + "m";
+			setSyncInterval(_NTPnoSyncInterval);    // set very short sync interval if time was never synced
+			logMessage += (String)(_NTPnoSyncInterval / SECS_PER_MIN) + "m";
 			break;
 		case timeNeedsSync:
-			setSyncInterval(NTPReSyncInterval);    // set short sync interval if time was set at least once
-			logMessage += (String)(NTPReSyncInterval / SECS_PER_HOUR) + "h";
+			setSyncInterval(_NTPReSyncInterval);    // set short sync interval if time was set at least once
+			logMessage += (String)(_NTPReSyncInterval / SECS_PER_HOUR) + "h";
 			break;
 		case timeSet:
-			setSyncInterval(NTPSyncInterval);    // set long sync interval on successful sync
-			logMessage += (String)(NTPSyncInterval / SECS_PER_HOUR) + "h";
+			setSyncInterval(_NTPSyncInterval);    // set long sync interval on successful sync
+			logMessage += (String)(_NTPSyncInterval / SECS_PER_HOUR) + "h";
 			break;
 
 		default:
 			break;
 	}
-	BASICTIME_PRINT(logMessage);
-    logMessage.replace("\n",". ");
+	BASICTIME_PRINTLN(logMessage);
+	logMessage.replace("\n", ". ");
 	if (BasicSetup::_inclLogger) {
 		BasicLogs::saveLog(now(), ll_log, logMessage);
 	}
@@ -125,8 +135,8 @@ void BasicTime::_NTPsyncInterval(const char *message) {
 String BasicTime::dateString(time_t timestamp) {
 	String date = "timeNotSet";
 	if (timeStatus() != timeNotSet) {
-		timestamp += _config.time.timezone * SECS_PER_HOUR;             // time zone +1h
-		if (_config.time.summertime) timestamp += 1 * SECS_PER_HOUR;    // summer time +1h
+		if (isDST(timestamp)) timestamp += 1 * SECS_PER_HOUR;    // summer time +1h
+		timestamp += _timezone * SECS_PER_HOUR;                  // time zone + 1h
 		date = (String)(year(timestamp));
 		date += '-';
 		if (month(timestamp) < 10) date += '0';
@@ -141,8 +151,8 @@ String BasicTime::dateString(time_t timestamp) {
 String BasicTime::timeString(time_t timestamp) {
 	String time = "";
 	if (timeStatus() != timeNotSet) {
-		timestamp += _config.time.timezone * SECS_PER_HOUR;             // time zone +1h
-		if (_config.time.summertime) timestamp += 1 * SECS_PER_HOUR;    // summer time +1h
+		if (isDST(timestamp)) timestamp += 1 * SECS_PER_HOUR;    // summer time + 1h
+		timestamp += _timezone * SECS_PER_HOUR;                  // time zone + 1h
 	}
 	if (hour(timestamp) < 10) time += '0';
 	time += (String)hour(timestamp);
@@ -160,4 +170,24 @@ String BasicTime::timeString(time_t timestamp) {
 //converting timestamp to human readable date time string (RRRR-MM-DD hh:mm:ss)[24h]
 String BasicTime::dateTimeString(time_t timestamp) {
 	return dateString(timestamp) + ' ' + timeString(timestamp);
+}
+//European Central Summer Time (CEST) check
+bool BasicTime::isDST(time_t timestamp) {
+	timestamp += _timezone * SECS_PER_HOUR;                   // time zone + 1h
+	if (month(timestamp) >= 10 || month(timestamp) <= 3) {    // winter time/standard time from october to march
+		if (month(timestamp) == 3 || month(timestamp) == 10) {
+			int prevoiusSunday = day(timestamp) - weekday(timestamp);
+			if (prevoiusSunday >= LAST_SUNDAY_OF_THE_MONTH) {
+				if (weekday(timestamp) == 1) {    // last sunday of month
+					if (hour(timestamp) < 2) {    // until 2:00 (2:00->3:00 in march and 3:00->2:00 in october)
+						return month(timestamp) == 3 ? false : true;
+					}
+				}
+				return month(timestamp) == 3 ? true : false;
+			}
+			return month(timestamp) == 3 ? false : false;
+		}
+		return false;
+	}
+	return true;
 }

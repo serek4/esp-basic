@@ -15,16 +15,17 @@ void setup() {
 	mySetup.config.SetUserConfigSize(JSON_OBJECT_SIZE(2) + 40);
 	mySetup.config.loadUserConfig(loadConfig);
 	mySetup.config.saveUserConfig(saveConfig);
-	mySetup.begin();
-	WIFI.onConnected(handleWiFiConnected);
-	WIFI.onGotIP(handleWiFiGotIP);
-	WIFI.onDisconnected(handleWiFiDisconnected);
-	WIFI.waitForWiFi();
-	NTPclient.waitForNTP();
 	MQTT.onConnect(handleMQTTconnect);
 	MQTT.onMessage(handleIncMQTTmsg);
 	MQTT.onDisconnect(handleMQTTdisconnect);
-	MQTT.waitForMQTT();
+	WIFI.onConnected(handleWiFiConnected);
+	WIFI.onGotIP(handleWiFiGotIP);
+	WIFI.onDisconnected(handleWiFiDisconnected);
+	mySetup.begin();
+	if (WIFI.waitForWiFi() == wifi_connected) {
+		NTPclient.waitForNTP();
+		MQTT.waitForMQTT();
+	}
 }
 
 void loop() {

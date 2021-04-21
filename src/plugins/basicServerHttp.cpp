@@ -2,17 +2,27 @@
 
 AsyncWebServer _serverHttp(80);
 
-BasicServerHttp::BasicServerHttp()
-    : _inclServerHttp(true) {
+char BasicServerHttp::_user[16];
+char BasicServerHttp::_pass[16];
+
+BasicServerHttp::BasicServerHttp() {
+	strcpy(_user, "admin");
+	strcpy(_pass, "admin");
+}
+BasicServerHttp::BasicServerHttp(const char *user, const char *pass) {
+	strcpy(_user, user);
+	strcpy(_pass, pass);
+}
+BasicServerHttp::~BasicServerHttp() {
 }
 
 void BasicServerHttp::setup() {
-	if (!(_basicSetup._fsStarted)) {
+	if (!(BasicFS::_fsStarted)) {
 		BASICFS_PRINTLN("mount 2");
-		_basicSetup._fsStarted = _basicFS.setup();
+		BasicFS::_fsStarted = BasicFS::setup();
 	}
-	if (_basicSetup._fsStarted) {
-		_serverHttp.addHandler(new SPIFFSEditor(_config.http.user, _config.http.pass, LittleFS));
+	if (BasicFS::_fsStarted) {
+		_serverHttp.addHandler(new SPIFFSEditor(_user, _pass, LittleFS));
 		_serverHttp.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
 			request->redirect("/edit");
 		});
@@ -34,5 +44,3 @@ void BasicServerHttp::setup() {
 		});
 	}
 }
-
-BasicServerHttp _basicServerHttp;

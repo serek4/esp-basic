@@ -3,13 +3,17 @@
 
 #define USE_BUILDIN_LED true
 
+#define WIFI_PLUGIN true
+#define FS_PLUGIN true
+#define CONFIG_PLUGIN true
+#define SERVERHTTP_PLUGIN true
+#define OTA_PLUGIN true
+#define MQTT_PLUGIN true
 #define TIME_PLUGIN true
 #define LOGGER_PLUGIN true
 
+#if WIFI_PLUGIN
 #define STATIC_IP false
-#define MQTT_SET_LASTWILL true
-#define MQTT_USE_CREDENTIALS true
-
 // wifi settings
 #define WIFI_SSID "your-wifi-ssid"
 #define WIFI_PASS "your-wifi-password"
@@ -21,9 +25,15 @@
 #define WIFI_DNS1 "192.168.0.1"        // optional
 #define WIFI_DNS2 "1.1.1.1"            // optional
 #endif
+#endif
 // OTA settings
-#define OTA_HOST "esp8266-wemos"    // optional
+#if OTA_PLUGIN
+#define OTA_HOSTNAME "esp8266-wemos"    // optional
+#endif
 // MQTT settings
+#if MQTT_PLUGIN
+#define MQTT_SET_LASTWILL true
+#define MQTT_USE_CREDENTIALS true
 #define MQTT_BROKER "broker-hostname"
 #define MQTT_BROKER_PORT 1883
 #define MQTT_CLIENTID "wemos"
@@ -36,15 +46,17 @@
 #define MQTT_USER "mqtt-user"        // optional
 #define MQTT_PASS "mqtt-password"    // optional
 #endif
+#endif
 // web file editor
+#if SERVERHTTP_PLUGIN
 #define HTTP_USER "admin"
 #define HTTP_PASS "admin"
+#endif
 // ntp client settings
 #if TIME_PLUGIN
 #define NTP_SERVER_ADDRESS "0.pool.ntp.org"
 #define NTP_SERVER_PORT 2390
 #define TIMEZONE 1    // Central European Time (Europe/Warsaw)
-#define SUMMERTIME false
 #endif
 // user custom settings
 #define USER_STR "teststr"

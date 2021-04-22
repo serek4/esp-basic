@@ -61,8 +61,12 @@ ConfigData &config = BasicConfig::configFile;    // only for cleaner sketch code
 class EspBasicSetup {
   public:
 	EspBasicSetup()
+#if CONFIG_PLUGIN
 	    : config(basicConfig){};
 	BasicConfig &config;
+#else
+	    {};
+#endif
 	void begin() {
 #if FS_PLUGIN    // mount filesystem first
 		if (!(BasicFS::_fsStarted)) {

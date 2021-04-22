@@ -6,7 +6,11 @@ BasicOTA::BasicOTA(const char *hostname) {
 	strcpy(_hostname, hostname);
 }
 BasicOTA::BasicOTA() {
+#ifdef ARDUINO_ARCH_ESP32
+	sprintf(_hostname, "esp32-%12llX", ESP.getEfuseMac());
+#elif defined(ARDUINO_ARCH_ESP8266)
 	sprintf(_hostname, "esp8266-%06x", ESP.getChipId());
+#endif
 }
 BasicOTA::~BasicOTA() {
 }

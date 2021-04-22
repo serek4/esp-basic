@@ -134,6 +134,13 @@ bool BasicConfig::checkJsonVariant(IPAddress &saveTo, JsonVariant IPstring) {
 	}
 	return false;
 }
+bool BasicConfig::checkJsonVariant(String saveTo, JsonVariant string) {
+	if (string.is<String>()) {
+		saveTo = string.as<String>();
+		return true;
+	}
+	return false;
+}
 bool BasicConfig::checkJsonVariant(int &saveTo, JsonVariant number) {
 	if (number.is<int>()) {
 		saveTo = number;

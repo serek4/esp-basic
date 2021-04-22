@@ -145,6 +145,13 @@ bool BasicConfig::checkJsonVariant(String saveTo, JsonVariant string) {
 	}
 	return false;
 }
+bool BasicConfig::checkJsonVariant(uint8_t &saveTo, JsonVariant number) {
+	if (number.is<uint8_t>()) {
+		saveTo = number;
+		return true;
+	}
+	return false;
+}
 bool BasicConfig::checkJsonVariant(int &saveTo, JsonVariant number) {
 	if (number.is<int>()) {
 		saveTo = number;

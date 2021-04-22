@@ -3,6 +3,7 @@
 #include "../espBasicSetup.hpp"
 #include "IPAddress.h"
 #include <ArduinoJson.h>
+#include <StreamUtils.h>
 #ifdef ARDUINO_ARCH_ESP32
 #include <MD5Builder.h>
 #endif

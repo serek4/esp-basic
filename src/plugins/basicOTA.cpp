@@ -35,7 +35,12 @@ void BasicOTA::setup() {
 		}
 	});
 	ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-		BASICOTA_PRINTF("Progress: %u%%\r", (progress / (total / 100)));
+		uint8_t procent = progress / (total / 100);
+		static uint8_t lastProcent = procent;
+		if (procent != lastProcent) {
+			BASICOTA_PRINTF("Progress: %u%%\r", procent);
+			lastProcent = procent;
+		}
 	});
 	ArduinoOTA.onError([](ota_error_t error) {
 		BASICOTA_PRINTF("Error[%u]: ", error);

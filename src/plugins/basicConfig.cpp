@@ -93,6 +93,8 @@ void BasicConfig::setup() {
 	if (!(BasicFS::_fsStarted)) {
 		BASICFS_PRINTLN("mount 1");
 		BasicFS::_fsStarted = BasicFS::setup();
+	} else {
+		BASICFS_PRINTLN("mount 1 skipped");
 	}
 	if (!_readConfigFile(configFile)) {
 		if (!_readConfigFile(configFile, "backup-config.json")) {
@@ -175,18 +177,34 @@ bool BasicConfig::_loadUserConfig(JsonObject &userConfig) {
 	return test;
 }
 bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
+#ifdef ARDUINO_ARCH_ESP32
+	if (!LITTLEFS.exists(filename)) {
+#elif defined(ARDUINO_ARCH_ESP8266)
 	if (!LittleFS.exists(filename)) {
+#endif
 		BASICCONFIG_PRINTLN(filename + " not found!");
 		return false;
 	}
+#ifdef ARDUINO_ARCH_ESP32
+	File configFile = LITTLEFS.open(filename, "r");
+#elif defined(ARDUINO_ARCH_ESP8266)
 	File configFile = LittleFS.open(filename, "r");
+#endif
 	if (!configFile) {
 		BASICCONFIG_PRINTLN("Failed to read " + filename + "!");
 		configFile.close();
 		return false;
 	}
+#ifdef ARDUINO_ARCH_ESP32
+	MD5Builder _md5;
+	_md5.begin();
+	_md5.add(configFile.readString());
+	_md5.calculate();
+	String configfileMd5 = _md5.toString();    // get config.json md5
+#elif defined(ARDUINO_ARCH_ESP8266)
 	String configfileSha = sha1(configFile.readString());    // get config.json sha1
-	configFile.seek(0, SeekSet);                             // return to file begining
+#endif
+	configFile.seek(0, SeekSet);    // return to file begining
 	size_t capacity = _mainConfigSize + _userConfigSize;
 	DynamicJsonDocument doc(capacity);
 	DeserializationError error = deserializeJson(doc, configFile);
@@ -196,7 +214,11 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 		if (BasicSetup::_inclLogger) {
 			BasicLogs::saveLog(now(), ll_warning, filename + " corrupted");
 		}
+#ifdef ARDUINO_ARCH_ESP32
+		LITTLEFS.rename(filename, "/corrupted_" + filename);
+#elif defined(ARDUINO_ARCH_ESP8266)
 		LittleFS.rename(filename, "corrupted_" + filename);
+#endif
 		return false;
 	}
 	bool mismatch = false;
@@ -250,25 +272,54 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 		if (BasicSetup::_inclLogger) {
 			BasicLogs::saveLog(now(), ll_warning, "config mismatch in " + filename);
 		}
+#ifdef ARDUINO_ARCH_ESP32
+		LITTLEFS.rename(filename, "/mismatched_" + filename);
+#elif defined(ARDUINO_ARCH_ESP8266)
 		LittleFS.rename(filename, "mismatched_" + filename);
+#endif
 		return false;
 	}
 	BASICCONFIG_PRINTLN(filename + " laded!");
 	if (BasicSetup::_inclLogger) {
 		BasicLogs::saveLog(now(), ll_log, filename + " laded");
 	}
+#ifdef ARDUINO_ARCH_ESP32
+	if (!LITTLEFS.exists("/backup-config.json")) {
+		_writeConfigFile(config, "/backup-config.json");
+#elif defined(ARDUINO_ARCH_ESP8266)
 	if (!LittleFS.exists("backup-config.json")) {
 		_writeConfigFile(config, "backup-config.json");
+#endif
 		if (BasicSetup::_inclLogger) {
 			BasicLogs::saveLog(now(), ll_log, "config backup file saved");
 		}
 	} else {
+#ifdef ARDUINO_ARCH_ESP32
+		if (filename == "/backup-config.json") {
+			_writeConfigFile(config, "/config.json");
+#elif defined(ARDUINO_ARCH_ESP8266)
 		if (filename == "backup-config.json") {
 			_writeConfigFile(config, "config.json");
+#endif
 			if (BasicSetup::_inclLogger) {
 				BasicLogs::saveLog(now(), ll_warning, "config restored from backup file");
 			}
 		} else {
+#ifdef ARDUINO_ARCH_ESP32
+			File backup = LITTLEFS.open("/backup-config.json", "r");
+			MD5Builder _md5;
+			_md5.begin();
+			_md5.add(backup.readString());
+			_md5.calculate();
+			String backupfileMd5 = _md5.toString();
+			BASICCONFIG_PRINT("config md5: ");
+			BASICCONFIG_PRINTLN(configfileMd5);
+			BASICCONFIG_PRINT("backup md5: ");
+			BASICCONFIG_PRINTLN(backupfileMd5);
+			backup.close();
+			if (configfileMd5 != backupfileMd5) {
+				_writeConfigFile(config, "/backup-config.json");
+#elif defined(ARDUINO_ARCH_ESP8266)
 			File backup = LittleFS.open("backup-config.json", "r");
 			String backupfileSha = sha1(backup.readString());
 			BASICCONFIG_PRINT("config sha1: ");
@@ -278,6 +329,7 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 			backup.close();
 			if (configfileSha != backupfileSha) {
 				_writeConfigFile(config, "backup-config.json");
+#endif
 				if (BasicSetup::_inclLogger) {
 					BasicLogs::saveLog(now(), ll_log, "config backup file updated");
 				}
@@ -329,8 +381,13 @@ bool BasicConfig::_writeConfigFile(ConfigData &config, String filename, bool sav
 	}
 
 	if (save) {
+#ifdef ARDUINO_ARCH_ESP32
+		bool fileExist = LITTLEFS.exists(filename);
+		File configFile = LITTLEFS.open(filename, "w");
+#elif defined(ARDUINO_ARCH_ESP8266)
 		bool fileExist = LittleFS.exists(filename);
 		File configFile = LittleFS.open(filename, "w");
+#endif
 		if (!configFile) {
 			BASICCONFIG_PRINTLN("Failed to write " + filename + "!");
 			configFile.close();

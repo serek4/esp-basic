@@ -70,7 +70,10 @@ class EspBasicSetup {
 	void begin() {
 #if FS_PLUGIN    // mount filesystem first
 		if (!(BasicFS::_fsStarted)) {
+			BASICFS_PRINTLN("mount 0");
 			BasicFS::_fsStarted = BasicFS::setup();
+		} else {
+			BASICFS_PRINTLN("mount 0 skipped");
 		}
 #endif
 #if CONFIG_PLUGIN    // after filesystem

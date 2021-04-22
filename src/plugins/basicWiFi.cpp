@@ -1,7 +1,9 @@
 #include "basicWiFi.hpp"
 
 
+#if defined(ARDUINO_ARCH_ESP8266)
 WiFiEventHandler _WiFiConnectedHandler, _WiFiGotIpHandler, _WiFiDisconnectedHandler;
+#endif
 Ticker _wifiReconnectTimer;
 
 char BasicWiFi::_ssid[32];
@@ -18,13 +20,13 @@ BasicWiFi::BasicWiFi(const char *ssid, const char *pass, int mode) {
 	strcpy(_ssid, ssid);
 	strcpy(_pass, pass);
 	_mode = static_cast<WiFiMode_t>(mode);
-    _staticIP = false;
+	_staticIP = false;
 }
 BasicWiFi::BasicWiFi(const char *ssid, const char *pass, int mode, const char *IP, const char *subnet, const char *gateway, const char *dns1, const char *dns2) {
 	strcpy(_ssid, ssid);
 	strcpy(_pass, pass);
 	_mode = static_cast<WiFiMode_t>(mode);
-    _staticIP = true;
+	_staticIP = true;
 	(_IP).fromString(IP);
 	(_subnet).fromString(subnet);
 	(_gateway).fromString(gateway);
@@ -43,14 +45,26 @@ void BasicWiFi::onGotIP(const WiFiUserHandlers::onWiFiGotIPhandler &handler) {
 void BasicWiFi::onDisconnected(const WiFiUserHandlers::onWiFiDisconnectHandler &handler) {
 	_onDisconnectHandler.push_back(handler);
 }
+#ifdef ARDUINO_ARCH_ESP32
+void BasicWiFi::_onConnected(WiFiEvent_t event, WiFiEventInfo_t info) {
+#elif defined(ARDUINO_ARCH_ESP8266)
 void BasicWiFi::_onConnected(const WiFiEventStationModeConnected &evt) {
+#endif
 	BASICWIFI_PRINTLN("WiFi connected!\n SSID: " + WiFi.SSID());
 	if (BasicSetup::_inclLogger) {
 		BasicLogs::saveLog(now(), ll_debug, "WiFi connected to: " + WiFi.SSID() + " [" + WiFi.BSSIDstr() + "]");
 	}
+#ifdef ARDUINO_ARCH_ESP32
+	for (const auto &handler : _onConnectHandler) handler(event, info);
+#elif defined(ARDUINO_ARCH_ESP8266)
 	for (const auto &handler : _onConnectHandler) handler(evt);
+#endif
 }
+#ifdef ARDUINO_ARCH_ESP32
+void BasicWiFi::_onGotIP(WiFiEvent_t event, WiFiEventInfo_t info) {
+#elif defined(ARDUINO_ARCH_ESP8266)
 void BasicWiFi::_onGotIP(const WiFiEventStationModeGotIP &evt) {
+#endif
 	BASICWIFI_PRINTLN(" IP:   " + WiFi.localIP().toString());
 	if (BasicSetup::_inclLogger) {
 		BasicLogs::saveLog(now(), ll_debug, "got IP [" + (WiFi.localIP()).toString() + "]");
@@ -68,9 +82,17 @@ void BasicWiFi::_onGotIP(const WiFiEventStationModeGotIP &evt) {
 			_clientMQTT.connect();
 		});
 	}
+#ifdef ARDUINO_ARCH_ESP32
+	for (const auto &handler : _onGotIPhandler) handler(event, info);
+#elif defined(ARDUINO_ARCH_ESP8266)
 	for (const auto &handler : _onGotIPhandler) handler(evt);
+#endif
 }
+#ifdef ARDUINO_ARCH_ESP32
+void BasicWiFi::_onDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
+#elif defined(ARDUINO_ARCH_ESP8266)
 void BasicWiFi::_onDisconnected(const WiFiEventStationModeDisconnected &evt) {
+#endif
 	WiFi.disconnect(true);
 	BASICWIFI_PRINTLN("WiFi disconnected, reconnecting!");
 	if (BasicSetup::_inclLogger) {
@@ -86,7 +108,11 @@ void BasicWiFi::_onDisconnected(const WiFiEventStationModeDisconnected &evt) {
 	_wifiReconnectTimer.once(5, [&]() {
 		WiFi.begin(_ssid, _pass);
 	});
+#ifdef ARDUINO_ARCH_ESP32
+	for (const auto &handler : _onDisconnectHandler) handler(event, info);
+#elif defined(ARDUINO_ARCH_ESP8266)
 	for (const auto &handler : _onDisconnectHandler) handler(evt);
+#endif
 }
 void BasicWiFi::setup(bool staticIP) {
 	if (staticIP) {
@@ -95,6 +121,11 @@ void BasicWiFi::setup(bool staticIP) {
 	WiFi.mode(_mode);
 	WiFi.persistent(false);
 	WiFi.begin(_ssid, _pass);
+#ifdef ARDUINO_ARCH_ESP32
+	WiFi.onEvent([&](WiFiEvent_t event, WiFiEventInfo_t info) { _onConnected(event, info); }, WiFiEvent_t::SYSTEM_EVENT_STA_CONNECTED);
+	WiFi.onEvent([&](WiFiEvent_t event, WiFiEventInfo_t info) { _onGotIP(event, info); }, WiFiEvent_t::SYSTEM_EVENT_STA_GOT_IP);
+	WiFi.onEvent([&](WiFiEvent_t event, WiFiEventInfo_t info) { _onDisconnected(event, info); }, WiFiEvent_t::SYSTEM_EVENT_STA_DISCONNECTED);
+#elif defined(ARDUINO_ARCH_ESP8266)
 	_WiFiConnectedHandler = WiFi.onStationModeConnected([&](const WiFiEventStationModeConnected &evt) {
 		_onConnected(evt);
 	});
@@ -104,6 +135,7 @@ void BasicWiFi::setup(bool staticIP) {
 	_WiFiDisconnectedHandler = WiFi.onStationModeDisconnected([&](const WiFiEventStationModeDisconnected &evt) {
 		_onDisconnected(evt);
 	});
+#endif
 }
 uint8_t BasicWiFi::waitForWiFi(int waitTime) {
 	BASICWIFI_PRINT("Waiting for WiFi connection");
@@ -120,7 +152,7 @@ uint8_t BasicWiFi::waitForWiFi(int waitTime) {
 		}
 		if (millis() - startWaitingAt > waitTime * 1000) {
 			BASICWIFI_PRINTLN("Can't connect to WiFi!");
-            return wifi_fail;
+			return wifi_fail;
 		}
 	}
 	return _checkConnection();
@@ -139,5 +171,5 @@ uint8_t BasicWiFi::_checkConnection() {
 		}
 	}
 	BASICWIFI_PRINTLN(" OK!");
-    return wifi_connected;
+	return wifi_connected;
 }

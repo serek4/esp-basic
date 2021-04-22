@@ -3,6 +3,9 @@
 #include "../espBasicSetup.hpp"
 #include "IPAddress.h"
 #include <ArduinoJson.h>
+#ifdef ARDUINO_ARCH_ESP32
+#include <MD5Builder.h>
+#endif
 #include <functional>
 #include <vector>
 
@@ -100,6 +103,11 @@ class BasicConfig {
 	void _setTimeConfig(ConfigData::Time &TimeConfig);
 	void _setPluginsConfigs(ConfigData &config);
 	void _getPluginsConfigs(ConfigData &config);
+#ifdef ARDUINO_ARCH_ESP32
+	bool _writeConfigFile(ConfigData &config, String filename = "/config.json", bool save = true);
+	bool _readConfigFile(ConfigData &config, String filename = "/config.json");
+#elif defined(ARDUINO_ARCH_ESP8266)
 	bool _writeConfigFile(ConfigData &config, String filename = "config.json", bool save = true);
 	bool _readConfigFile(ConfigData &config, String filename = "config.json");
+#endif
 };

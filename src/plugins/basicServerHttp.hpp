@@ -2,7 +2,11 @@
 
 #include "../espBasicSetup.hpp"
 #include <ESPAsyncWebServer.h>
+#ifdef ARDUINO_ARCH_ESP32
+#include <LITTLEFS.h>
+#elif defined(ARDUINO_ARCH_ESP8266)
 #include <LittleFS.h>
+#endif
 #include <SPIFFSEditor.h>
 
 

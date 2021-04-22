@@ -3,6 +3,7 @@
 #include "../espBasicSetup.hpp"
 #include "IPAddress.h"
 #include <ArduinoJson.h>
+#include <StreamUtils.h>
 #ifdef ARDUINO_ARCH_ESP32
 #include <MD5Builder.h>
 #endif
@@ -77,6 +78,7 @@ class BasicConfig {
 	bool checkJsonVariant(char *saveTo, JsonVariant string);
 	bool checkJsonVariant(String saveTo, JsonVariant string);
 	bool checkJsonVariant(IPAddress &saveTo, JsonVariant IPstring);
+	bool checkJsonVariant(uint8_t &saveTo, JsonVariant number);
 	bool checkJsonVariant(int &saveTo, JsonVariant number);
 	bool checkJsonVariant(float &saveTo, JsonVariant number);
 	static ConfigData configFile;

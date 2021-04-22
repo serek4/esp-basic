@@ -20,9 +20,15 @@ void BasicServerHttp::setup() {
 	if (!(BasicFS::_fsStarted)) {
 		BASICFS_PRINTLN("mount 2");
 		BasicFS::_fsStarted = BasicFS::setup();
+	} else {
+		BASICFS_PRINTLN("mount 2 skipped");
 	}
 	if (BasicFS::_fsStarted) {
+#ifdef ARDUINO_ARCH_ESP32
+		_serverHttp.addHandler(new SPIFFSEditor(LITTLEFS, _user, _pass));
+#elif defined(ARDUINO_ARCH_ESP8266)
 		_serverHttp.addHandler(new SPIFFSEditor(_user, _pass, LittleFS));
+#endif
 		_serverHttp.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
 			request->redirect("/edit");
 		});

@@ -17,7 +17,12 @@ BasicMQTT::BasicMQTT(const char *broker_address)
     : _connected(false) {
 	strcpy(_broker_address, broker_address);
 	_broker_port = 1883;
+
+#ifdef ARDUINO_ARCH_ESP32
+	sprintf(_client_ID, "esp32-%12llX", ESP.getEfuseMac());
+#elif defined(ARDUINO_ARCH_ESP8266)
 	sprintf(_client_ID, "esp8266-%06x", ESP.getChipId());
+#endif
 	_keepalive = 15;
 	//TODO default will and credentials
 }

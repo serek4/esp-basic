@@ -13,7 +13,7 @@
 #define LOGGER_PLUGIN true
 
 #if WIFI_PLUGIN
-#define STATIC_IP false
+#define STATIC_IP true
 // wifi settings
 #define WIFI_SSID "your-wifi-ssid"
 #define WIFI_PASS "your-wifi-password"
@@ -28,7 +28,7 @@
 #endif
 // OTA settings
 #if OTA_PLUGIN
-#define OTA_HOSTNAME "esp8266-wemos"    // optional
+#define OTA_HOSTNAME "esp32-devkit"    // optional
 #endif
 // MQTT settings
 #if MQTT_PLUGIN
@@ -36,10 +36,10 @@
 #define MQTT_USE_CREDENTIALS true
 #define MQTT_BROKER "broker-hostname"
 #define MQTT_BROKER_PORT 1883
-#define MQTT_CLIENTID "wemos"
+#define MQTT_CLIENTID "esp-devkit"
 #define MQTT_KEEPALIVE 15
 #if MQTT_SET_LASTWILL
-#define MQTT_WILL_TOPIC "ESP/wemos/status"    // optional
+#define MQTT_WILL_TOPIC "ESP/esp-devkit/status"    // optional
 #define MQTT_WILL_MSG "off"                   // optional
 #endif
 #if MQTT_USE_CREDENTIALS
@@ -59,6 +59,7 @@
 #define TIMEZONE 1    // Central European Time (Europe/Warsaw)
 #endif
 // user custom settings
+#define USER_CONFIG_SIZE 96
 #define USER_STR "teststr"
 #define USER_INT 15
 

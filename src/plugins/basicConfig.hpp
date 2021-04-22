@@ -7,6 +7,11 @@
 #include <vector>
 
 
+/** Arduino json file size
+ * calculated at https://arduinojson.org/v6/assistant/
+ */
+#define MAIN_CONFIG_SIZE 1024
+
 struct ConfigData {
 	// WiFi settings
 	struct WiFi {
@@ -79,7 +84,8 @@ class BasicConfig {
   private:
 	std::vector<configUserHandlers::saveConfigHandler> _saveConfigHandler;
 	std::vector<configUserHandlers::loadConfigHandler> _loadConfigHandler;
-	size_t _userConfigSize = 0;
+	size_t _mainConfigSize;
+	size_t _userConfigSize;
 	void _saveUserConfig(JsonObject &userConfig);
 	bool _loadUserConfig(JsonObject &userConfig);
 	void _getWiFiConfig(ConfigData::WiFi &WiFiConfig);

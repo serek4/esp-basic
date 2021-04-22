@@ -59,6 +59,7 @@
 #define TIMEZONE 1    // Central European Time (Europe/Warsaw)
 #endif
 // user custom settings
+#define USER_CONFIG_SIZE 96
 #define USER_STR "teststr"
 #define USER_INT 15
 

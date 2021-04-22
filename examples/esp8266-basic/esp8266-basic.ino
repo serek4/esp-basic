@@ -3,7 +3,7 @@
 
 EspBasicSetup mySetup;
 struct UserConfig {
-	char *testStr = USER_STR;
+	String testStr = USER_STR;
 	int testInt = USER_INT;
 } myConfig;
 

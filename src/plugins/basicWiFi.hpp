@@ -1,7 +1,11 @@
 #pragma once
 
 #include "../espBasicSetup.hpp"
+#ifdef ARDUINO_ARCH_ESP32
+#include <WiFi.h>
+#elif defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WiFi.h>
+#endif
 #include <Ticker.h>
 #include <functional>
 #include <vector>
@@ -14,9 +18,15 @@ typedef enum {
 } WiFiStatus;
 
 namespace WiFiUserHandlers {
+#ifdef ARDUINO_ARCH_ESP32
+typedef std::function<void(WiFiEvent_t event, WiFiEventInfo_t info)> onWiFiConnectHandler;
+typedef std::function<void(WiFiEvent_t event, WiFiEventInfo_t info)> onWiFiGotIPhandler;
+typedef std::function<void(WiFiEvent_t event, WiFiEventInfo_t info)> onWiFiDisconnectHandler;
+#elif defined(ARDUINO_ARCH_ESP8266)
 typedef std::function<void(const WiFiEventStationModeConnected &evt)> onWiFiConnectHandler;
 typedef std::function<void(const WiFiEventStationModeGotIP &evt)> onWiFiGotIPhandler;
 typedef std::function<void(const WiFiEventStationModeDisconnected &evt)> onWiFiDisconnectHandler;
+#endif
 }    // namespace WiFiUserHandlers
 
 class BasicWiFi {
@@ -46,9 +56,15 @@ class BasicWiFi {
 	std::vector<WiFiUserHandlers::onWiFiGotIPhandler> _onGotIPhandler;
 	std::vector<WiFiUserHandlers::onWiFiDisconnectHandler> _onDisconnectHandler;
 	uint8_t _checkConnection();
+#ifdef ARDUINO_ARCH_ESP32
+	void _onConnected(WiFiEvent_t event, WiFiEventInfo_t info);
+	void _onGotIP(WiFiEvent_t event, WiFiEventInfo_t info);
+	void _onDisconnected(WiFiEvent_t event, WiFiEventInfo_t info);
+#elif defined(ARDUINO_ARCH_ESP8266)
 	void _onConnected(const WiFiEventStationModeConnected &evt);
 	void _onGotIP(const WiFiEventStationModeGotIP &evt);
 	void _onDisconnected(const WiFiEventStationModeDisconnected &evt);
+#endif
 
 	friend class BasicConfig;
 	friend class EspBasicSetup;

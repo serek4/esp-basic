@@ -3,7 +3,9 @@
 
 ConfigData _defaultConfig;
 
-BasicConfig::BasicConfig() {
+BasicConfig::BasicConfig()
+    : _userConfigSize(0)
+    , _mainConfigSize(MAIN_CONFIG_SIZE) {
 	_getPluginsConfigs(_defaultConfig);
 }
 BasicConfig::~BasicConfig() {
@@ -134,6 +136,13 @@ bool BasicConfig::checkJsonVariant(IPAddress &saveTo, JsonVariant IPstring) {
 	}
 	return false;
 }
+bool BasicConfig::checkJsonVariant(String saveTo, JsonVariant string) {
+	if (string.is<String>()) {
+		saveTo = string.as<String>();
+		return true;
+	}
+	return false;
+}
 bool BasicConfig::checkJsonVariant(int &saveTo, JsonVariant number) {
 	if (number.is<int>()) {
 		saveTo = number;
@@ -178,7 +187,7 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 	}
 	String configfileSha = sha1(configFile.readString());    // get config.json sha1
 	configFile.seek(0, SeekSet);                             // return to file begining
-	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(5) + 2 * JSON_OBJECT_SIZE(8) + 592 + _userConfigSize;
+	size_t capacity = _mainConfigSize + _userConfigSize;
 	DynamicJsonDocument doc(capacity);
 	DeserializationError error = deserializeJson(doc, configFile);
 	configFile.close();
@@ -278,7 +287,7 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 	return true;
 }
 bool BasicConfig::_writeConfigFile(ConfigData &config, String filename, bool save) {
-	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(5) + 2 * JSON_OBJECT_SIZE(8) + 592 + _userConfigSize;
+	size_t capacity = _mainConfigSize + _userConfigSize;
 	DynamicJsonDocument doc(capacity);
 
 	JsonObject WiFi = doc.createNestedObject("WiFi");

@@ -145,6 +145,13 @@ bool BasicConfig::checkJsonVariant(String saveTo, JsonVariant string) {
 	}
 	return false;
 }
+bool BasicConfig::checkJsonVariant(uint8_t &saveTo, JsonVariant number) {
+	if (number.is<uint8_t>()) {
+		saveTo = number;
+		return true;
+	}
+	return false;
+}
 bool BasicConfig::checkJsonVariant(int &saveTo, JsonVariant number) {
 	if (number.is<int>()) {
 		saveTo = number;
@@ -207,7 +214,8 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 	configFile.seek(0, SeekSet);    // return to file begining
 	size_t capacity = _mainConfigSize + _userConfigSize;
 	DynamicJsonDocument doc(capacity);
-	DeserializationError error = deserializeJson(doc, configFile);
+	ReadBufferingStream bufferedConfigFile(configFile, 64);
+	DeserializationError error = deserializeJson(doc, bufferedConfigFile);
 	configFile.close();
 	if (error) {
 		BASICCONFIG_PRINTLN("Failed to parse " + filename + "!");
@@ -393,7 +401,9 @@ bool BasicConfig::_writeConfigFile(ConfigData &config, String filename, bool sav
 			configFile.close();
 			return false;
 		}
-		serializeJsonPretty(doc, configFile);
+		WriteBufferingStream bufferedConfigFile(configFile, 64);
+		serializeJsonPretty(doc, bufferedConfigFile);
+		bufferedConfigFile.flush();
 		configFile.close();
 		BASICCONFIG_PRINTLN(filename + (fileExist ? " updated!" : " saved!"));
 	}

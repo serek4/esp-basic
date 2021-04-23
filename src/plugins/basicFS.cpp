@@ -12,26 +12,26 @@ BasicFS::~BasicFS() {
 bool BasicFS::setup() {
 #ifdef ARDUINO_ARCH_ESP32
 	if (esp_littlefs_mounted("spiffs")) {
-		BASICFS_PRINTLN("LittleFS already mounted!");
-		return true;
-	}
-	if (!LITTLEFS.begin()) {
-		BASICFS_PRINTLN("LITTLEFS mount failed!");
-		return false;
-	}
-	BASICFS_PRINTLN("LITTLEFS mounted!");
-	return true;
 #elif defined(ARDUINO_ARCH_ESP8266)
 	FSInfo FsInfo;
-	if (LittleFS.info(FsInfo)) {
-		BASICFS_PRINTLN("LittleFS already mounted!");
+	if (FILE_SYSTEM.info(FsInfo)) {
+#endif
+		BASICFS_PRINTLN("file system already mounted!");
 		return true;
 	}
-	while (!LittleFS.begin()) {
-		BASICFS_PRINTLN("LittleFS mount failed!");
+	while (!FILE_SYSTEM.begin()) {
+		BASICFS_PRINTLN("file system mount failed!");
 		return false;
 	}
-	BASICFS_PRINTLN("LittleFS mounted!");
+	BASICFS_PRINTLN("file system mounted!");
 	return true;
-#endif
 }
+String BasicFS::fileName(String filename) {
+#ifdef ARDUINO_ARCH_ESP32
+	if(!filename.startsWith("/")) {
+		return "/" + filename;
+	}
+#endif
+	return filename;
+}
+

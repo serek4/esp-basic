@@ -13,6 +13,12 @@
 #include "plugins/basicWiFi.hpp"
 
 
+#ifdef ARDUINO_ARCH_ESP32
+#define FILE_SYSTEM LITTLEFS
+#elif defined(ARDUINO_ARCH_ESP8266)
+#define FILE_SYSTEM LittleFS
+#endif
+
 // #define DEBUG_MESSAGES
 
 #ifdef DEBUG_MESSAGES

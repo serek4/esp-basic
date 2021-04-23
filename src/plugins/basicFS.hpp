@@ -12,6 +12,7 @@
 class BasicFS {
   public:
 	static bool setup();
+	static String fileName(String filename);
 
 	BasicFS();
 	~BasicFS();

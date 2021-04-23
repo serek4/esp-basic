@@ -6,7 +6,14 @@
 #include "espBasicSetup.hpp"
 
 
-bool BasicSetup::_useLed = USE_BUILDIN_LED;
+bool BasicSetup::_useLed = USE_LED;
+#if USE_LED
+uint8_t BasicSetup::_ledPin = LED_PIN;
+bool BasicSetup::_ledON = LED_ON;
+#else
+uint8_t BasicSetup::_ledPin = 255;
+bool BasicSetup::_ledON = HIGH;
+#endif
 
 bool BasicSetup::_inclWiFi = WIFI_PLUGIN;
 bool BasicSetup::_inclFS = FS_PLUGIN;
@@ -61,12 +68,20 @@ ConfigData &config = BasicConfig::configFile;    // only for cleaner sketch code
 class EspBasicSetup {
   public:
 	EspBasicSetup()
+#if CONFIG_PLUGIN
 	    : config(basicConfig){};
 	BasicConfig &config;
+#else
+	    {};
+#endif
 	void begin() {
+		_basicSetup.begin();
 #if FS_PLUGIN    // mount filesystem first
 		if (!(BasicFS::_fsStarted)) {
+			BASICFS_PRINTLN("mount 0");
 			BasicFS::_fsStarted = BasicFS::setup();
+		} else {
+			BASICFS_PRINTLN("mount 0 skipped");
 		}
 #endif
 #if CONFIG_PLUGIN    // after filesystem

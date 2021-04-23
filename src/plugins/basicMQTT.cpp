@@ -17,7 +17,12 @@ BasicMQTT::BasicMQTT(const char *broker_address)
     : _connected(false) {
 	strcpy(_broker_address, broker_address);
 	_broker_port = 1883;
+
+#ifdef ARDUINO_ARCH_ESP32
+	sprintf(_client_ID, "esp32-%12llX", ESP.getEfuseMac());
+#elif defined(ARDUINO_ARCH_ESP8266)
 	sprintf(_client_ID, "esp8266-%06x", ESP.getChipId());
+#endif
 	_keepalive = 15;
 	//TODO default will and credentials
 }
@@ -135,10 +140,7 @@ bool BasicMQTT::waitForMQTT(int waitTime) {
 	while (!_connected) {
 		BASICMQTT_PRINT(".");
 		if (BasicSetup::_useLed) {
-			digitalWrite(LED_BUILTIN, LOW);
-			delay(100);
-			digitalWrite(LED_BUILTIN, HIGH);
-			delay(150);
+			BasicSetup::blinkLed(100, 150);
 		} else {
 			delay(250);
 		}

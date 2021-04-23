@@ -1,7 +1,11 @@
 #ifndef SECRETS_H_
 #define SECRETS_H_
 
-#define USE_BUILDIN_LED true
+#define USE_LED true
+#if USE_LED
+#define LED_PIN LED_BUILTIN
+#define LED_ON LOW
+#endif
 
 #define WIFI_PLUGIN true
 #define FS_PLUGIN true
@@ -59,6 +63,7 @@
 #define TIMEZONE 1    // Central European Time (Europe/Warsaw)
 #endif
 // user custom settings
+#define USER_CONFIG_SIZE 96
 #define USER_STR "teststr"
 #define USER_INT 15
 

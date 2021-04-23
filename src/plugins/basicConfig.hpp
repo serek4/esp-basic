@@ -3,9 +3,18 @@
 #include "../espBasicSetup.hpp"
 #include "IPAddress.h"
 #include <ArduinoJson.h>
+#include <StreamUtils.h>
+#ifdef ARDUINO_ARCH_ESP32
+#include <MD5Builder.h>
+#endif
 #include <functional>
 #include <vector>
 
+
+/** Arduino json file size
+ * calculated at https://arduinojson.org/v6/assistant/
+ */
+#define MAIN_CONFIG_SIZE 1024
 
 struct ConfigData {
 	// WiFi settings
@@ -67,7 +76,9 @@ class BasicConfig {
 	void loadUserConfig(const configUserHandlers::loadConfigHandler &handler);
 	bool checkJsonVariant(bool &saveTo, JsonVariant bit);
 	bool checkJsonVariant(char *saveTo, JsonVariant string);
+	bool checkJsonVariant(String saveTo, JsonVariant string);
 	bool checkJsonVariant(IPAddress &saveTo, JsonVariant IPstring);
+	bool checkJsonVariant(uint8_t &saveTo, JsonVariant number);
 	bool checkJsonVariant(int &saveTo, JsonVariant number);
 	bool checkJsonVariant(float &saveTo, JsonVariant number);
 	static ConfigData configFile;
@@ -78,7 +89,8 @@ class BasicConfig {
   private:
 	std::vector<configUserHandlers::saveConfigHandler> _saveConfigHandler;
 	std::vector<configUserHandlers::loadConfigHandler> _loadConfigHandler;
-	size_t _userConfigSize = 0;
+	size_t _mainConfigSize;
+	size_t _userConfigSize;
 	void _saveUserConfig(JsonObject &userConfig);
 	bool _loadUserConfig(JsonObject &userConfig);
 	void _getWiFiConfig(ConfigData::WiFi &WiFiConfig);

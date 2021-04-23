@@ -7,10 +7,14 @@ u_long BasicLogs::_saveLogDelayTimer = 0;
 const char *BasicLogs::_logLevelStr[] = {"error", "warning", "info", "log", "debug", "unknown"};
 
 BasicLogs::BasicLogs() {
-	if (!BasicFS::_fsStarted) {
+#if defined(ARDUINO_ARCH_ESP8266)
+	if (!BasicFS::_fsStarted) {    //* esp32 crash
 		BASICFS_PRINTLN("mount 3");
 		BasicFS::_fsStarted = BasicFS::setup();
+	} else {
+		BASICFS_PRINTLN("mount 3 skipped");
 	}
+#endif
 }
 
 BasicLogs::~BasicLogs() {
@@ -28,11 +32,11 @@ void BasicLogs::handle() {
 	}
 	if (_logBuffer.length() > 0 && millis() - _saveLogDelayTimer >= 100) {    // save logs from buffer and clear it on success
 		File logFile;
-		if (!(LittleFS.exists("log.csv"))) {
-			logFile = LittleFS.open("log.csv", "w");
+		if (!(FILE_SYSTEM.exists(BasicFS::fileName("log.csv")))) {
+			logFile = FILE_SYSTEM.open(BasicFS::fileName("log.csv"), "w");
 			logFile.print("time, logLevel, message\n");
 		} else {
-			logFile = LittleFS.open("log.csv", "a");
+			logFile = FILE_SYSTEM.open(BasicFS::fileName("log.csv"), "a");
 		}
 		if (!logFile) {
 			BASICLOGS_PRINTLN("write file error: log.csv");

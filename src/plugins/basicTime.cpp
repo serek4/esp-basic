@@ -32,10 +32,7 @@ bool BasicTime::waitForNTP(int waitTime) {
 		BASICTIME_PRINT(".");
 		handle();
 		if (BasicSetup::_useLed) {
-			digitalWrite(LED_BUILTIN, LOW);
-			delay(100);
-			digitalWrite(LED_BUILTIN, HIGH);
-			delay(150);
+			BasicSetup::blinkLed(100, 150);
 		} else {
 			delay(250);
 		}

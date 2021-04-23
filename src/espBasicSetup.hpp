@@ -106,6 +106,7 @@
 class BasicSetup {
   public:
 	void begin();
+	static void blinkLed(int onTime, int offTime);
 
 	BasicSetup();
 
@@ -119,6 +120,8 @@ class BasicSetup {
 	static bool _inclTime;
 	static bool _inclLogger;
 	static bool _useLed;
+	static uint8_t _ledPin;
+	static bool _ledON;
 
 	friend class EspBasicSetup;
 	friend class ImportSetup;

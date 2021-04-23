@@ -1,7 +1,11 @@
 #ifndef SECRETS_H_
 #define SECRETS_H_
 
-#define USE_BUILDIN_LED true
+#define USE_LED true
+#if USE_LED
+#define LED_PIN LED_BUILTIN
+#define LED_ON HIGH
+#endif
 
 #define WIFI_PLUGIN true
 #define FS_PLUGIN true
@@ -13,7 +17,7 @@
 #define LOGGER_PLUGIN true
 
 #if WIFI_PLUGIN
-#define STATIC_IP true
+#define STATIC_IP false
 // wifi settings
 #define WIFI_SSID "your-wifi-ssid"
 #define WIFI_PASS "your-wifi-password"
@@ -40,7 +44,7 @@
 #define MQTT_KEEPALIVE 15
 #if MQTT_SET_LASTWILL
 #define MQTT_WILL_TOPIC "ESP/esp-devkit/status"    // optional
-#define MQTT_WILL_MSG "off"                   // optional
+#define MQTT_WILL_MSG "off"                        // optional
 #endif
 #if MQTT_USE_CREDENTIALS
 #define MQTT_USER "mqtt-user"        // optional

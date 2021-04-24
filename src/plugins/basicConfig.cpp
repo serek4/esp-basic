@@ -277,7 +277,7 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 			BasicLogs::saveLog(now(), ll_log, "config backup file saved");
 		}
 	} else {
-		if (filename == BasicFS::fileName("backup-config.json")) {
+		if (filename == "backup-config.json") {
 			_writeConfigFile(config, BasicFS::fileName("config.json"));
 			if (BasicSetup::_inclLogger) {
 				BasicLogs::saveLog(now(), ll_warning, "config restored from backup file");

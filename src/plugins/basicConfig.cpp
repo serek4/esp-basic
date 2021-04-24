@@ -184,19 +184,11 @@ bool BasicConfig::_loadUserConfig(JsonObject &userConfig) {
 	return test;
 }
 bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
-#ifdef ARDUINO_ARCH_ESP32
-	if (!LITTLEFS.exists(filename)) {
-#elif defined(ARDUINO_ARCH_ESP8266)
-	if (!LittleFS.exists(filename)) {
-#endif
+	if (!FILE_SYSTEM.exists(BasicFS::fileName(filename))) {
 		BASICCONFIG_PRINTLN(filename + " not found!");
 		return false;
 	}
-#ifdef ARDUINO_ARCH_ESP32
-	File configFile = LITTLEFS.open(filename, "r");
-#elif defined(ARDUINO_ARCH_ESP8266)
-	File configFile = LittleFS.open(filename, "r");
-#endif
+	File configFile = FILE_SYSTEM.open(BasicFS::fileName(filename), "r");
 	if (!configFile) {
 		BASICCONFIG_PRINTLN("Failed to read " + filename + "!");
 		configFile.close();
@@ -222,11 +214,7 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 		if (BasicSetup::_inclLogger) {
 			BasicLogs::saveLog(now(), ll_warning, filename + " corrupted");
 		}
-#ifdef ARDUINO_ARCH_ESP32
-		LITTLEFS.rename(filename, "/corrupted_" + filename);
-#elif defined(ARDUINO_ARCH_ESP8266)
-		LittleFS.rename(filename, "corrupted_" + filename);
-#endif
+		FILE_SYSTEM.rename(BasicFS::fileName(filename), BasicFS::fileName("corrupted_" + filename));
 		return false;
 	}
 	bool mismatch = false;
@@ -280,41 +268,27 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 		if (BasicSetup::_inclLogger) {
 			BasicLogs::saveLog(now(), ll_warning, "config mismatch in " + filename);
 		}
-#ifdef ARDUINO_ARCH_ESP32
-		LITTLEFS.rename(filename, "/mismatched_" + filename);
-#elif defined(ARDUINO_ARCH_ESP8266)
-		LittleFS.rename(filename, "mismatched_" + filename);
-#endif
+		FILE_SYSTEM.rename(BasicFS::fileName(filename), BasicFS::fileName("mismatched_" + filename));
 		return false;
 	}
 	BASICCONFIG_PRINTLN(filename + " laded!");
 	if (BasicSetup::_inclLogger) {
 		BasicLogs::saveLog(now(), ll_log, filename + " laded");
 	}
-#ifdef ARDUINO_ARCH_ESP32
-	if (!LITTLEFS.exists("/backup-config.json")) {
-		_writeConfigFile(config, "/backup-config.json");
-#elif defined(ARDUINO_ARCH_ESP8266)
-	if (!LittleFS.exists("backup-config.json")) {
-		_writeConfigFile(config, "backup-config.json");
-#endif
+	if (!FILE_SYSTEM.exists(BasicFS::fileName("backup-config.json"))) {
+		_writeConfigFile(config, BasicFS::fileName("backup-config.json"));
 		if (BasicSetup::_inclLogger) {
 			BasicLogs::saveLog(now(), ll_log, "config backup file saved");
 		}
 	} else {
-#ifdef ARDUINO_ARCH_ESP32
-		if (filename == "/backup-config.json") {
-			_writeConfigFile(config, "/config.json");
-#elif defined(ARDUINO_ARCH_ESP8266)
-		if (filename == "backup-config.json") {
-			_writeConfigFile(config, "config.json");
-#endif
+		if (filename == BasicFS::fileName("backup-config.json")) {
+			_writeConfigFile(config, BasicFS::fileName("config.json"));
 			if (BasicSetup::_inclLogger) {
 				BasicLogs::saveLog(now(), ll_warning, "config restored from backup file");
 			}
 		} else {
 #ifdef ARDUINO_ARCH_ESP32
-			File backup = LITTLEFS.open("/backup-config.json", "r");
+			File backup = FILE_SYSTEM.open(BasicFS::fileName("backup-config.json"), "r");
 			MD5Builder _md5;
 			_md5.begin();
 			_md5.add(backup.readString());
@@ -326,9 +300,9 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 			BASICCONFIG_PRINTLN(backupfileMd5);
 			backup.close();
 			if (configfileMd5 != backupfileMd5) {
-				_writeConfigFile(config, "/backup-config.json");
+				_writeConfigFile(config, BasicFS::fileName("backup-config.json"));
 #elif defined(ARDUINO_ARCH_ESP8266)
-			File backup = LittleFS.open("backup-config.json", "r");
+			File backup = FILE_SYSTEM.open("backup-config.json", "r");
 			String backupfileSha = sha1(backup.readString());
 			BASICCONFIG_PRINT("config sha1: ");
 			BASICCONFIG_PRINTLN(configfileSha);
@@ -389,13 +363,8 @@ bool BasicConfig::_writeConfigFile(ConfigData &config, String filename, bool sav
 	}
 
 	if (save) {
-#ifdef ARDUINO_ARCH_ESP32
-		bool fileExist = LITTLEFS.exists(filename);
-		File configFile = LITTLEFS.open(filename, "w");
-#elif defined(ARDUINO_ARCH_ESP8266)
-		bool fileExist = LittleFS.exists(filename);
-		File configFile = LittleFS.open(filename, "w");
-#endif
+		bool fileExist = FILE_SYSTEM.exists(BasicFS::fileName(filename));
+		File configFile = FILE_SYSTEM.open(BasicFS::fileName(filename), "w");
 		if (!configFile) {
 			BASICCONFIG_PRINTLN("Failed to write " + filename + "!");
 			configFile.close();

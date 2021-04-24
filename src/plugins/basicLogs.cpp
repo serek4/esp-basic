@@ -32,25 +32,17 @@ void BasicLogs::handle() {
 	}
 	if (_logBuffer.length() > 0 && millis() - _saveLogDelayTimer >= 100) {    // save logs from buffer and clear it on success
 		File logFile;
-#ifdef ARDUINO_ARCH_ESP32
-		if (!(LITTLEFS.exists("/log.csv"))) {
-			logFile = LITTLEFS.open("/log.csv", "w");
-#elif defined(ARDUINO_ARCH_ESP8266)
-		if (!(LittleFS.exists("log.csv"))) {
-			logFile = LittleFS.open("log.csv", "w");
-#endif
-			logFile.print("time, logLevel, message\n");
+		WriteBufferingStream bufferedLogFile(logFile, 64);
+		if (!(FILE_SYSTEM.exists(BasicFS::fileName("log.csv")))) {
+			logFile = FILE_SYSTEM.open(BasicFS::fileName("log.csv"), "w");
+			bufferedLogFile.print("time, logLevel, message\n");
 		} else {
-#ifdef ARDUINO_ARCH_ESP32
-			logFile = LITTLEFS.open("/log.csv", "a");
-#elif defined(ARDUINO_ARCH_ESP8266)
-			logFile = LittleFS.open("log.csv", "a");
-#endif
+			logFile = FILE_SYSTEM.open(BasicFS::fileName("log.csv"), "a");
 		}
 		if (!logFile) {
 			BASICLOGS_PRINTLN("write file error: log.csv");
 		} else {
-			logFile.print(_logBuffer);
+			bufferedLogFile.print(_logBuffer);
 			BASICLOGS_PRINTLN("saved logs\n====>");
 			BASICLOGS_PRINT(_logBuffer);
 			BASICLOGS_PRINTLN("<====");
@@ -59,6 +51,7 @@ void BasicLogs::handle() {
 			BASICLOGS_PRINTLN("<====");
 			_logBuffer = "";
 		}
+		bufferedLogFile.flush();
 		logFile.close();
 		_saveLogDelayTimer = millis();
 	}

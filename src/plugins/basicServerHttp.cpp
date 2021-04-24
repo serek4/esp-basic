@@ -25,9 +25,9 @@ void BasicServerHttp::setup() {
 	}
 	if (BasicFS::_fsStarted) {
 #ifdef ARDUINO_ARCH_ESP32
-		_serverHttp.addHandler(new SPIFFSEditor(LITTLEFS, _user, _pass));
+		_serverHttp.addHandler(new SPIFFSEditor(FILE_SYSTEM, _user, _pass));
 #elif defined(ARDUINO_ARCH_ESP8266)
-		_serverHttp.addHandler(new SPIFFSEditor(_user, _pass, LittleFS));
+		_serverHttp.addHandler(new SPIFFSEditor(_user, _pass, FILE_SYSTEM));
 #endif
 		_serverHttp.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
 			request->redirect("/edit");

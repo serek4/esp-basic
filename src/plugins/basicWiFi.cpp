@@ -143,10 +143,7 @@ uint8_t BasicWiFi::waitForWiFi(int waitTime) {
 	while (WiFi.status() != WL_CONNECTED) {
 		BASICWIFI_PRINT(".");
 		if (BasicSetup::_useLed) {
-			digitalWrite(LED_BUILTIN, LOW);
-			delay(200);
-			digitalWrite(LED_BUILTIN, HIGH);
-			delay(300);
+			BasicSetup::blinkLed(200, 300);
 		} else {
 			delay(500);
 		}

@@ -194,16 +194,12 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 		configFile.close();
 		return false;
 	}
-#ifdef ARDUINO_ARCH_ESP32
 	MD5Builder _md5;
 	_md5.begin();
 	_md5.add(configFile.readString());
 	_md5.calculate();
 	String configfileMd5 = _md5.toString();    // get config.json md5
-#elif defined(ARDUINO_ARCH_ESP8266)
-	String configfileSha = sha1(configFile.readString());    // get config.json sha1
-#endif
-	configFile.seek(0, SeekSet);    // return to file begining
+	configFile.seek(0, SeekSet);               // return to file begining
 	size_t capacity = _mainConfigSize + _userConfigSize;
 	DynamicJsonDocument doc(capacity);
 	ReadBufferingStream bufferedConfigFile(configFile, 64);
@@ -287,7 +283,6 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 				BasicLogs::saveLog(now(), ll_warning, "config restored from backup file");
 			}
 		} else {
-#ifdef ARDUINO_ARCH_ESP32
 			File backup = FILE_SYSTEM.open(BasicFS::fileName("backup-config.json"), "r");
 			MD5Builder _md5;
 			_md5.begin();
@@ -301,17 +296,6 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 			backup.close();
 			if (configfileMd5 != backupfileMd5) {
 				_writeConfigFile(config, BasicFS::fileName("backup-config.json"));
-#elif defined(ARDUINO_ARCH_ESP8266)
-			File backup = FILE_SYSTEM.open("backup-config.json", "r");
-			String backupfileSha = sha1(backup.readString());
-			BASICCONFIG_PRINT("config sha1: ");
-			BASICCONFIG_PRINTLN(configfileSha);
-			BASICCONFIG_PRINT("backup sha1: ");
-			BASICCONFIG_PRINTLN(backupfileSha);
-			backup.close();
-			if (configfileSha != backupfileSha) {
-				_writeConfigFile(config, "backup-config.json");
-#endif
 				if (BasicSetup::_inclLogger) {
 					BasicLogs::saveLog(now(), ll_log, "config backup file updated");
 				}

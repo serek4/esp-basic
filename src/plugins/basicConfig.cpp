@@ -3,7 +3,9 @@
 
 ConfigData _defaultConfig;
 
-BasicConfig::BasicConfig() {
+BasicConfig::BasicConfig()
+    : _userConfigSize(0)
+    , _mainConfigSize(MAIN_CONFIG_SIZE) {
 	_getPluginsConfigs(_defaultConfig);
 }
 BasicConfig::~BasicConfig() {
@@ -91,6 +93,8 @@ void BasicConfig::setup() {
 	if (!(BasicFS::_fsStarted)) {
 		BASICFS_PRINTLN("mount 1");
 		BasicFS::_fsStarted = BasicFS::setup();
+	} else {
+		BASICFS_PRINTLN("mount 1 skipped");
 	}
 	if (!_readConfigFile(configFile)) {
 		if (!_readConfigFile(configFile, "backup-config.json")) {
@@ -134,6 +138,20 @@ bool BasicConfig::checkJsonVariant(IPAddress &saveTo, JsonVariant IPstring) {
 	}
 	return false;
 }
+bool BasicConfig::checkJsonVariant(String saveTo, JsonVariant string) {
+	if (string.is<String>()) {
+		saveTo = string.as<String>();
+		return true;
+	}
+	return false;
+}
+bool BasicConfig::checkJsonVariant(uint8_t &saveTo, JsonVariant number) {
+	if (number.is<uint8_t>()) {
+		saveTo = number;
+		return true;
+	}
+	return false;
+}
 bool BasicConfig::checkJsonVariant(int &saveTo, JsonVariant number) {
 	if (number.is<int>()) {
 		saveTo = number;
@@ -166,28 +184,33 @@ bool BasicConfig::_loadUserConfig(JsonObject &userConfig) {
 	return test;
 }
 bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
-	if (!LittleFS.exists(filename)) {
+	if (!FILE_SYSTEM.exists(BasicFS::fileName(filename))) {
 		BASICCONFIG_PRINTLN(filename + " not found!");
 		return false;
 	}
-	File configFile = LittleFS.open(filename, "r");
+	File configFile = FILE_SYSTEM.open(BasicFS::fileName(filename), "r");
 	if (!configFile) {
 		BASICCONFIG_PRINTLN("Failed to read " + filename + "!");
 		configFile.close();
 		return false;
 	}
-	String configfileSha = sha1(configFile.readString());    // get config.json sha1
-	configFile.seek(0, SeekSet);                             // return to file begining
-	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(5) + 2 * JSON_OBJECT_SIZE(8) + 592 + _userConfigSize;
+	MD5Builder _md5;
+	_md5.begin();
+	_md5.add(configFile.readString());
+	_md5.calculate();
+	String configfileMd5 = _md5.toString();    // get config.json md5
+	configFile.seek(0, SeekSet);               // return to file begining
+	size_t capacity = _mainConfigSize + _userConfigSize;
 	DynamicJsonDocument doc(capacity);
-	DeserializationError error = deserializeJson(doc, configFile);
+	ReadBufferingStream bufferedConfigFile(configFile, 64);
+	DeserializationError error = deserializeJson(doc, bufferedConfigFile);
 	configFile.close();
 	if (error) {
 		BASICCONFIG_PRINTLN("Failed to parse " + filename + "!");
 		if (BasicSetup::_inclLogger) {
 			BasicLogs::saveLog(now(), ll_warning, filename + " corrupted");
 		}
-		LittleFS.rename(filename, "corrupted_" + filename);
+		FILE_SYSTEM.rename(BasicFS::fileName(filename), BasicFS::fileName("corrupted_" + filename));
 		return false;
 	}
 	bool mismatch = false;
@@ -241,34 +264,38 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 		if (BasicSetup::_inclLogger) {
 			BasicLogs::saveLog(now(), ll_warning, "config mismatch in " + filename);
 		}
-		LittleFS.rename(filename, "mismatched_" + filename);
+		FILE_SYSTEM.rename(BasicFS::fileName(filename), BasicFS::fileName("mismatched_" + filename));
 		return false;
 	}
 	BASICCONFIG_PRINTLN(filename + " laded!");
 	if (BasicSetup::_inclLogger) {
 		BasicLogs::saveLog(now(), ll_log, filename + " laded");
 	}
-	if (!LittleFS.exists("backup-config.json")) {
-		_writeConfigFile(config, "backup-config.json");
+	if (!FILE_SYSTEM.exists(BasicFS::fileName("backup-config.json"))) {
+		_writeConfigFile(config, BasicFS::fileName("backup-config.json"));
 		if (BasicSetup::_inclLogger) {
 			BasicLogs::saveLog(now(), ll_log, "config backup file saved");
 		}
 	} else {
 		if (filename == "backup-config.json") {
-			_writeConfigFile(config, "config.json");
+			_writeConfigFile(config, BasicFS::fileName("config.json"));
 			if (BasicSetup::_inclLogger) {
 				BasicLogs::saveLog(now(), ll_warning, "config restored from backup file");
 			}
 		} else {
-			File backup = LittleFS.open("backup-config.json", "r");
-			String backupfileSha = sha1(backup.readString());
-			BASICCONFIG_PRINT("config sha1: ");
-			BASICCONFIG_PRINTLN(configfileSha);
-			BASICCONFIG_PRINT("backup sha1: ");
-			BASICCONFIG_PRINTLN(backupfileSha);
+			File backup = FILE_SYSTEM.open(BasicFS::fileName("backup-config.json"), "r");
+			MD5Builder _md5;
+			_md5.begin();
+			_md5.add(backup.readString());
+			_md5.calculate();
+			String backupfileMd5 = _md5.toString();
+			BASICCONFIG_PRINT("config md5: ");
+			BASICCONFIG_PRINTLN(configfileMd5);
+			BASICCONFIG_PRINT("backup md5: ");
+			BASICCONFIG_PRINTLN(backupfileMd5);
 			backup.close();
-			if (configfileSha != backupfileSha) {
-				_writeConfigFile(config, "backup-config.json");
+			if (configfileMd5 != backupfileMd5) {
+				_writeConfigFile(config, BasicFS::fileName("backup-config.json"));
 				if (BasicSetup::_inclLogger) {
 					BasicLogs::saveLog(now(), ll_log, "config backup file updated");
 				}
@@ -278,7 +305,7 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 	return true;
 }
 bool BasicConfig::_writeConfigFile(ConfigData &config, String filename, bool save) {
-	const size_t capacity = JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(5) + 2 * JSON_OBJECT_SIZE(8) + 592 + _userConfigSize;
+	size_t capacity = _mainConfigSize + _userConfigSize;
 	DynamicJsonDocument doc(capacity);
 
 	JsonObject WiFi = doc.createNestedObject("WiFi");
@@ -320,14 +347,16 @@ bool BasicConfig::_writeConfigFile(ConfigData &config, String filename, bool sav
 	}
 
 	if (save) {
-		bool fileExist = LittleFS.exists(filename);
-		File configFile = LittleFS.open(filename, "w");
+		bool fileExist = FILE_SYSTEM.exists(BasicFS::fileName(filename));
+		File configFile = FILE_SYSTEM.open(BasicFS::fileName(filename), "w");
 		if (!configFile) {
 			BASICCONFIG_PRINTLN("Failed to write " + filename + "!");
 			configFile.close();
 			return false;
 		}
-		serializeJsonPretty(doc, configFile);
+		WriteBufferingStream bufferedConfigFile(configFile, 64);
+		serializeJsonPretty(doc, bufferedConfigFile);
+		bufferedConfigFile.flush();
 		configFile.close();
 		BASICCONFIG_PRINTLN(filename + (fileExist ? " updated!" : " saved!"));
 	}

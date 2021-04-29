@@ -1,7 +1,11 @@
 #pragma once
 
 #include "../espBasicSetup.hpp"
+#ifdef ARDUINO_ARCH_ESP32
+#include <AsyncUDP.h>
+#elif defined(ARDUINO_ARCH_ESP8266)
 #include <ESPAsyncUDP.h>
+#endif
 #include <TimeLib.h>
 
 

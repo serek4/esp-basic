@@ -6,7 +6,11 @@ BasicOTA::BasicOTA(const char *hostname) {
 	strcpy(_hostname, hostname);
 }
 BasicOTA::BasicOTA() {
+#ifdef ARDUINO_ARCH_ESP32
+	sprintf(_hostname, "esp32-%12llX", ESP.getEfuseMac());
+#elif defined(ARDUINO_ARCH_ESP8266)
 	sprintf(_hostname, "esp8266-%06x", ESP.getChipId());
+#endif
 }
 BasicOTA::~BasicOTA() {
 }
@@ -31,7 +35,12 @@ void BasicOTA::setup() {
 		}
 	});
 	ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-		BASICOTA_PRINTF("Progress: %u%%\r", (progress / (total / 100)));
+		uint8_t procent = progress / (total / 100);
+		static uint8_t lastProcent = procent;
+		if (procent != lastProcent) {
+			BASICOTA_PRINTF("Progress: %u%%\r", procent);
+			lastProcent = procent;
+		}
 	});
 	ArduinoOTA.onError([](ota_error_t error) {
 		BASICOTA_PRINTF("Error[%u]: ", error);

@@ -40,11 +40,11 @@
 #define MQTT_USE_CREDENTIALS true
 #define MQTT_BROKER "broker-hostname"
 #define MQTT_BROKER_PORT 1883
-#define MQTT_CLIENTID "esp-devkit"
+#define MQTT_CLIENTID "devkit"
 #define MQTT_KEEPALIVE 15
 #if MQTT_SET_LASTWILL
-#define MQTT_WILL_TOPIC "ESP/esp-devkit/status"    // optional
-#define MQTT_WILL_MSG "off"                        // optional
+#define MQTT_WILL_TOPIC "esp/devkit/status"    // optional
+#define MQTT_WILL_MSG "0"                      // optional
 #endif
 #if MQTT_USE_CREDENTIALS
 #define MQTT_USER "mqtt-user"        // optional

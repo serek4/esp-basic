@@ -6,6 +6,7 @@
 #include <functional>
 #include <vector>
 
+#define STATUS_ON_MSG "1"
 
 namespace MQTTuserHandlers {
 typedef std::function<void()> onMQTTconnectHandler;

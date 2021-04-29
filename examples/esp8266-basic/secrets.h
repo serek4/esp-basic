@@ -43,8 +43,8 @@
 #define MQTT_CLIENTID "wemos"
 #define MQTT_KEEPALIVE 15
 #if MQTT_SET_LASTWILL
-#define MQTT_WILL_TOPIC "ESP/wemos/status"    // optional
-#define MQTT_WILL_MSG "off"                   // optional
+#define MQTT_WILL_TOPIC "esp/wemos/status"    // optional
+#define MQTT_WILL_MSG "0"                     // optional
 #endif
 #if MQTT_USE_CREDENTIALS
 #define MQTT_USER "mqtt-user"        // optional

@@ -51,7 +51,11 @@ class BasicWiFi {
 	static IPAddress _gateway;    // optional
 	static IPAddress _dns1;       // optional
 	static IPAddress _dns2;       // optional
+#ifdef ARDUINO_ARCH_ESP32
 	const char *_wifiStatus[7] = {"IDLE_STATUS", "NO_SSID_AVAIL", "SCAN_COMPLETED", "CONNECTED", "CONNECT_FAILED", "CONNECTION_LOST", "DISCONNECTED"};
+#elif defined(ARDUINO_ARCH_ESP8266)
+	const char *_wifiStatus[8] = {"IDLE_STATUS", "NO_SSID_AVAIL", "SCAN_COMPLETED", "CONNECTED", "CONNECT_FAILED", "CONNECTION_LOST", "WRONG_PASSWORD", "DISCONNECTED"};
+#endif
 	std::vector<WiFiUserHandlers::onWiFiConnectHandler> _onConnectHandler;
 	std::vector<WiFiUserHandlers::onWiFiGotIPhandler> _onGotIPhandler;
 	std::vector<WiFiUserHandlers::onWiFiDisconnectHandler> _onDisconnectHandler;

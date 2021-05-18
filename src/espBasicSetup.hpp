@@ -13,6 +13,12 @@
 #include "plugins/basicWiFi.hpp"
 
 
+#ifdef ARDUINO_ARCH_ESP32
+#define FILE_SYSTEM LITTLEFS
+#elif defined(ARDUINO_ARCH_ESP8266)
+#define FILE_SYSTEM LittleFS
+#endif
+
 // #define DEBUG_MESSAGES
 
 #ifdef DEBUG_MESSAGES
@@ -100,6 +106,7 @@
 class BasicSetup {
   public:
 	void begin();
+	static void blinkLed(int onTime, int offTime);
 
 	BasicSetup();
 
@@ -113,6 +120,8 @@ class BasicSetup {
 	static bool _inclTime;
 	static bool _inclLogger;
 	static bool _useLed;
+	static uint8_t _ledPin;
+	static bool _ledON;
 
 	friend class EspBasicSetup;
 	friend class ImportSetup;

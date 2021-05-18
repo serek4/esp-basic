@@ -1,7 +1,11 @@
 #ifndef SECRETS_H_
 #define SECRETS_H_
 
-#define USE_BUILDIN_LED true
+#define USE_LED true
+#if USE_LED
+#define LED_PIN LED_BUILTIN
+#define LED_ON LOW
+#endif
 
 #define WIFI_PLUGIN true
 #define FS_PLUGIN true
@@ -39,8 +43,8 @@
 #define MQTT_CLIENTID "wemos"
 #define MQTT_KEEPALIVE 15
 #if MQTT_SET_LASTWILL
-#define MQTT_WILL_TOPIC "ESP/wemos/status"    // optional
-#define MQTT_WILL_MSG "off"                   // optional
+#define MQTT_WILL_TOPIC "esp/wemos/status"    // optional
+#define MQTT_WILL_MSG "0"                     // optional
 #endif
 #if MQTT_USE_CREDENTIALS
 #define MQTT_USER "mqtt-user"        // optional
@@ -59,6 +63,7 @@
 #define TIMEZONE 1    // Central European Time (Europe/Warsaw)
 #endif
 // user custom settings
+#define USER_CONFIG_SIZE 96
 #define USER_STR "teststr"
 #define USER_INT 15
 

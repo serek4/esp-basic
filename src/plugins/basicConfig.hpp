@@ -1,5 +1,11 @@
 #pragma once
 
+#ifdef ARDUINO_ARCH_ESP32    // time_t = int32_t(long)
+#define ARDUINOJSON_USE_LONG_LONG 0
+#elif defined(ARDUINO_ARCH_ESP8266)    // time_t = int64_t(signed long long)
+#define ARDUINOJSON_USE_LONG_LONG 1
+#endif
+
 #include "../espBasicSetup.hpp"
 #include "IPAddress.h"
 #include <ArduinoJson.h>

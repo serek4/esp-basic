@@ -7,47 +7,49 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-EspBasicSetup  KEYWORD1
-BasicWiFi   KEYWORD1
-BasicTime   KEYWORD1
-BasicServerHttp   KEYWORD1
-BasicOTA   KEYWORD1
-BasicMQTT   KEYWORD1
-BasicLogs   KEYWORD1
-BasicFS   KEYWORD1
-BasicConfig   KEYWORD1
 ConfigData   KEYWORD1
+BasicConfig   KEYWORD1
+BasicFS   KEYWORD1
+BasicLogs   KEYWORD1
+BasicMQTT   KEYWORD1
+BasicOTA   KEYWORD1
+BasicServerHttp   KEYWORD1
+BasicTime   KEYWORD1
+BasicWiFi   KEYWORD1
+EspBasicSetup  KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
-WIFIsettings   KEYWORD2
-OTAsettings   KEYWORD2
-MQTTsettings   KEYWORD2
-ServerHttpSettings   KEYWORD2
+setup  KEYWORD2
 saveConfig  KEYWORD2
 loadConfig    KEYWORD2
 SetUserConfigSize   KEYWORD2
 saveUserConfig   KEYWORD2
 loadUserConfig   KEYWORD2
 checkJsonVariant   KEYWORD2
+fileName   KEYWORD2
+handle  KEYWORD2
+saveLog  KEYWORD2
 waitForMQTT   KEYWORD2
 onConnect   KEYWORD2
 onMessage   KEYWORD2
 onDisconnect   KEYWORD2
 publish   KEYWORD2
 subscribe   KEYWORD2
-waitForWiFi   KEYWORD2
-onConnected   KEYWORD2
-onGotIP   KEYWORD2
-onDisconnected   KEYWORD2
-begin   KEYWORD2
+connected   KEYWORD2
 waitForNTP  KEYWORD2
 dateString  KEYWORD2
 timeString  KEYWORD2
 dateTimeString  KEYWORD2
-saveLog  KEYWORD2
+isDST  KEYWORD2
+waitForWiFi   KEYWORD2
+onConnected   KEYWORD2
+onGotIP   KEYWORD2
+onDisconnected   KEYWORD2
+blinkLed   KEYWORD2
+begin   KEYWORD2
 
 #######################################
 # (KEYWORD3)

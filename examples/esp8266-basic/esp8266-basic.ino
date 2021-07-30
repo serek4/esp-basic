@@ -64,7 +64,7 @@ void handleMQTTconnect() {
 }
 void handleIncMQTTmsg(const char *topic, const char *payload) {
 	Serial.printf("Incomming mqtt message!\n msg.topic:   %s\n msg.payload: %s\n", topic, payload);
-	MQTT.publish("ESP/wemos/feedback", payload);
+	MQTT.publish("esp/wemos/feedback", payload);
 }
 void handleMQTTdisconnect(int8_t reason) {
 	Serial.println("User handler for MQTT onDisconnect");

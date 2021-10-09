@@ -182,7 +182,7 @@ bool BasicTime::isDST(time_t timestamp) {
 				}
 				return month(timestamp) == 3 ? true : false;
 			}
-			return month(timestamp) == 3 ? false : false;
+			return month(timestamp) == 3 ? false : true;
 		}
 		return false;
 	}

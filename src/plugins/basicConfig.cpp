@@ -232,7 +232,7 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 	if (!checkJsonVariant(config.ota.hostname, doc["OTA"]["host"])) mismatch |= true;    // "esp8266-chipID"
 	JsonObject MQTT = doc["MQTT"];
 	if (!MQTT.isNull()) {
-		if (!checkJsonVariant(config.mqtt.broker, MQTT["broker"])) mismatch |= true;              // "brocker-hostname"
+		if (!checkJsonVariant(config.mqtt.broker, MQTT["broker"])) mismatch |= true;              // "broker-hostname"
 		if (!checkJsonVariant(config.mqtt.broker_port, MQTT["broker_port"])) mismatch |= true;    // 1883
 		if (!checkJsonVariant(config.mqtt.client_ID, MQTT["client_ID"])) mismatch |= true;        // "esp8266chipID"
 		if (!checkJsonVariant(config.mqtt.keepalive, MQTT["keepalive"])) mismatch |= true;        // 15

@@ -125,7 +125,7 @@ bool BasicConfig::checkJsonVariant(bool &saveTo, JsonVariant bit) {
 	return false;
 }
 bool BasicConfig::checkJsonVariant(char *saveTo, JsonVariant string) {
-	if (string.is<char *>()) {
+	if (string.is<const char *>()) {    //* ArduinoJson library: is<char*>() is deprecated since 6.18, removed in 6.19
 		strcpy(saveTo, string);
 		return true;
 	}

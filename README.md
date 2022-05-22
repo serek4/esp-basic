@@ -26,5 +26,5 @@
 - [ESPAsyncWebServer.h](https://github.com/me-no-dev/ESPAsyncWebServer)
 - [TimeLib.h](https://github.com/PaulStoffregen/Time)
 - [PangolinMQTT.h(v2.0.0)](https://github.com/philbowles/PangolinMQTT/tree/522c5249767b88b17163ffcc43be3ea91249bc93)
-- [ArduinoJson.h](https://github.com/bblanchon/ArduinoJson)
+- [ArduinoJson.h](https://github.com/bblanchon/ArduinoJson) - [6.19.4](https://github.com/bblanchon/ArduinoJson/tree/v6.19.4)
 - [StreamUtils.h](https://github.com/bblanchon/ArduinoStreamUtils)

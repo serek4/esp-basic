@@ -1,5 +1,8 @@
 #pragma once
 
+//* ARDUINOJSON_USE_DOUBLE 1 is default from version 6.19
+#define ARDUINOJSON_USE_DOUBLE 0
+//* ARDUINOJSON_USE_LONG_LONG 1 is default from version 6.19 for 32-bits & 64-bit platforms
 #ifdef ARDUINO_ARCH_ESP32    // time_t = int32_t(long)
 #define ARDUINOJSON_USE_LONG_LONG 0
 #elif defined(ARDUINO_ARCH_ESP8266)    // time_t = int64_t(signed long long)

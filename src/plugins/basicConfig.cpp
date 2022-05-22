@@ -125,7 +125,7 @@ bool BasicConfig::checkJsonVariant(bool &saveTo, JsonVariant bit) {
 	return false;
 }
 bool BasicConfig::checkJsonVariant(char *saveTo, JsonVariant string) {
-	if (string.is<char *>()) {
+	if (string.is<const char *>()) {    //* ArduinoJson library: is<char*>() is deprecated since 6.18, removed in 6.19
 		strcpy(saveTo, string);
 		return true;
 	}
@@ -199,7 +199,7 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 	_md5.add(configFile.readString());
 	_md5.calculate();
 	String configfileMd5 = _md5.toString();    // get config.json md5
-	configFile.seek(0, SeekSet);               // return to file begining
+	configFile.seek(0, SeekSet);               // return to file beginning
 	size_t capacity = _mainConfigSize + _userConfigSize;
 	DynamicJsonDocument doc(capacity);
 	ReadBufferingStream bufferedConfigFile(configFile, 64);
@@ -232,7 +232,7 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 	if (!checkJsonVariant(config.ota.hostname, doc["OTA"]["host"])) mismatch |= true;    // "esp8266-chipID"
 	JsonObject MQTT = doc["MQTT"];
 	if (!MQTT.isNull()) {
-		if (!checkJsonVariant(config.mqtt.broker, MQTT["broker"])) mismatch |= true;              // "brocker-hostname"
+		if (!checkJsonVariant(config.mqtt.broker, MQTT["broker"])) mismatch |= true;              // "broker-hostname"
 		if (!checkJsonVariant(config.mqtt.broker_port, MQTT["broker_port"])) mismatch |= true;    // 1883
 		if (!checkJsonVariant(config.mqtt.client_ID, MQTT["client_ID"])) mismatch |= true;        // "esp8266chipID"
 		if (!checkJsonVariant(config.mqtt.keepalive, MQTT["keepalive"])) mismatch |= true;        // 15

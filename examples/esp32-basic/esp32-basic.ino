@@ -40,10 +40,10 @@ void loop() {
 }
 
 bool loadConfig(JsonObject config) {
-	bool succes = true;
-	if (!mySetup.config.checkJsonVariant(myConfig.testStr, config["teststr"])) succes &= false;
-	if (!mySetup.config.checkJsonVariant(myConfig.testInt, config["testint"])) succes &= false;
-	return succes;
+	bool success = true;
+	if (!mySetup.config.checkJsonVariant(myConfig.testStr, config["teststr"])) success &= false;
+	if (!mySetup.config.checkJsonVariant(myConfig.testInt, config["testint"])) success &= false;
+	return success;
 }
 void saveConfig(JsonObject config) {
 	config["teststr"] = myConfig.testStr;
@@ -63,7 +63,7 @@ void handleMQTTconnect() {
 	Serial.println("User handler for MQTT onConnect");
 }
 void handleIncMQTTmsg(const char *topic, const char *payload) {
-	Serial.printf("Incomming mqtt message!\n msg.topic:   %s\n msg.payload: %s\n", topic, payload);
+	Serial.printf("Incoming mqtt message!\n msg.topic:   %s\n msg.payload: %s\n", topic, payload);
 	MQTT.publish("esp/devkit/feedback", payload);
 }
 void handleMQTTdisconnect(int8_t reason) {

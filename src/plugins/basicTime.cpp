@@ -135,11 +135,11 @@ String BasicTime::dateString(time_t timestamp) {
 		if (isDST(timestamp)) timestamp += 1 * SECS_PER_HOUR;    // summer time +1h
 		timestamp += _timezone * SECS_PER_HOUR;                  // time zone + 1h
 		date = (String)(year(timestamp));
-		date += '-';
-		if (month(timestamp) < 10) date += '0';
+		date += "-";
+		if (month(timestamp) < 10) date += "0";
 		date += (String)(month(timestamp));
-		date += '-';
-		if (day(timestamp) < 10) date += '0';
+		date += "-";
+		if (day(timestamp) < 10) date += "0";
 		date += (String)(day(timestamp));
 	}
 	return date;
@@ -151,13 +151,13 @@ String BasicTime::timeString(time_t timestamp) {
 		if (isDST(timestamp)) timestamp += 1 * SECS_PER_HOUR;    // summer time + 1h
 		timestamp += _timezone * SECS_PER_HOUR;                  // time zone + 1h
 	}
-	if (hour(timestamp) < 10) time += '0';
+	if (hour(timestamp) < 10) time += "0";
 	time += (String)hour(timestamp);
-	time += ':';
-	if (minute(timestamp) < 10) time += '0';
+	time += ":";
+	if (minute(timestamp) < 10) time += "0";
 	time += (String)(minute(timestamp));
-	time += ':';
-	if (second(timestamp) < 10) time += '0';
+	time += ":";
+	if (second(timestamp) < 10) time += "0";
 	time += (String)(second(timestamp));
 	if (timeStatus() == timeNeedsSync) {
 		time += "*";
@@ -166,15 +166,15 @@ String BasicTime::timeString(time_t timestamp) {
 }
 //converting timestamp to human readable date time string (RRRR-MM-DD hh:mm:ss)[24h]
 String BasicTime::dateTimeString(time_t timestamp) {
-	return dateString(timestamp) + ' ' + timeString(timestamp);
+	return dateString(timestamp) + " " + timeString(timestamp);
 }
 //European Central Summer Time (CEST) check
 bool BasicTime::isDST(time_t timestamp) {
 	timestamp += _timezone * SECS_PER_HOUR;                   // time zone + 1h
 	if (month(timestamp) >= 10 || month(timestamp) <= 3) {    // winter time/standard time from october to march
 		if (month(timestamp) == 3 || month(timestamp) == 10) {
-			int prevoiusSunday = day(timestamp) - weekday(timestamp);
-			if (prevoiusSunday >= LAST_SUNDAY_OF_THE_MONTH) {
+			int previousSunday = day(timestamp) - weekday(timestamp);
+			if (previousSunday >= LAST_SUNDAY_OF_THE_MONTH) {
 				if (weekday(timestamp) == 1) {    // last sunday of month
 					if (hour(timestamp) < 2) {    // until 2:00 (2:00->3:00 in march and 3:00->2:00 in october)
 						return month(timestamp) == 3 ? false : true;

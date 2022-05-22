@@ -28,10 +28,9 @@ bool BasicFS::setup() {
 }
 String BasicFS::fileName(String filename) {
 #ifdef ARDUINO_ARCH_ESP32
-	if(!filename.startsWith("/")) {
+	if (!filename.startsWith("/")) {
 		return "/" + filename;
 	}
 #endif
 	return filename;
 }
-

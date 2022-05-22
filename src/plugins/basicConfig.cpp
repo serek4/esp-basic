@@ -199,7 +199,7 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 	_md5.add(configFile.readString());
 	_md5.calculate();
 	String configfileMd5 = _md5.toString();    // get config.json md5
-	configFile.seek(0, SeekSet);               // return to file begining
+	configFile.seek(0, SeekSet);               // return to file beginning
 	size_t capacity = _mainConfigSize + _userConfigSize;
 	DynamicJsonDocument doc(capacity);
 	ReadBufferingStream bufferedConfigFile(configFile, 64);

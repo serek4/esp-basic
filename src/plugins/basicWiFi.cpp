@@ -102,6 +102,7 @@ void BasicWiFi::_onDisconnected(const WiFiEventStationModeDisconnected &evt) {
 	}
 	if (BasicSetup::_inclMQTT) {
 		_mqttReconnectTimer.detach();
+		_clientMQTT.disconnect();
 	}
 	if (_basicSetup._inclServerHttp) {
 	}

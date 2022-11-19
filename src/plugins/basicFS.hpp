@@ -1,11 +1,9 @@
 #pragma once
 
 #include "../espBasicSetup.hpp"
-#ifdef ARDUINO_ARCH_ESP32
-#include <LITTLEFS.h>
-#include <esp_littlefs.h>
-#elif defined(ARDUINO_ARCH_ESP8266)
 #include <LittleFS.h>
+#ifdef ARDUINO_ARCH_ESP32
+#include <esp_littlefs.h>
 #endif
 
 

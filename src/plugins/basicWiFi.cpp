@@ -106,7 +106,7 @@ void BasicWiFi::_onDisconnected(const WiFiEventStationModeDisconnected &evt) {
 	}
 	if (_basicSetup._inclServerHttp) {
 	}
-	_wifiReconnectTimer.once(5, [&]() {
+	_wifiReconnectTimer.once(5, []() {
 		WiFi.begin(_ssid, _pass);
 	});
 #ifdef ARDUINO_ARCH_ESP32
@@ -123,9 +123,9 @@ void BasicWiFi::setup(bool staticIP) {
 	WiFi.persistent(false);
 	WiFi.begin(_ssid, _pass);
 #ifdef ARDUINO_ARCH_ESP32
-	WiFi.onEvent([&](WiFiEvent_t event, WiFiEventInfo_t info) { _onConnected(event, info); }, WiFiEvent_t::SYSTEM_EVENT_STA_CONNECTED);
-	WiFi.onEvent([&](WiFiEvent_t event, WiFiEventInfo_t info) { _onGotIP(event, info); }, WiFiEvent_t::SYSTEM_EVENT_STA_GOT_IP);
-	WiFi.onEvent([&](WiFiEvent_t event, WiFiEventInfo_t info) { _onDisconnected(event, info); }, WiFiEvent_t::SYSTEM_EVENT_STA_DISCONNECTED);
+	WiFi.onEvent([&](WiFiEvent_t event, WiFiEventInfo_t info) { _onConnected(event, info); }, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_CONNECTED);
+	WiFi.onEvent([&](WiFiEvent_t event, WiFiEventInfo_t info) { _onGotIP(event, info); }, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_GOT_IP);
+	WiFi.onEvent([&](WiFiEvent_t event, WiFiEventInfo_t info) { _onDisconnected(event, info); }, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 #elif defined(ARDUINO_ARCH_ESP8266)
 	_WiFiConnectedHandler = WiFi.onStationModeConnected([&](const WiFiEventStationModeConnected &evt) {
 		_onConnected(evt);

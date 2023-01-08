@@ -78,9 +78,7 @@ void BasicWiFi::_onGotIP(const WiFiEventStationModeGotIP &evt) {
 		BASICSERVERHTTP_PRINTLN("http server started!");
 	}
 	if (BasicSetup::_inclMQTT) {
-		_mqttReconnectTimer.once(1, []() {
-			_clientMQTT.connect();
-		});
+		BasicMQTT::connect();
 	}
 #ifdef ARDUINO_ARCH_ESP32
 	for (const auto &handler : _onGotIPhandler) handler(event, info);
@@ -101,8 +99,7 @@ void BasicWiFi::_onDisconnected(const WiFiEventStationModeDisconnected &evt) {
 	if (_basicSetup._inclOTA) {
 	}
 	if (BasicSetup::_inclMQTT) {
-		_mqttReconnectTimer.detach();
-		_clientMQTT.disconnect();
+		BasicMQTT::disconnect();
 	}
 	if (_basicSetup._inclServerHttp) {
 	}

@@ -13,8 +13,9 @@ char BasicMQTT::_will_msg[16];      // optional
 char BasicMQTT::_user[16];          // optional
 char BasicMQTT::_pass[16];          // optional
 
-BasicMQTT::BasicMQTT(const char *broker_address)
-    : _connected(false) {
+bool BasicMQTT::_connected = false;
+
+BasicMQTT::BasicMQTT(const char *broker_address) {
 	strcpy(_broker_address, broker_address);
 	_broker_port = 1883;
 
@@ -26,8 +27,7 @@ BasicMQTT::BasicMQTT(const char *broker_address)
 	_keepalive = 15;
 	//TODO default will and credentials
 }
-BasicMQTT::BasicMQTT(const char *broker_address, int broker_port, const char *clientID, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass)
-    : _connected(false) {
+BasicMQTT::BasicMQTT(const char *broker_address, int broker_port, const char *clientID, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass) {
 	strcpy(_broker_address, broker_address);
 	_broker_port = broker_port;
 	strcpy(_client_ID, clientID);
@@ -38,6 +38,18 @@ BasicMQTT::BasicMQTT(const char *broker_address, int broker_port, const char *cl
 	strcpy(_pass, pass);
 }
 BasicMQTT::~BasicMQTT() {
+}
+
+void BasicMQTT::connect() {
+	BasicMQTT::_connected = true;
+	_clientMQTT.connect();
+}
+void BasicMQTT::disconnect() {
+	if (_connected) {
+		BasicMQTT::_connected = false;
+		_clientMQTT.disconnect();
+		_mqttReconnectTimer.detach();
+	}
 }
 
 void BasicMQTT::onConnect(const MQTTuserHandlers::onMQTTconnectHandler &handler) {
@@ -89,7 +101,7 @@ void BasicMQTT::_onConnect() {
 	if (BasicSetup::_inclLogger) {
 		BasicLogs::saveLog(now(), ll_debug, (String) "MQTT connected [" + _clientMQTT.getClientId() + "@" + _broker_address + "]");
 	}
-	_connected = true;
+	_mqttReconnectTimer.detach();
 	_clientMQTT.publish(((String) "esp/" + _clientMQTT.getClientId() + "/status").c_str(), STATUS_ON_MSG, strlen(STATUS_ON_MSG), 0, true);
 	_clientMQTT.subscribe(((String) "esp/" + _clientMQTT.getClientId() + "/commands").c_str(), 0);
 	_clientMQTT.subscribe(((String) "esp/" + _clientMQTT.getClientId() + "/status").c_str(), 0);
@@ -111,8 +123,9 @@ void BasicMQTT::_onDisconnect(int8_t reason) {
 		    ll_debug,
 		    "MQTT disconnected [" + String(_MQTTerror[(reason < 0) ? 12 : reason]) + (reason < 0 ? "(" + String(reason, 10) + ")]" : "]"));
 	}
-	_connected = false;
-	_mqttReconnectTimer.once(_keepalive * PANGO_POLL_RATE, []() { _clientMQTT.connect(); });
+	if (_connected) {
+		_mqttReconnectTimer.attach(_keepalive * PANGO_POLL_RATE, []() { connect(); });
+	}
 	for (const auto &handler : _onDisconnectHandler) handler(reason);
 }
 void BasicMQTT::setup() {

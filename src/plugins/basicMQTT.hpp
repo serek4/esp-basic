@@ -30,6 +30,8 @@ class BasicMQTT {
 	void publish(const char *topic, float payload, uint8_t qos = 0, bool retain = false) { publish(topic, payload, 3, 2, qos, retain); };
 	void publish(const char *topic, float payload, signed char width, unsigned char prec, uint8_t qos = 0, bool retain = false);
 	void subscribe(const char *topic, uint8_t qos = 0);
+	static void connect();
+	static void disconnect();
 	bool connected();
 
 	BasicMQTT(const char *broker_address);
@@ -45,7 +47,7 @@ class BasicMQTT {
 	static char _will_msg[16];      // optional
 	static char _user[16];          // optional
 	static char _pass[16];          // optional
-	bool _connected;
+	static bool _connected;
 	const char *_MQTTerror[13] = {"TCP_DISCONNECTED", "MQTT_SERVER_UNAVAILABLE", "UNRECOVERABLE_CONNECT_FAIL",
 	                              "TLS_BAD_FINGERPRINT", "SUBSCRIBE_FAIL", "INBOUND_QOS_ACK_FAIL",
 	                              "OUTBOUND_QOS_ACK_FAIL", "INBOUND_PUB_TOO_BIG", "OUTBOUND_PUB_TOO_BIG", "BOGUS_PACKET",
@@ -59,6 +61,3 @@ class BasicMQTT {
 
 	friend class BasicConfig;
 };
-
-extern PangolinMQTT _clientMQTT;
-extern Ticker _mqttReconnectTimer;

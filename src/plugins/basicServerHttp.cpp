@@ -49,4 +49,27 @@ void BasicServerHttp::setup() {
 			request->send(404, "text/plain", message);
 		});
 	}
+	syncTime();
+	reconnectMQTT();
+}
+
+void BasicServerHttp::syncTime() {
+	_serverHttp.on("/syncTime", HTTP_GET, [](AsyncWebServerRequest *request) {
+		if (BasicSetup::_inclLogger) {
+			BasicLogs::saveLog(now(), ll_info, "manual NTP sync");
+		}
+		BasicTime::_requestNtpTime();
+		AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", "NTP sync request sent");
+		request->send(response);
+	});
+}
+void BasicServerHttp::reconnectMQTT() {
+	_serverHttp.on("/reconnectMQTT", HTTP_GET, [](AsyncWebServerRequest *request) {
+		if (BasicSetup::_inclLogger) {
+			BasicLogs::saveLog(now(), ll_info, "manual MQTT reconnect");
+		}
+		BasicMQTT::reconnect();
+		AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", "reconnect MQTT command sent");
+		request->send(response);
+	});
 }

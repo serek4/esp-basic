@@ -9,6 +9,8 @@
 class BasicServerHttp {
   public:
 	void setup();
+	void syncTime();
+	void reconnectMQTT();
 
 	BasicServerHttp();
 	BasicServerHttp(const char *user, const char *pass);

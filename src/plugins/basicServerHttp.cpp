@@ -51,6 +51,7 @@ void BasicServerHttp::setup() {
 	}
 	syncTime();
 	reconnectMQTT();
+	reconnectWiFi();
 }
 
 void BasicServerHttp::syncTime() {
@@ -70,6 +71,16 @@ void BasicServerHttp::reconnectMQTT() {
 		}
 		BasicMQTT::reconnect();
 		AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", "reconnect MQTT command sent");
+		request->send(response);
+	});
+}
+void BasicServerHttp::reconnectWiFi() {
+	_serverHttp.on("/reconnectWiFi", HTTP_GET, [](AsyncWebServerRequest *request) {
+		if (BasicSetup::_inclLogger) {
+			BasicLogs::saveLog(now(), ll_info, "manual WiFi reconnect");
+		}
+		BasicWiFi::reconnect();
+		AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", "reconnect WiFi command sent");
 		request->send(response);
 	});
 }

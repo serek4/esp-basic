@@ -44,4 +44,5 @@ class BasicTime {
 	static void _NTPsyncInterval(const char *message);
 
 	friend class BasicConfig;
+	friend class BasicServerHttp;
 };

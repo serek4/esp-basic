@@ -65,6 +65,7 @@ void BasicWiFi::_onGotIP(WiFiEvent_t event, WiFiEventInfo_t info) {
 #elif defined(ARDUINO_ARCH_ESP8266)
 void BasicWiFi::_onGotIP(const WiFiEventStationModeGotIP &evt) {
 #endif
+	_wifiReconnectTimer.detach();
 	BASICWIFI_PRINTLN(" IP:   " + WiFi.localIP().toString());
 	if (BasicSetup::_inclLogger) {
 		BasicLogs::saveLog(now(), ll_debug, "got IP [" + (WiFi.localIP()).toString() + "]");
@@ -91,11 +92,23 @@ void BasicWiFi::_onDisconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
 #elif defined(ARDUINO_ARCH_ESP8266)
 void BasicWiFi::_onDisconnected(const WiFiEventStationModeDisconnected &evt) {
 #endif
-	WiFi.disconnect(true);
-	BASICWIFI_PRINTLN("WiFi disconnected, reconnecting!");
+	BASICWIFI_PRINTLN("WiFi disconnected");
 	if (BasicSetup::_inclLogger) {
 		BasicLogs::saveLog(now(), ll_debug, "WiFi disconnected [" + String(_wifiStatus[WiFi.status()]) + "]");
 	}
+	BasicWiFi::reconnect();
+#ifdef ARDUINO_ARCH_ESP32
+	for (const auto &handler : _onDisconnectHandler) handler(event, info);
+#elif defined(ARDUINO_ARCH_ESP8266)
+	for (const auto &handler : _onDisconnectHandler) handler(evt);
+#endif
+}
+
+void BasicWiFi::connect() {
+	WiFi.begin(_ssid, _pass);
+}
+void BasicWiFi::disconnect() {
+	_wifiReconnectTimer.detach();
 	if (_basicSetup._inclOTA) {
 	}
 	if (BasicSetup::_inclMQTT) {
@@ -103,14 +116,13 @@ void BasicWiFi::_onDisconnected(const WiFiEventStationModeDisconnected &evt) {
 	}
 	if (_basicSetup._inclServerHttp) {
 	}
-	_wifiReconnectTimer.once(5, []() {
-		WiFi.begin(_ssid, _pass);
+	WiFi.disconnect(true);
+}
+void BasicWiFi::reconnect(uint8_t reconnectDelay) {
+	disconnect();
+	_wifiReconnectTimer.attach(reconnectDelay, []() {
+		connect();
 	});
-#ifdef ARDUINO_ARCH_ESP32
-	for (const auto &handler : _onDisconnectHandler) handler(event, info);
-#elif defined(ARDUINO_ARCH_ESP8266)
-	for (const auto &handler : _onDisconnectHandler) handler(evt);
-#endif
 }
 void BasicWiFi::setup(bool staticIP) {
 	if (staticIP) {

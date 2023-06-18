@@ -49,4 +49,38 @@ void BasicServerHttp::setup() {
 			request->send(404, "text/plain", message);
 		});
 	}
+	syncTime();
+	reconnectMQTT();
+	reconnectWiFi();
+}
+
+void BasicServerHttp::syncTime() {
+	_serverHttp.on("/syncTime", HTTP_GET, [](AsyncWebServerRequest *request) {
+		if (BasicSetup::_inclLogger) {
+			BasicLogs::saveLog(now(), ll_info, "manual NTP sync");
+		}
+		AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", "NTP sync request sent");
+		request->send(response);
+		BasicTime::_requestNtpTime();
+	});
+}
+void BasicServerHttp::reconnectMQTT() {
+	_serverHttp.on("/reconnectMQTT", HTTP_GET, [](AsyncWebServerRequest *request) {
+		if (BasicSetup::_inclLogger) {
+			BasicLogs::saveLog(now(), ll_info, "manual MQTT reconnect");
+		}
+		AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", "reconnect MQTT command sent");
+		request->send(response);
+		BasicMQTT::reconnect();
+	});
+}
+void BasicServerHttp::reconnectWiFi() {
+	_serverHttp.on("/reconnectWiFi", HTTP_GET, [](AsyncWebServerRequest *request) {
+		if (BasicSetup::_inclLogger) {
+			BasicLogs::saveLog(now(), ll_info, "manual WiFi reconnect");
+		}
+		AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", "reconnect WiFi command sent");
+		request->send(response);
+		BasicWiFi::reconnect();
+	});
 }

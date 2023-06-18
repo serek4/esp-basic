@@ -44,6 +44,12 @@ void BasicMQTT::connect() {
 	BasicMQTT::_connected = true;
 	_clientMQTT.connect();
 }
+void BasicMQTT::reconnect() {
+	disconnect();
+	_mqttReconnectTimer.once(5, []() {
+		connect();
+	});
+}
 void BasicMQTT::disconnect() {
 	if (_connected) {
 		BasicMQTT::_connected = false;

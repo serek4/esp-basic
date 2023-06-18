@@ -11,6 +11,8 @@
 #include <vector>
 
 
+#define DEFAULT_RECONNECT_DELAY 10
+
 typedef enum {
 	wifi_connected,
 	dns_fail,
@@ -36,6 +38,9 @@ class BasicWiFi {
 	void onConnected(const WiFiUserHandlers::onWiFiConnectHandler &handler);
 	void onGotIP(const WiFiUserHandlers::onWiFiGotIPhandler &handler);
 	void onDisconnected(const WiFiUserHandlers::onWiFiDisconnectHandler &handler);
+	static void connect();
+	static void disconnect();
+	static void reconnect(uint8_t reconnectDelay = DEFAULT_RECONNECT_DELAY);
 
 	BasicWiFi(const char *ssid, const char *pass, int mode);
 	BasicWiFi(const char *ssid, const char *pass, int mode, const char *IP, const char *subnet, const char *gateway, const char *dns1, const char *dns2);

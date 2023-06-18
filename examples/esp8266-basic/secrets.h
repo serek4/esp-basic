@@ -41,6 +41,7 @@
 #define MQTT_BROKER "broker-hostname"
 #define MQTT_BROKER_PORT 1883
 #define MQTT_CLIENTID "wemos"
+#define MQTT_CLEAN_SESSION true
 #define MQTT_KEEPALIVE 15
 #if MQTT_SET_LASTWILL
 #define MQTT_WILL_TOPIC "esp/wemos/status"    // optional

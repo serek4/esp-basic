@@ -49,6 +49,7 @@ void BasicConfig::_getMQTTConfig(ConfigData::MQTT &MQTTconfig) {
 	strcpy(MQTTconfig.broker, BasicMQTT::_broker_address);
 	MQTTconfig.broker_port = BasicMQTT::_broker_port;
 	strcpy(MQTTconfig.client_ID, BasicMQTT::_client_ID);
+	MQTTconfig.cleanSession = BasicMQTT::_cleanSession;
 	MQTTconfig.keepalive = BasicMQTT::_keepalive;
 	strcpy(MQTTconfig.will_topic, BasicMQTT::_will_topic);
 	strcpy(MQTTconfig.will_msg, BasicMQTT::_will_msg);
@@ -59,6 +60,7 @@ void BasicConfig::_setMQTTConfig(ConfigData::MQTT &MQTTconfig) {
 	strcpy(BasicMQTT::_broker_address, MQTTconfig.broker);
 	BasicMQTT::_broker_port = MQTTconfig.broker_port;
 	strcpy(BasicMQTT::_client_ID, MQTTconfig.client_ID);
+	BasicMQTT::_cleanSession = MQTTconfig.cleanSession;
 	BasicMQTT::_keepalive = MQTTconfig.keepalive;
 	strcpy(BasicMQTT::_will_topic, MQTTconfig.will_topic);
 	strcpy(BasicMQTT::_will_msg, MQTTconfig.will_msg);
@@ -216,9 +218,9 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 	bool mismatch = false;
 	JsonObject WiFi = doc["WiFi"];
 	if (!WiFi.isNull()) {
-		if (!checkJsonVariant(config.wifi.ssid, WiFi["ssid"])) mismatch |= true;    // "your-wifi-ssid"
-		if (!checkJsonVariant(config.wifi.pass, WiFi["pass"])) mismatch |= true;    // "your-wifi-password"
-		if (!checkJsonVariant(config.wifi.mode, WiFi["mode"])) mismatch |= true;    // "1"
+		if (!checkJsonVariant(config.wifi.ssid, WiFi["ssid"])) mismatch |= true;              // "your-wifi-ssid"
+		if (!checkJsonVariant(config.wifi.pass, WiFi["pass"])) mismatch |= true;              // "your-wifi-password"
+		if (!checkJsonVariant(config.wifi.mode, WiFi["mode"])) mismatch |= true;              // "1"
 		if (BasicWiFi::_staticIP) {
 			if (!checkJsonVariant(config.wifi.IP, WiFi["IP"])) mismatch |= true;              // "192.168.0.150"
 			if (!checkJsonVariant(config.wifi.subnet, WiFi["subnet"])) mismatch |= true;      // "255.255.255.0"
@@ -232,14 +234,15 @@ bool BasicConfig::_readConfigFile(ConfigData &config, String filename) {
 	if (!checkJsonVariant(config.ota.hostname, doc["OTA"]["host"])) mismatch |= true;    // "esp8266-chipID"
 	JsonObject MQTT = doc["MQTT"];
 	if (!MQTT.isNull()) {
-		if (!checkJsonVariant(config.mqtt.broker, MQTT["broker"])) mismatch |= true;              // "broker-hostname"
-		if (!checkJsonVariant(config.mqtt.broker_port, MQTT["broker_port"])) mismatch |= true;    // 1883
-		if (!checkJsonVariant(config.mqtt.client_ID, MQTT["client_ID"])) mismatch |= true;        // "esp8266chipID"
-		if (!checkJsonVariant(config.mqtt.keepalive, MQTT["keepalive"])) mismatch |= true;        // 15
-		if (!checkJsonVariant(config.mqtt.will_topic, MQTT["will_topic"])) mismatch |= true;      // "ESP/esp8266chipID/status"
-		if (!checkJsonVariant(config.mqtt.will_msg, MQTT["will_msg"])) mismatch |= true;          // "off"
-		if (!checkJsonVariant(config.mqtt.user, MQTT["user"])) mismatch |= true;                  // "mqtt-user"
-		if (!checkJsonVariant(config.mqtt.pass, MQTT["pass"])) mismatch |= true;                  // "mqtt-password"
+		if (!checkJsonVariant(config.mqtt.broker, MQTT["broker"])) mismatch |= true;                // "broker-hostname"
+		if (!checkJsonVariant(config.mqtt.broker_port, MQTT["broker_port"])) mismatch |= true;      // 1883
+		if (!checkJsonVariant(config.mqtt.client_ID, MQTT["client_ID"])) mismatch |= true;          // "esp8266chipID"
+		if (!checkJsonVariant(config.mqtt.cleanSession, MQTT["cleanSession"])) mismatch |= true;    // true
+		if (!checkJsonVariant(config.mqtt.keepalive, MQTT["keepalive"])) mismatch |= true;          // 15
+		if (!checkJsonVariant(config.mqtt.will_topic, MQTT["will_topic"])) mismatch |= true;        // "ESP/esp8266chipID/status"
+		if (!checkJsonVariant(config.mqtt.will_msg, MQTT["will_msg"])) mismatch |= true;            // "off"
+		if (!checkJsonVariant(config.mqtt.user, MQTT["user"])) mismatch |= true;                    // "mqtt-user"
+		if (!checkJsonVariant(config.mqtt.pass, MQTT["pass"])) mismatch |= true;                    // "mqtt-password"
 	} else {
 		mismatch |= true;
 	}
@@ -326,6 +329,7 @@ bool BasicConfig::_writeConfigFile(ConfigData &config, String filename, bool sav
 	MQTT["broker"] = config.mqtt.broker;
 	MQTT["broker_port"] = config.mqtt.broker_port;
 	MQTT["client_ID"] = config.mqtt.client_ID;
+	MQTT["cleanSession"] = config.mqtt.cleanSession;
 	MQTT["keepalive"] = config.mqtt.keepalive;
 	MQTT["will_topic"] = config.mqtt.will_topic;
 	MQTT["will_msg"] = config.mqtt.will_msg;

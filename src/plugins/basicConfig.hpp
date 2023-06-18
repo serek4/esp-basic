@@ -3,7 +3,7 @@
 //* ARDUINOJSON_USE_DOUBLE 1 is default from version 6.19
 #define ARDUINOJSON_USE_DOUBLE 0
 //* ARDUINOJSON_USE_LONG_LONG 1 is default from version 6.19 for 32-bits & 64-bit platforms
-#ifdef ARDUINO_ARCH_ESP32    // time_t = int32_t(long)
+#ifdef ARDUINO_ARCH_ESP32              // time_t = int32_t(long)
 #define ARDUINOJSON_USE_LONG_LONG 0
 #elif defined(ARDUINO_ARCH_ESP8266)    // time_t = int64_t(signed long long)
 #define ARDUINOJSON_USE_LONG_LONG 1
@@ -44,6 +44,7 @@ struct ConfigData {
 		char broker[32];
 		int broker_port;
 		char client_ID[32];
+		bool cleanSession;
 		int keepalive;
 		char will_topic[64];    // optional
 		char will_msg[16];      // optional

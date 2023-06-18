@@ -36,13 +36,14 @@ class BasicMQTT {
 	bool connected();
 
 	BasicMQTT(const char *broker_address);
-	BasicMQTT(const char *broker_address, int broker_port, const char *clientID, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass);
+	BasicMQTT(const char *broker_address, int broker_port, const char *clientID, bool cleanSession, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass);
 	~BasicMQTT();
 
   private:
 	static char _broker_address[32];
 	static int _broker_port;
 	static char _client_ID[32];
+	static bool _cleanSession;
 	static int _keepalive;
 	static char _will_topic[64];    // optional
 	static char _will_msg[16];      // optional

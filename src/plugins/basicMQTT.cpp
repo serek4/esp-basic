@@ -7,6 +7,7 @@ Ticker _mqttReconnectTimer;
 char BasicMQTT::_broker_address[32];
 int BasicMQTT::_broker_port;
 char BasicMQTT::_client_ID[32];
+bool BasicMQTT::_cleanSession;
 int BasicMQTT::_keepalive;
 char BasicMQTT::_will_topic[64];    // optional
 char BasicMQTT::_will_msg[16];      // optional
@@ -18,6 +19,7 @@ bool BasicMQTT::_connected = false;
 BasicMQTT::BasicMQTT(const char *broker_address) {
 	strcpy(_broker_address, broker_address);
 	_broker_port = 1883;
+	_cleanSession = true;
 
 #ifdef ARDUINO_ARCH_ESP32
 	sprintf(_client_ID, "esp32-%12llX", ESP.getEfuseMac());
@@ -27,10 +29,11 @@ BasicMQTT::BasicMQTT(const char *broker_address) {
 	_keepalive = 15;
 	//TODO default will and credentials
 }
-BasicMQTT::BasicMQTT(const char *broker_address, int broker_port, const char *clientID, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass) {
+BasicMQTT::BasicMQTT(const char *broker_address, int broker_port, const char *clientID, bool cleanSession, int keepAlive, const char *willTopic, const char *willMsg, const char *user, const char *pass) {
 	strcpy(_broker_address, broker_address);
 	_broker_port = broker_port;
 	strcpy(_client_ID, clientID);
+	_cleanSession = cleanSession;
 	_keepalive = keepAlive;
 	strcpy(_will_topic, willTopic);
 	strcpy(_will_msg, willMsg);
@@ -136,6 +139,7 @@ void BasicMQTT::_onDisconnect(int8_t reason) {
 }
 void BasicMQTT::setup() {
 	_clientMQTT.setClientId(_client_ID);
+	_clientMQTT.setCleanSession(_cleanSession);
 	_clientMQTT.setKeepAlive(_keepalive);
 	_clientMQTT.setWill(_will_topic, 2, true, _will_msg);
 	_clientMQTT.setCredentials(_user, _pass);
